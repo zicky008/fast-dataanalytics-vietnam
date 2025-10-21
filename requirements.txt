@@ -1,0 +1,47 @@
+# DataAnalytics Vietnam - Python Dependencies
+# Compatible with Python 3.11+
+
+# ============================================
+# WEB FRAMEWORK
+# ============================================
+streamlit>=1.31.0
+
+# ============================================
+# DATA PROCESSING
+# ============================================
+pandas>=2.0.0
+numpy>=1.24.0
+openpyxl>=3.1.0  # For Excel file support
+chardet>=5.2.0   # For encoding detection
+
+# ============================================
+# VISUALIZATION
+# ============================================
+plotly>=5.18.0
+kaleido>=0.2.1   # For static image export
+
+# ============================================
+# AI/ML
+# ============================================
+google-generativeai>=0.3.0
+
+# ============================================
+# UTILITIES
+# ============================================
+python-dotenv>=1.0.0
+pydantic>=2.0.0
+tenacity>=8.2.0  # For retry logic
+
+# ============================================
+# OPTIONAL: PDF EXPORT (Future Feature)
+# ============================================
+# reportlab>=4.0.0
+# fpdf2>=2.7.0
+
+# ============================================
+# DEVELOPMENT ONLY (Remove for production)
+# ============================================
+# pytest>=7.4.0
+# pytest-cov>=4.1.0
+# black>=23.0.0
+# flake8>=6.0.0

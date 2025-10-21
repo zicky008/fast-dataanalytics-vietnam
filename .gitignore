@@ -1,4 +1,18 @@
-# Python
+# DataAnalytics Vietnam - Git Ignore File
+
+# ============================================
+# ENVIRONMENT & SECRETS
+# ============================================
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+secrets.toml
+
+# ============================================
+# PYTHON
+# ============================================
 __pycache__/
 *.py[cod]
 *$py.class
@@ -16,62 +30,70 @@ parts/
 sdist/
 var/
 wheels/
+pip-wheel-metadata/
+share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
 
-# Virtual Environment
+# ============================================
+# VIRTUAL ENVIRONMENTS
+# ============================================
 venv/
-ENV/
 env/
-.venv
+ENV/
+env.bak/
+venv.bak/
 
-# IDE
+# ============================================
+# IDE & EDITORS
+# ============================================
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# Environment variables
-.env
-.env.local
-.env.*.local
-
-# OS
 .DS_Store
-Thumbs.db
 
-# Streamlit
-.streamlit/secrets.toml
-.streamlit/config.toml
+# ============================================
+# LOGS
+# ============================================
+logs/
+*.log
+pip-log.txt
+pip-delete-this-directory.txt
 
-# Testing
+# ============================================
+# TESTING
+# ============================================
 .pytest_cache/
 .coverage
 htmlcov/
 .tox/
+.hypothesis/
 
-# Logs
-*.log
-logs/
+# ============================================
+# JUPYTER NOTEBOOKS
+# ============================================
+.ipynb_checkpoints
+*.ipynb
 
-# Data (large files)
-*.csv.gz
-*.parquet
-*.db
-*.sqlite
+# ============================================
+# DATA FILES (TEMPORARY)
+# ============================================
+data/temp/
+data/cache/
+*.csv.bak
+*.xlsx.bak
 
-# Temporary files
-tmp/
-temp/
-*.tmp
+# ============================================
+# STREAMLIT
+# ============================================
+.streamlit/secrets.toml
 
-# Backup files
-*.bak
-*.backup
-*.tar.gz
-*.zip
+# ============================================
+# CLOUDFLARE (if migrating later)
+# ============================================
+.wrangler/
+node_modules/
