@@ -381,16 +381,18 @@ OUTPUT JSON:
         
         for chart_spec in smart_blueprint.get('charts', [])[:10]:  # Limit to 10 charts
             try:
-                chart_id = chart_spec['id']
-                chart_title = chart_spec['title']
-                chart_type = chart_spec['type']
+                chart_id = str(chart_spec.get('id', 'unknown'))
+                chart_title = str(chart_spec.get('title', 'Untitled'))
+                chart_type = str(chart_spec.get('type', 'bar'))
                 x_axis = chart_spec.get('x_axis')
                 y_axis = chart_spec.get('y_axis')
                 
-                # Validate columns exist
-                if x_axis and x_axis not in df.columns:
+                # Skip if required fields are None
+                if not x_axis or not y_axis:
                     continue
-                if y_axis and y_axis not in df.columns:
+                
+                # Validate columns exist  
+                if x_axis not in df.columns or y_axis not in df.columns:
                     continue
                 
                 # Create chart
