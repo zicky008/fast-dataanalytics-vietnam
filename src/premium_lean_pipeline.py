@@ -282,12 +282,153 @@ OUTPUT JSON:
         except json.JSONDecodeError as e:
             return {'success': False, 'error': f"❌ Lỗi phân tích dữ liệu: {str(e)}"}
     
+    def _calculate_real_kpis(self, df: pd.DataFrame, domain_info: Dict) -> Dict:
+        """
+        ⭐ CRITICAL: Calculate KPIs from REAL DATA (not AI estimation)
+        This ensures "cực kỳ chuẩn xác, uy tín, tin cậy" requirement
+        """
+        kpis = {}
+        domain = domain_info.get('domain_name', 'general').lower()
+        
+        # Get numeric columns
+        numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
+        all_cols_lower = [col.lower() for col in df.columns]
+        
+        # === SMART COLUMN DETECTION ===
+        primary_metric_col = None
+        priority_keywords = ['salary', 'revenue', 'sales', 'profit', 'cost', 'price', 'amount', 'value']
+        
+        for keyword in priority_keywords:
+            matching_cols = [df.columns[i] for i, col in enumerate(all_cols_lower) 
+                           if keyword in col and df.columns[i] in numeric_cols]
+            if matching_cols:
+                primary_metric_col = matching_cols[0]
+                break
+        
+        if not primary_metric_col and len(numeric_cols) > 0:
+            sums = {col: abs(df[col].sum()) for col in numeric_cols}
+            primary_metric_col = max(sums, key=sums.get)
+        
+        # === SALARY DATA (high priority - works even if domain is "General") ===
+        if 'salary' in ' '.join(all_cols_lower):
+            salary_col = [col for col in df.columns if 'salary' in col.lower()][0]
+            kpis['Average Salary'] = {
+                'value': float(df[salary_col].mean()),
+                'benchmark': 75000,
+                'status': 'Above' if df[salary_col].mean() >= 75000 else 'Below',
+                'column': salary_col
+            }
+            
+            kpis['Median Salary'] = {
+                'value': float(df[salary_col].median()),
+                'benchmark': 70000,
+                'status': 'Above' if df[salary_col].median() >= 70000 else 'Below',
+                'column': salary_col
+            }
+            
+            kpis['Salary Range'] = {
+                'value': float(df[salary_col].max() - df[salary_col].min()),
+                'benchmark': 200000,
+                'status': 'Wide Range',
+                'column': salary_col
+            }
+            
+            # Years of Experience ratio (if available)
+            exp_cols = [col for col in df.columns if 'experience' in col.lower() or 'yoe' in col.lower()]
+            if exp_cols:
+                exp_col = exp_cols[0]
+                avg_exp = df[exp_col].mean()
+                avg_salary = df[salary_col].mean()
+                if avg_exp > 0:
+                    kpis['Salary per Experience Year'] = {
+                        'value': float(avg_salary / avg_exp),
+                        'benchmark': 10000,
+                        'status': 'Competitive',
+                        'column': f"{salary_col}/{exp_col}"
+                    }
+        
+        # === MARKETING DATA ===
+        elif 'marketing' in domain or 'quảng cáo' in domain:
+            if 'cost' in ' '.join(all_cols_lower):
+                cost_col = [col for col in df.columns if 'cost' in col.lower()][0]
+                kpis['Total Cost'] = {
+                    'value': float(df[cost_col].sum()),
+                    'benchmark': 100000,
+                    'status': 'Check',
+                    'column': cost_col
+                }
+            
+            if 'revenue' in ' '.join(all_cols_lower):
+                rev_col = [col for col in df.columns if 'revenue' in col.lower()][0]
+                kpis['Total Revenue'] = {
+                    'value': float(df[rev_col].sum()),
+                    'benchmark': 400000,
+                    'status': 'Check',
+                    'column': rev_col
+                }
+                
+                if 'cost' in ' '.join(all_cols_lower):
+                    cost_col = [col for col in df.columns if 'cost' in col.lower()][0]
+                    total_revenue = df[rev_col].sum()
+                    total_cost = df[cost_col].sum()
+                    if total_cost > 0:
+                        roas = total_revenue / total_cost
+                        kpis['ROAS'] = {
+                            'value': float(roas),
+                            'benchmark': 4.0,
+                            'status': 'Above' if roas >= 4.0 else 'Below',
+                            'column': f"{rev_col}/{cost_col}"
+                        }
+        
+        # === E-COMMERCE DATA ===
+        elif 'ecommerce' in domain or 'e-commerce' in domain:
+            if 'revenue' in ' '.join(all_cols_lower):
+                rev_col = [col for col in df.columns if 'revenue' in col.lower()][0]
+                avg_order_value = df[rev_col].mean()
+                
+                kpis['AOV'] = {
+                    'value': float(avg_order_value),
+                    'benchmark': 81.49,
+                    'status': 'Above' if avg_order_value >= 81.49 else 'Below',
+                    'column': rev_col
+                }
+        
+        # === FALLBACK: UNIVERSAL KPIs ===
+        else:
+            if primary_metric_col:
+                col_name = primary_metric_col
+                kpis[f'Average {col_name}'] = {
+                    'value': float(df[col_name].mean()),
+                    'benchmark': float(df[col_name].median()),
+                    'status': 'At Median',
+                    'column': col_name
+                }
+                
+                kpis[f'Median {col_name}'] = {
+                    'value': float(df[col_name].median()),
+                    'benchmark': float(df[col_name].mean()),
+                    'status': 'At Average',
+                    'column': col_name
+                }
+                
+                kpis[f'Total {col_name}'] = {
+                    'value': float(df[col_name].sum()),
+                    'benchmark': float(df[col_name].sum() * 0.8),
+                    'status': 'Above Target',
+                    'column': col_name
+                }
+        
+        return kpis
+    
     @rate_limit_handler(max_retries=3, backoff_base=2)
     @log_performance("Smart Blueprint")
     def step2_smart_blueprint(self, df: pd.DataFrame, domain_info: Dict) -> Dict:
         """
         Step 2: Smart Blueprint - Combined EDA + Blueprint (15s)
         Single AI call instead of 2 separate calls
+        
+        ⭐ CRITICAL CHANGE: Now calculates KPIs from REAL DATA first,
+        then passes to AI for INTERPRETATION only (not calculation)
         """
         
         domain_context = get_domain_specific_prompt_context(domain_info)
@@ -296,6 +437,9 @@ OUTPUT JSON:
         numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
         categorical_cols = df.select_dtypes(include=['object']).columns.tolist()
         all_cols = df.columns.tolist()
+        
+        # ⭐ NEW: Calculate KPIs from REAL DATA first
+        kpis_calculated = self._calculate_real_kpis(df, domain_info)
         
         # Combined prompt with STRICT chart requirements
         prompt = f"""
@@ -310,8 +454,11 @@ DATA PROFILE:
 - Categorical Columns: {', '.join(categorical_cols[:5])}
 - Sample Data: {df.head(3).to_dict('records')}
 
+⭐ ACTUAL CALCULATED KPIs (from real data - DO NOT RECALCULATE):
+{json.dumps(kpis_calculated, indent=2, ensure_ascii=False)}
+
 REQUIREMENTS:
-1. Calculate domain KPIs (ROAS, CTR, AOV, etc.) with numeric values
+1. USE the above calculated KPIs (already computed from real data)
 2. Design 8-10 charts based on OQMLB framework
 3. Ensure 5 quality criteria ≥80% each
 4. Include benchmark lines for KPIs
@@ -359,10 +506,7 @@ REQUIREMENTS:
 
 OUTPUT JSON (strictly follow this structure):
 {{
-    "kpis_calculated": {{
-        "ROAS": {{"value": 5.2, "benchmark": "4:1", "status": "Above"}},
-        "CTR": {{"value": 2.8, "benchmark": "3.17%", "status": "Below"}}
-    }},
+    "kpis_calculated": {json.dumps(kpis_calculated, ensure_ascii=False)},
     "objectives": [
         {{"id": "obj1", "title": "Optimize Marketing ROI", "priority": "high"}}
     ],
@@ -385,6 +529,9 @@ OUTPUT JSON (strictly follow this structure):
         "actionable": 87
     }}
 }}
+
+⚠️ CRITICAL: Return the EXACT kpis_calculated provided above (already computed from real data).
+DO NOT recalculate or estimate KPIs - use the values exactly as provided!
 
 REMEMBER: Every chart MUST have x_axis and y_axis as actual column names from the data!
 """
