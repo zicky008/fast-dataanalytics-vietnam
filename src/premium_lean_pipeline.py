@@ -14,10 +14,12 @@ Total: ~55 seconds
 
 import pandas as pd
 import json
+import re
 from typing import Dict, List, Tuple, Any
 import streamlit as st
 from datetime import datetime
 import time
+import google.generativeai as genai
 
 # Import utilities
 from utils.validators import safe_file_upload, sanitize_column_names
@@ -525,30 +527,60 @@ OUTPUT JSON:
     # Helper methods
     
     def _generate_ai_insight(self, prompt: str, temperature: float = 0.7, max_tokens: int = 4096) -> Tuple[bool, str]:
-        """Generate AI insight với error handling"""
+        """
+        Generate AI insight with GUARANTEED JSON output
+        
+        Uses Gemini's JSON mode + multiple fallback strategies to ensure valid JSON
+        """
         try:
-            # Add JSON request to prompt
-            json_prompt = f"{prompt}\n\nIMPORTANT: Return ONLY valid JSON, no code blocks, no markdown, no explanations."
+            # Strategy 1: Force JSON mode via generation config
+            json_prompt = f"""{prompt}
+
+CRITICAL INSTRUCTIONS:
+1. You MUST return ONLY valid JSON
+2. NO code blocks (no ```json or ```)
+3. NO explanations, NO markdown, NO extra text
+4. Start with {{ and end with }}
+5. All strings must use double quotes "
+6. Numbers must be valid JSON numbers (no NaN, Infinity)
+
+Your response must be parseable by json.loads() immediately."""
             
             response = self.client.generate_content(
                 json_prompt,
-                generation_config={
-                    'temperature': temperature,
-                    'max_output_tokens': max_tokens
-                }
+                generation_config=genai.GenerationConfig(
+                    temperature=temperature,
+                    max_output_tokens=max_tokens,
+                    response_mime_type="application/json"  # Force JSON mode
+                )
             )
             
-            # Clean response (remove markdown code blocks if present)
             text = response.text.strip()
+            
+            # Strategy 2: Clean common issues
+            # Remove markdown code blocks
             if text.startswith('```json'):
-                text = text[7:]  # Remove ```json
-            if text.startswith('```'):
-                text = text[3:]  # Remove ```
+                text = text[7:].strip()
+            elif text.startswith('```'):
+                text = text[3:].strip()
+            
             if text.endswith('```'):
-                text = text[:-3]  # Remove closing ```
-            text = text.strip()
+                text = text[:-3].strip()
+            
+            # Strategy 3: Extract JSON if wrapped in text
+            import re
+            json_match = re.search(r'\{.*\}', text, re.DOTALL)
+            if json_match:
+                text = json_match.group(0)
+            
+            # Strategy 4: Validate it's actually JSON
+            try:
+                json.loads(text)  # Test parse
+            except json.JSONDecodeError as e:
+                return (False, f"❌ AI trả về JSON không hợp lệ: {str(e)[:100]}")
             
             return (True, text)
+            
         except Exception as e:
             error_msg = user_friendly_error(e)
             return (False, error_msg)
