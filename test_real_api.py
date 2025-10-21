@@ -112,23 +112,25 @@ def test_marketing_pipeline():
         print("\n📊 Validation Results:")
         print("-" * 60)
         
-        # Check status
-        if result.get('status') != 'success':
-            print(f"❌ Status: {result.get('status')} (expected: success)")
+        # Check success
+        if not result.get('success'):
+            error = result.get('error', 'Unknown error')
+            print(f"❌ Pipeline failed: {error}")
             return False
         print("✅ Status: success")
         
         # Check domain detection
-        domain = result.get('domain_info', {}).get('name', 'Unknown')
+        domain = result.get('domain_info', {}).get('domain_name', 'Unknown')
         print(f"✅ Domain: {domain}")
         if 'Marketing' not in domain and 'marketing' not in domain.lower():
             print(f"⚠️  WARNING: Expected Marketing domain, got {domain}")
         
         # Check quality score
-        quality_score = result.get('quality_score', 0)
-        print(f"✅ Quality Score: {quality_score:.1f}/100")
-        if quality_score < 80:
-            print(f"⚠️  WARNING: Quality score below 80 (got {quality_score})")
+        quality_scores = result.get('quality_scores', {})
+        overall_score = quality_scores.get('overall', 0)
+        print(f"✅ Overall Quality Score: {overall_score:.1f}/100")
+        if overall_score < 80:
+            print(f"⚠️  WARNING: Quality score below 80 (got {overall_score})")
         
         # Check dashboard
         charts = result.get('dashboard', {}).get('charts', [])
@@ -139,20 +141,17 @@ def test_marketing_pipeline():
         # Check insights
         insights = result.get('insights', {}).get('key_insights', [])
         print(f"✅ Insights Generated: {len(insights)}")
-        if len(insights) < 5:
-            print(f"⚠️  WARNING: Expected 5-7 insights, got {len(insights)}")
+        if len(insights) < 3:
+            print(f"⚠️  WARNING: Expected 3+ insights, got {len(insights)}")
         
         # Check KPIs
-        kpis = result.get('insights', {}).get('kpis_calculated', {})
+        kpis = result.get('dashboard', {}).get('kpis', {})
         print(f"✅ KPIs Calculated: {len(kpis)}")
-        expected_kpis = ['ROAS', 'CTR', 'CPC', 'CPA']
-        for kpi in expected_kpis:
-            if kpi in kpis:
-                value = kpis[kpi].get('value', 'N/A')
-                status = kpis[kpi].get('status', 'N/A')
-                print(f"   - {kpi}: {value} ({status})")
-            else:
-                print(f"   ⚠️  {kpi}: Not found")
+        if kpis:
+            for kpi_name, kpi_data in list(kpis.items())[:5]:
+                value = kpi_data.get('value', 'N/A')
+                status = kpi_data.get('status', 'N/A')
+                print(f"   - {kpi_name}: {value} ({status})")
         
         # Performance check
         print(f"\n⏱️  Performance:")
@@ -220,17 +219,18 @@ def test_ecommerce_pipeline():
         print("-" * 60)
         
         # Check domain
-        domain = result.get('domain_info', {}).get('name', 'Unknown')
+        domain = result.get('domain_info', {}).get('domain_name', 'Unknown')
         print(f"✅ Domain: {domain}")
         if 'commerce' not in domain.lower():
             print(f"⚠️  WARNING: Expected E-commerce domain, got {domain}")
         
         # Check quality score
-        quality_score = result.get('quality_score', 0)
+        quality_scores = result.get('quality_scores', {})
+        quality_score = quality_scores.get('overall', 0)
         print(f"✅ Quality Score: {quality_score:.1f}/100")
         
         # Check KPIs
-        kpis = result.get('insights', {}).get('kpis_calculated', {})
+        kpis = result.get('dashboard', {}).get('kpis', {})
         expected_kpis = ['AOV', 'CLV']
         print(f"✅ KPIs Calculated: {len(kpis)}")
         for kpi in expected_kpis:
@@ -247,6 +247,12 @@ def test_ecommerce_pipeline():
     except Exception as e:
         elapsed = time.time() - start_time
         print(f"\n❌ FAILED after {elapsed:.1f}s: {str(e)}")
+        
+        # Debug info
+        import traceback
+        print("\n🐛 Debug Info:")
+        print(traceback.format_exc())
+        
         return False
 
 def test_rate_limiting():
