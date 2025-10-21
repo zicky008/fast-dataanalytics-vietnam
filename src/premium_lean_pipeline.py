@@ -294,8 +294,10 @@ OUTPUT JSON:
         
         # Get data statistics
         numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
+        categorical_cols = df.select_dtypes(include=['object']).columns.tolist()
+        all_cols = df.columns.tolist()
         
-        # Combined prompt
+        # Combined prompt with STRICT chart requirements
         prompt = f"""
 {domain_context}
 
@@ -303,16 +305,59 @@ TASK: Smart Dashboard Blueprint (Combined EDA + Design)
 
 DATA PROFILE:
 - Shape: {df.shape[0]:,} rows × {df.shape[1]} columns
-- Numeric: {', '.join(numeric_cols[:10])}
-- Sample: {df.head(3).to_dict('records')}
+- ALL Columns: {', '.join(all_cols)}
+- Numeric Columns: {', '.join(numeric_cols[:10])}
+- Categorical Columns: {', '.join(categorical_cols[:5])}
+- Sample Data: {df.head(3).to_dict('records')}
 
 REQUIREMENTS:
-1. Calculate domain KPIs (ROAS, CTR, AOV, etc.)
+1. Calculate domain KPIs (ROAS, CTR, AOV, etc.) with numeric values
 2. Design 8-10 charts based on OQMLB framework
 3. Ensure 5 quality criteria ≥80% each
-4. Include benchmark lines
+4. Include benchmark lines for KPIs
 
-OUTPUT JSON:
+⚠️ CRITICAL CHART REQUIREMENTS (EVERY chart MUST have ALL of these):
+- "x_axis": Must be a column name from the data (REQUIRED, cannot be null)
+- "y_axis": Must be a column name from the data (REQUIRED, cannot be null)
+- "type": One of ["bar", "line", "scatter", "pie"] (REQUIRED)
+- "title": Clear Vietnamese title (REQUIRED)
+- "id": Unique chart ID like "c1", "c2" (REQUIRED)
+
+❌ INVALID CHART EXAMPLES (will be rejected):
+{{
+    "title": "Revenue Analysis",
+    "type": "bar"
+    // MISSING x_axis and y_axis - INVALID!
+}}
+
+{{
+    "title": "Sales by Region",
+    "type": "bar",
+    "x_axis": null,  // NULL value - INVALID!
+    "y_axis": "sales"
+}}
+
+✅ VALID CHART EXAMPLES (use actual column names from data):
+{{
+    "id": "c1",
+    "title": "Doanh Thu Theo Kênh",
+    "type": "bar",
+    "x_axis": "{all_cols[0] if len(all_cols) > 0 else 'category'}",  // Actual column from data
+    "y_axis": "{numeric_cols[0] if len(numeric_cols) > 0 else 'value'}",  // Actual numeric column
+    "benchmark_line": 5000000,
+    "question_answered": "Kênh nào có doanh thu cao nhất?"
+}}
+
+{{
+    "id": "c2",
+    "title": "Xu Hướng Theo Thời Gian",
+    "type": "line",
+    "x_axis": "date",  // Use actual date column if exists
+    "y_axis": "{numeric_cols[1] if len(numeric_cols) > 1 else 'metric'}",
+    "question_answered": "Xu hướng thay đổi như thế nào?"
+}}
+
+OUTPUT JSON (strictly follow this structure):
 {{
     "kpis_calculated": {{
         "ROAS": {{"value": 5.2, "benchmark": "4:1", "status": "Above"}},
@@ -340,6 +385,8 @@ OUTPUT JSON:
         "actionable": 87
     }}
 }}
+
+REMEMBER: Every chart MUST have x_axis and y_axis as actual column names from the data!
 """
         
         success, result = self._generate_ai_insight(prompt, temperature=0.3, max_tokens=6000)
@@ -349,6 +396,9 @@ OUTPUT JSON:
         
         try:
             smart_blueprint = json.loads(result)
+            
+            # ✅ PART 2: Validate and fix chart specifications
+            smart_blueprint = self._validate_and_fix_charts(smart_blueprint, df)
             
             # Validate blueprint quality
             validation = self._validate_blueprint_quality(smart_blueprint)
@@ -623,6 +673,103 @@ Your response must be parseable by json.loads() immediately."""
             'checks': checks,
             'failures': [k for k, v in checks.items() if not v]
         }
+    
+    def _validate_and_fix_charts(self, smart_blueprint: Dict, df: pd.DataFrame) -> Dict:
+        """
+        ✅ PART 2: Validate and fix chart specifications
+        
+        Ensures every chart has required fields: x_axis, y_axis, type, title, id
+        Validates columns exist in dataframe, provides fallbacks if needed
+        """
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        charts = smart_blueprint.get('charts', [])
+        valid_charts = []
+        
+        numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
+        categorical_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
+        all_cols = df.columns.tolist()
+        
+        for i, chart in enumerate(charts):
+            chart_id = chart.get('id', f'c{i+1}')
+            
+            # ✅ Check required fields exist and are not None
+            required_fields = ['x_axis', 'y_axis', 'type', 'title']
+            missing_fields = [f for f in required_fields if not chart.get(f)]
+            
+            if missing_fields:
+                logger.warning(f"⚠️ Chart '{chart.get('title', 'Unknown')}' missing fields: {missing_fields} - SKIPPED")
+                if is_streamlit_context():
+                    st.warning(f"⚠️ Bỏ qua biểu đồ thiếu thông tin: {chart.get('title', 'Unknown')} (thiếu: {', '.join(missing_fields)})")
+                continue
+            
+            # ✅ PART 3: Verify column names exist in dataframe
+            x_axis = chart['x_axis']
+            y_axis = chart['y_axis']
+            
+            # Fix x_axis if not in columns
+            if x_axis not in all_cols:
+                # Try to find similar column name (case-insensitive)
+                x_match = next((col for col in all_cols if col.lower() == x_axis.lower()), None)
+                if x_match:
+                    chart['x_axis'] = x_match
+                    logger.info(f"✅ Fixed x_axis: {x_axis} → {x_match}")
+                else:
+                    # Fallback to first categorical or first column
+                    fallback = categorical_cols[0] if categorical_cols else all_cols[0]
+                    logger.warning(f"⚠️ x_axis '{x_axis}' not found, using fallback: {fallback}")
+                    chart['x_axis'] = fallback
+            
+            # Fix y_axis if not in columns
+            if y_axis not in all_cols:
+                # Try to find similar column name (case-insensitive)
+                y_match = next((col for col in all_cols if col.lower() == y_axis.lower()), None)
+                if y_match:
+                    chart['y_axis'] = y_match
+                    logger.info(f"✅ Fixed y_axis: {y_axis} → {y_match}")
+                else:
+                    # Fallback to first numeric column
+                    fallback = numeric_cols[0] if numeric_cols else all_cols[1] if len(all_cols) > 1 else all_cols[0]
+                    logger.warning(f"⚠️ y_axis '{y_axis}' not found, using fallback: {fallback}")
+                    chart['y_axis'] = fallback
+            
+            # Validate chart type
+            valid_types = ['bar', 'line', 'scatter', 'pie']
+            if chart['type'] not in valid_types:
+                logger.warning(f"⚠️ Invalid chart type '{chart['type']}', defaulting to 'bar'")
+                chart['type'] = 'bar'
+            
+            # Ensure chart has ID
+            if 'id' not in chart or not chart['id']:
+                chart['id'] = chart_id
+            
+            valid_charts.append(chart)
+        
+        # ✅ Ensure minimum 3 valid charts
+        if len(valid_charts) < 3:
+            logger.error(f"❌ Only {len(valid_charts)} valid charts found, need at least 3")
+            if is_streamlit_context():
+                st.error(f"❌ Chỉ có {len(valid_charts)} biểu đồ hợp lệ, cần tối thiểu 3 biểu đồ")
+            
+            # Add fallback charts if needed
+            while len(valid_charts) < 3 and len(numeric_cols) >= len(valid_charts):
+                fallback_chart = {
+                    'id': f'fallback_{len(valid_charts)+1}',
+                    'title': f'Phân Tích {numeric_cols[len(valid_charts)].title()}',
+                    'type': 'bar',
+                    'x_axis': categorical_cols[0] if categorical_cols else all_cols[0],
+                    'y_axis': numeric_cols[len(valid_charts)],
+                    'question_answered': f'Phân tích {numeric_cols[len(valid_charts)]}'
+                }
+                valid_charts.append(fallback_chart)
+                logger.info(f"✅ Added fallback chart: {fallback_chart['title']}")
+        
+        smart_blueprint['charts'] = valid_charts
+        
+        logger.info(f"✅ Chart validation complete: {len(valid_charts)}/{len(charts)} valid charts")
+        
+        return smart_blueprint
     
     def _validate_blueprint_quality(self, smart_blueprint: Dict) -> Dict:
         """Validate blueprint quality"""
