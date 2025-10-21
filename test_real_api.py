@@ -49,7 +49,7 @@ def test_gemini_connection():
     # Test API call
     try:
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-2.0-flash-exp')
+        model = genai.GenerativeModel('gemini-2.0-flash')  # Stable version, higher quota
         
         response = model.generate_content("Hello! Reply with 'OK'")
         
@@ -91,7 +91,7 @@ def test_marketing_pipeline():
     api_key = os.getenv('GEMINI_API_KEY')
     genai.configure(api_key=api_key)
     
-    client = genai.GenerativeModel('gemini-2.0-flash-exp')
+    client = genai.GenerativeModel('gemini-2.0-flash')  # Stable version, higher quota
     pipeline = PremiumLeanPipeline(client)
     
     # Run pipeline
@@ -198,7 +198,7 @@ def test_ecommerce_pipeline():
     api_key = os.getenv('GEMINI_API_KEY')
     genai.configure(api_key=api_key)
     
-    client = genai.GenerativeModel('gemini-2.0-flash-exp')
+    client = genai.GenerativeModel('gemini-2.0-flash')  # Stable version, higher quota
     pipeline = PremiumLeanPipeline(client)
     
     # Run pipeline
@@ -258,7 +258,7 @@ def test_rate_limiting():
     api_key = os.getenv('GEMINI_API_KEY')
     genai.configure(api_key=api_key)
     
-    client = genai.GenerativeModel('gemini-2.0-flash-exp')
+    client = genai.GenerativeModel('gemini-2.0-flash')  # Stable version, higher quota
     
     print("📝 Sending 5 rapid requests to test rate limiting...")
     

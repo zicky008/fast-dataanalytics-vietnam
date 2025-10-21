@@ -428,16 +428,22 @@ REMEMBER: Every chart MUST have x_axis and y_axis as actual column names from th
         """
         import plotly.express as px
         import plotly.graph_objects as go
+        import logging
+        logger = logging.getLogger(__name__)
         
         charts = []
         
-        for chart_spec in smart_blueprint.get('charts', [])[:10]:  # Limit to 10 charts
+        for i, chart_spec in enumerate(smart_blueprint.get('charts', [])[:10]):  # Limit to 10 charts
             try:
+                logger.debug(f"Processing chart {i+1}: {chart_spec.get('title', 'Unknown')}")
+                
                 chart_id = str(chart_spec.get('id', 'unknown'))
                 chart_title = str(chart_spec.get('title', 'Untitled'))
                 chart_type = str(chart_spec.get('type', 'bar'))
                 x_axis = chart_spec.get('x_axis')
                 y_axis = chart_spec.get('y_axis')
+                
+                logger.debug(f"  Chart type: {chart_type}, x_axis: {x_axis}, y_axis: {y_axis}")
                 
                 # Skip if required fields are None
                 if not x_axis or not y_axis:
