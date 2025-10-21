@@ -441,6 +441,12 @@ OUTPUT JSON:
         # ⭐ NEW: Calculate KPIs from REAL DATA first
         kpis_calculated = self._calculate_real_kpis(df, domain_info)
         
+        # DEBUG: Log real calculated values
+        import logging
+        logger = logging.getLogger(__name__)
+        if 'Average Salary' in kpis_calculated:
+            logger.info(f"🔍 STEP 2A - Real KPI calculated: ${kpis_calculated['Average Salary']['value']:,.2f}")
+        
         # Combined prompt with STRICT chart requirements
         prompt = f"""
 {domain_context}
@@ -543,6 +549,22 @@ REMEMBER: Every chart MUST have x_axis and y_axis as actual column names from th
         
         try:
             smart_blueprint = json.loads(result)
+            
+            # DEBUG: Check AI response before force replace
+            ai_kpis = smart_blueprint.get('kpis_calculated', {})
+            if 'Average Salary' in ai_kpis and 'Average Salary' in kpis_calculated:
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.info(f"🔍 DEBUG - AI returned: ${ai_kpis['Average Salary']['value']:,.2f}")
+                logger.info(f"🔍 DEBUG - Real calculated: ${kpis_calculated['Average Salary']['value']:,.2f}")
+            
+            # ⭐ CRITICAL FIX: Force use real calculated KPIs (AI might modify them)
+            # This ensures 100% accuracy - ignore whatever AI returns
+            smart_blueprint['kpis_calculated'] = kpis_calculated
+            
+            # DEBUG: Verify after force replace
+            if 'Average Salary' in smart_blueprint['kpis_calculated']:
+                logger.info(f"🔍 DEBUG - After force replace: ${smart_blueprint['kpis_calculated']['Average Salary']['value']:,.2f}")
             
             # ✅ PART 2: Validate and fix chart specifications
             smart_blueprint = self._validate_and_fix_charts(smart_blueprint, df)
@@ -807,18 +829,30 @@ Your response must be parseable by json.loads() immediately."""
             return (False, error_msg)
     
     def _apply_fast_cleaning(self, df: pd.DataFrame, cleaning_plan: Dict) -> pd.DataFrame:
-        """Fast data cleaning execution"""
+        """
+        Fast data cleaning execution
+        
+        ⭐ CRITICAL: Only handle ACTUAL missing values to preserve data accuracy.
+        Do NOT modify non-null values - this changes statistics (mean, median, etc.)
+        """
         df_clean = df.copy()
         
-        # Handle missing values
+        # Handle missing values - ONLY if they actually exist
         missing_handled = cleaning_plan.get('cleaning_summary', {}).get('missing_handled', {})
         for col, method in missing_handled.items():
-            if col in df_clean.columns:
-                if method == 'median' and df_clean[col].dtype in ['int64', 'float64']:
-                    df_clean[col].fillna(df_clean[col].median(), inplace=True)
-                elif method == 'mode':
-                    if len(df_clean[col].mode()) > 0:
-                        df_clean[col].fillna(df_clean[col].mode()[0], inplace=True)
+            if col not in df_clean.columns:
+                continue
+            
+            # ⭐ CRITICAL CHECK: Only proceed if column has actual missing values
+            if df_clean[col].isnull().sum() == 0:
+                continue  # Skip - no missing values to handle
+            
+            if method == 'median' and df_clean[col].dtype in ['int64', 'float64']:
+                # Use proper pandas method (not inplace to avoid warnings)
+                df_clean[col] = df_clean[col].fillna(df_clean[col].median())
+            elif method == 'mode':
+                if len(df_clean[col].mode()) > 0:
+                    df_clean[col] = df_clean[col].fillna(df_clean[col].mode()[0])
         
         # Remove duplicates
         df_clean = df_clean.drop_duplicates()
