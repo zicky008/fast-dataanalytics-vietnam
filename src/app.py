@@ -179,12 +179,25 @@ with tab1:
                 st.session_state['pipeline_result'] = result
                 st.session_state['df'] = df
                 
-                # Success message
+                # Success message with details
                 total_time = result.get('performance', {}).get('total', 0)
+                quality_score = result.get('quality_scores', {}).get('overall', 0)
+                kpis_count = len(result.get('dashboard', {}).get('kpis', {}))
+                charts_count = len(result.get('dashboard', {}).get('charts', []))
+                
                 st.success(f"✅ Hoàn thành! Pipeline chạy trong {total_time:.1f} giây")
                 
+                # Show quick summary
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric("Quality Score", f"{quality_score:.0f}/100")
+                with col2:
+                    st.metric("KPIs", kpis_count)
+                with col3:
+                    st.metric("Charts", charts_count)
+                
                 # Switch to dashboard tab
-                st.info("👉 Chuyển sang tab **Dashboard** để xem kết quả")
+                st.info("👉 Chuyển sang tab **Dashboard** để xem chi tiết")
                 
             except Exception as e:
                 st.error(f"❌ Lỗi: {str(e)}")
@@ -224,6 +237,12 @@ with tab2:
                     
                     status = kpi_data.get('status', '')
                     st.metric(kpi_name, value_str, delta=status)
+        else:
+            st.warning(f"⚠️ Không có KPIs. Dashboard keys: {list(dashboard.keys())}")
+            
+            # Debug expander
+            with st.expander("🔍 Debug Info (Click to expand)"):
+                st.json(dashboard)
         
         st.markdown("---")
         
