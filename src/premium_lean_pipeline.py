@@ -32,6 +32,15 @@ from domain_detection import (
 )
 
 
+def is_streamlit_context():
+    """Check if running in Streamlit context"""
+    try:
+        from streamlit.runtime.scriptrunner import get_script_run_ctx
+        return get_script_run_ctx() is not None
+    except:
+        return False
+
+
 class PremiumLeanPipeline:
     """
     Premium Lean Pipeline: Fast + Professional Quality
@@ -70,8 +79,9 @@ class PremiumLeanPipeline:
         
         try:
             # Step 0: Domain Detection (3s - cached)
-            progress_placeholder = st.empty()
-            progress_placeholder.info("🔍 **Bước 0/4**: Nhận diện ngành nghề...")
+            if is_streamlit_context():
+                progress_placeholder = st.empty()
+                progress_placeholder.info("🔍 **Bước 0/4**: Nhận diện ngành nghề...")
             
             domain_info = self.step0_domain_detection(df, dataset_description)
             self._add_audit_trail("Domain Detection", domain_info)
@@ -79,7 +89,8 @@ class PremiumLeanPipeline:
             
             # Step 1: Data Cleaning (15s - ISO 8000)
             step1_start = time.time()
-            progress_placeholder.info(f"🧹 **Bước 1/4**: Làm sạch dữ liệu (ISO 8000)... Domain: {domain_info['domain_name']}")
+            if is_streamlit_context():
+                progress_placeholder.info(f"🧹 **Bước 1/4**: Làm sạch dữ liệu (ISO 8000)... Domain: {domain_info['domain_name']}")
             
             cleaning_result = self.step1_data_cleaning(df, domain_info)
             if not cleaning_result['success']:
@@ -90,7 +101,8 @@ class PremiumLeanPipeline:
             
             # Step 2: Smart Blueprint (15s - EDA + Blueprint combined)
             step2_start = time.time()
-            progress_placeholder.info(f"🎨 **Bước 2/4**: Tạo Dashboard Blueprint thông minh... Expert: {domain_info['expert_role'][:50]}...")
+            if is_streamlit_context():
+                progress_placeholder.info(f"🎨 **Bước 2/4**: Tạo Dashboard Blueprint thông minh... Expert: {domain_info['expert_role'][:50]}...")
             
             blueprint_result = self.step2_smart_blueprint(
                 cleaning_result['df_cleaned'],
@@ -104,7 +116,8 @@ class PremiumLeanPipeline:
             
             # Step 3: Dashboard Build (7s - pure execution)
             step3_start = time.time()
-            progress_placeholder.info("🏗️ **Bước 3/4**: Xây dựng Dashboard (theo Blueprint)...")
+            if is_streamlit_context():
+                progress_placeholder.info("🏗️ **Bước 3/4**: Xây dựng Dashboard (theo Blueprint)...")
             
             dashboard_result = self.step3_dashboard_build(
                 cleaning_result['df_cleaned'],
@@ -116,7 +129,8 @@ class PremiumLeanPipeline:
             
             # Step 4: Domain Insights (15s - expert perspective)
             step4_start = time.time()
-            progress_placeholder.info(f"💡 **Bước 4/4**: Tạo Insights chuyên gia... Perspective: {domain_info['expert_role'][:50]}...")
+            if is_streamlit_context():
+                progress_placeholder.info(f"💡 **Bước 4/4**: Tạo Insights chuyên gia... Perspective: {domain_info['expert_role'][:50]}...")
             
             insights_result = self.step4_domain_insights(
                 dashboard_result,
@@ -132,7 +146,8 @@ class PremiumLeanPipeline:
             self._update_performance("total", total_time)
             
             # Success message
-            progress_placeholder.success(f"✅ **Hoàn thành!** Pipeline chạy trong {total_time:.1f} giây")
+            if is_streamlit_context():
+                progress_placeholder.success(f"✅ **Hoàn thành!** Pipeline chạy trong {total_time:.1f} giây")
             
             # Return complete result
             return {
@@ -169,15 +184,16 @@ class PremiumLeanPipeline:
         # Cache result
         self.domain_cache[cache_key] = domain_info
         
-        # Display to user
-        with st.expander("🔍 Nhận Diện Ngành Nghề", expanded=False):
-            col1, col2 = st.columns(2)
-            with col1:
-                st.metric("Ngành nghề", domain_info['domain_name'])
-                st.metric("Độ tin cậy", f"{domain_info['confidence']*100:.0f}%")
-            with col2:
-                st.caption(f"**Chuyên gia**: {domain_info['expert_role'][:60]}...")
-                st.caption(f"**Key KPIs**: {', '.join(domain_info['key_kpis'][:3])}")
+        # Display to user (only in Streamlit context)
+        if is_streamlit_context():
+            with st.expander("🔍 Nhận Diện Ngành Nghề", expanded=False):
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.metric("Ngành nghề", domain_info['domain_name'])
+                    st.metric("Độ tin cậy", f"{domain_info['confidence']*100:.0f}%")
+                with col2:
+                    st.caption(f"**Chuyên gia**: {domain_info['expert_role'][:60]}...")
+                    st.caption(f"**Key KPIs**: {', '.join(domain_info['key_kpis'][:3])}")
         
         return domain_info
     
@@ -503,15 +519,7 @@ OUTPUT JSON:
     def _generate_ai_insight(self, prompt: str, temperature: float = 0.7, max_tokens: int = 4096) -> Tuple[bool, str]:
         """Generate AI insight với error handling"""
         try:
-            response = self.client.models.generate_content(
-                model='gemini-2.0-flash-exp',
-                contents=prompt,
-                config={
-                    'temperature': temperature,
-                    'max_output_tokens': max_tokens,
-                    'response_mime_type': 'application/json'
-                }
-            )
+            response = self.client.generate_content(prompt)
             return (True, response.text)
         except Exception as e:
             error_msg = user_friendly_error(e)
