@@ -447,14 +447,21 @@ REMEMBER: Every chart MUST have x_axis and y_axis as actual column names from th
                 
                 # Skip if required fields are None
                 if not x_axis or not y_axis:
+                    logger.warning(f"Skipping chart {i+1}: missing x_axis or y_axis")
                     continue
                 
                 # Validate columns exist  
-                if x_axis not in df.columns or y_axis not in df.columns:
+                if x_axis not in df.columns:
+                    logger.warning(f"Skipping chart {i+1}: x_axis '{x_axis}' not in columns: {list(df.columns)}")
+                    continue
+                if y_axis not in df.columns:
+                    logger.warning(f"Skipping chart {i+1}: y_axis '{y_axis}' not in columns")
                     continue
                 
                 # Create chart
                 fig = None
+                
+                logger.debug(f"Creating {chart_type} chart with x={x_axis}, y={y_axis}")
                 
                 if chart_type == 'bar' and x_axis and y_axis:
                     fig = px.bar(df, x=x_axis, y=y_axis, title=chart_title)
@@ -492,6 +499,9 @@ REMEMBER: Every chart MUST have x_axis and y_axis as actual column names from th
                     })
             
             except Exception as e:
+                import traceback
+                logger.error(f"Failed to create chart {i+1} '{chart_spec.get('title', 'Unknown')}': {type(e).__name__}: {str(e)}")
+                logger.error(f"Traceback: {traceback.format_exc()[:500]}")
                 if is_streamlit_context():
                     st.warning(f"⚠️ Không tạo được chart '{chart_spec.get('title', 'Unknown')}': {str(e)}")
                 continue
