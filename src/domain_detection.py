@@ -117,10 +117,12 @@ DOMAIN_PROFILES = {
     'hr': {
         'name': 'HR / Nhân Sự',
         'expert_role': 'Chief Human Resources Officer (CHRO)',
-        'keywords': ['employee', 'hire', 'attrition', 'salary', 'performance', 'training', 'recruitment'],
-        'key_kpis': ['Attrition Rate', 'Time to Hire', 'Cost per Hire', 'Employee Satisfaction', 'Training ROI'],
+        'keywords': ['employee', 'hire', 'attrition', 'salary', 'compensation', 'payroll', 
+                     'performance', 'training', 'recruitment', 'job', 'title', 'position', 
+                     'experience', 'tenure', 'age', 'gender', 'education', 'department'],
+        'key_kpis': ['Attrition Rate', 'Time to Hire', 'Cost per Hire', 'Employee Satisfaction', 'Training ROI', 'Average Salary', 'Salary Range'],
         'insights_focus': ['Talent retention', 'Recruitment efficiency', 'Employee engagement', 'Compensation analysis'],
-        'benchmarks': {'attrition': '<15% annually', 'time_to_hire': '<30 days'}
+        'benchmarks': {'attrition': '<15% annually', 'time_to_hire': '<30 days', 'avg_salary': '$75,000 (industry median)'}
     },
     'general': {
         'name': 'General Business Analytics',
@@ -183,7 +185,8 @@ def detect_domain(df: pd.DataFrame, dataset_description: str = "") -> Dict:
         matched_keywords = domain_scores[best_domain]['matched_keywords']
     
     # 4. Use 'general' if confidence too low
-    if confidence < 0.3:
+    # Lowered threshold to 0.15 (1-2 keyword matches sufficient for small datasets)
+    if confidence < 0.15:
         best_domain = 'general'
         confidence = 0.5  # Low confidence, but still proceed
     
