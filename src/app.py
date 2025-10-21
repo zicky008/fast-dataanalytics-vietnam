@@ -154,7 +154,12 @@ with tab1:
                 
                 # Load data
                 with st.spinner("📥 Đang đọc dữ liệu..."):
-                    df = safe_file_upload(uploaded_file)
+                    success, df, message = safe_file_upload(uploaded_file)
+                    
+                    if not success:
+                        st.error(message)
+                        st.stop()
+                    
                     st.success(f"✅ Đọc thành công: {df.shape[0]:,} dòng × {df.shape[1]} cột")
                 
                 # Run pipeline
