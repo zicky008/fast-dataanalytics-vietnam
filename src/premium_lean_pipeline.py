@@ -432,7 +432,8 @@ OUTPUT JSON:
                     })
             
             except Exception as e:
-                st.warning(f"⚠️ Không tạo được chart '{chart_spec.get('title', 'Unknown')}': {str(e)}")
+                if is_streamlit_context():
+                    st.warning(f"⚠️ Không tạo được chart '{chart_spec.get('title', 'Unknown')}': {str(e)}")
                 continue
         
         return {
@@ -453,7 +454,12 @@ OUTPUT JSON:
         # Get KPIs summary
         kpis_summary = []
         for kpi_name, kpi_data in smart_blueprint.get('kpis_calculated', {}).items():
-            kpis_summary.append(f"- {kpi_name}: {kpi_data['value']} (Benchmark: {kpi_data['benchmark']}, Status: {kpi_data['status']})")
+            value = kpi_data.get('value', 'N/A')
+            benchmark = kpi_data.get('benchmark', 'N/A')
+            status = kpi_data.get('status', 'Unknown')
+            kpis_summary.append(f"- {kpi_name}: {value} (Benchmark: {benchmark}, Status: {status})")
+        
+        kpis_text = chr(10).join(kpis_summary[:5]) if kpis_summary else "No KPIs calculated"
         
         prompt = f"""
 {domain_context}
@@ -461,7 +467,7 @@ OUTPUT JSON:
 TASK: Expert Insights (Concise & Actionable)
 
 KPIs:
-{chr(10).join(kpis_summary[:5])}
+{kpis_text}
 
 Charts: {len(dashboard['charts'])} visualizations created
 
@@ -519,8 +525,28 @@ OUTPUT JSON:
     def _generate_ai_insight(self, prompt: str, temperature: float = 0.7, max_tokens: int = 4096) -> Tuple[bool, str]:
         """Generate AI insight với error handling"""
         try:
-            response = self.client.generate_content(prompt)
-            return (True, response.text)
+            # Add JSON request to prompt
+            json_prompt = f"{prompt}\n\nIMPORTANT: Return ONLY valid JSON, no code blocks, no markdown, no explanations."
+            
+            response = self.client.generate_content(
+                json_prompt,
+                generation_config={
+                    'temperature': temperature,
+                    'max_output_tokens': max_tokens
+                }
+            )
+            
+            # Clean response (remove markdown code blocks if present)
+            text = response.text.strip()
+            if text.startswith('```json'):
+                text = text[7:]  # Remove ```json
+            if text.startswith('```'):
+                text = text[3:]  # Remove ```
+            if text.endswith('```'):
+                text = text[:-3]  # Remove closing ```
+            text = text.strip()
+            
+            return (True, text)
         except Exception as e:
             error_msg = user_friendly_error(e)
             return (False, error_msg)
