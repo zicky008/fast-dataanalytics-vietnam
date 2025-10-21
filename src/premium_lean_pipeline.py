@@ -605,7 +605,15 @@ Your response must be parseable by json.loads() immediately."""
                 )
             )
             
+            # ✅ Issue #3 Fix: Handle None response
+            if not response or not response.text:
+                return (False, "❌ AI trả về response rỗng (có thể do rate limit hoặc safety filter)")
+            
             text = response.text.strip()
+            
+            # ✅ Check if text is empty after strip
+            if not text:
+                return (False, "❌ AI trả về text rỗng")
             
             # Strategy 2: Clean common issues
             # Remove markdown code blocks
@@ -818,7 +826,16 @@ Your response must be parseable by json.loads() immediately."""
                 cols = st.columns(min(3, len(kpis)))
                 for i, (kpi_name, kpi_data) in enumerate(list(kpis.items())[:6]):
                     with cols[i % 3]:
-                        st.metric(kpi_name, f"{kpi_data['value']:.1f}", delta=kpi_data.get('status', ''))
+                        # ✅ Issue #3 Fix: Handle None or non-numeric KPI values
+                        kpi_value = kpi_data.get('value')
+                        if isinstance(kpi_value, (int, float)):
+                            value_str = f"{kpi_value:.1f}"
+                        elif kpi_value is not None:
+                            value_str = str(kpi_value)
+                        else:
+                            value_str = "N/A"
+                        
+                        st.metric(kpi_name, value_str, delta=kpi_data.get('status', ''))
     
     def _display_compact_insights(self, insights: Dict, domain_info: Dict):
         """Display compact insights"""
