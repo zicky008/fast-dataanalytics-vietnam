@@ -282,6 +282,55 @@ OUTPUT JSON:
         except json.JSONDecodeError as e:
             return {'success': False, 'error': f"❌ Lỗi phân tích dữ liệu: {str(e)}"}
     
+    def _convert_string_to_numeric(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        ⭐ CRITICAL: Convert string columns that represent numbers to proper numeric types
+        
+        This handles:
+        - European format: '5,43' (comma as decimal) → 5.43
+        - US format: '5.43' → 5.43
+        - Thousands separator: '8.311,42' or '8,311.42'
+        
+        Returns:
+            DataFrame with converted numeric columns
+        """
+        df_converted = df.copy()
+        
+        for col in df_converted.columns:
+            # Skip if already numeric
+            if pd.api.types.is_numeric_dtype(df_converted[col]):
+                continue
+            
+            # Check if column contains numeric-like strings
+            if df_converted[col].dtype == 'object':
+                sample_values = df_converted[col].dropna().head(10)
+                
+                if len(sample_values) == 0:
+                    continue
+                
+                # Check if values look like numbers (contain digits, comma, or period)
+                numeric_pattern = sample_values.astype(str).str.match(r'^[\d.,\s-]+$')
+                
+                if numeric_pattern.sum() / len(sample_values) > 0.5:  # At least 50% numeric
+                    try:
+                        # Try European format first (comma = decimal, period = thousands)
+                        # Example: '8.311,42' → 8311.42
+                        if df_converted[col].astype(str).str.contains(',').any():
+                            df_converted[col] = (df_converted[col]
+                                .astype(str)
+                                .str.replace('.', '', regex=False)  # Remove thousands separator
+                                .str.replace(',', '.', regex=False)  # Replace decimal comma with period
+                                .str.strip())
+                        
+                        # Convert to numeric (coerce errors to NaN)
+                        df_converted[col] = pd.to_numeric(df_converted[col], errors='coerce')
+                        
+                    except Exception:
+                        # If conversion fails, keep original
+                        pass
+        
+        return df_converted
+    
     def _calculate_real_kpis(self, df: pd.DataFrame, domain_info: Dict) -> Dict:
         """
         ⭐ CRITICAL: Calculate KPIs from REAL DATA (not AI estimation)
@@ -289,6 +338,10 @@ OUTPUT JSON:
         """
         kpis = {}
         domain = domain_info.get('domain_name', 'general').lower()
+        
+        # ⭐ FIX: Convert string numeric columns to proper numeric types
+        # This handles European CSV format (comma as decimal separator)
+        df = self._convert_string_to_numeric(df)
         
         # Get numeric columns
         numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
@@ -349,36 +402,94 @@ OUTPUT JSON:
         
         # === MARKETING DATA ===
         elif 'marketing' in domain or 'quảng cáo' in domain:
-            if 'cost' in ' '.join(all_cols_lower):
-                cost_col = [col for col in df.columns if 'cost' in col.lower()][0]
-                kpis['Total Cost'] = {
+            # Detect key marketing columns
+            roi_cols = [col for col in df.columns if 'roi' in col.lower()]
+            spend_cols = [col for col in df.columns if 'spend' in col.lower() or 'cost' in col.lower()]
+            click_cols = [col for col in df.columns if 'click' in col.lower()]
+            impression_cols = [col for col in df.columns if 'impression' in col.lower()]
+            conversion_cols = [col for col in df.columns if 'conversion' in col.lower()]
+            revenue_cols = [col for col in df.columns if 'revenue' in col.lower()]
+            
+            # 1. ROI (Return on Investment)
+            if roi_cols and len(roi_cols) > 0:
+                roi_col = roi_cols[0]
+                avg_roi = df[roi_col].mean()
+                kpis['Average ROI'] = {
+                    'value': float(avg_roi),
+                    'benchmark': 4.0,
+                    'status': 'Above' if avg_roi >= 4.0 else 'Below',
+                    'column': roi_col
+                }
+            
+            # 2. ROAS (Return on Ad Spend) - calculated from revenue/cost
+            if revenue_cols and spend_cols:
+                rev_col = revenue_cols[0]
+                cost_col = spend_cols[0]
+                total_revenue = df[rev_col].sum()
+                total_cost = df[cost_col].sum()
+                if total_cost > 0:
+                    roas = total_revenue / total_cost
+                    kpis['ROAS'] = {
+                        'value': float(roas),
+                        'benchmark': 4.0,
+                        'status': 'Above' if roas >= 4.0 else 'Below',
+                        'column': f"{rev_col}/{cost_col}"
+                    }
+            
+            # 3. CTR (Click-Through Rate) - clicks/impressions
+            if click_cols and impression_cols:
+                click_col = click_cols[0]
+                impression_col = impression_cols[0]
+                total_clicks = df[click_col].sum()
+                total_impressions = df[impression_col].sum()
+                if total_impressions > 0:
+                    ctr = (total_clicks / total_impressions) * 100
+                    kpis['CTR (%)'] = {
+                        'value': float(ctr),
+                        'benchmark': 2.0,  # Industry avg ~2%
+                        'status': 'Above' if ctr >= 2.0 else 'Below',
+                        'column': f"{click_col}/{impression_col}"
+                    }
+            
+            # 4. CPC (Cost Per Click)
+            if spend_cols and click_cols:
+                cost_col = spend_cols[0]
+                click_col = click_cols[0]
+                total_cost = df[cost_col].sum()
+                total_clicks = df[click_col].sum()
+                if total_clicks > 0:
+                    cpc = total_cost / total_clicks
+                    kpis['CPC'] = {
+                        'value': float(cpc),
+                        'benchmark': 2.0,  # Varies by industry
+                        'status': 'Below' if cpc <= 2.0 else 'Above',  # Lower is better
+                        'column': f"{cost_col}/{click_col}"
+                    }
+            
+            # 5. Conversion Rate
+            if conversion_cols and click_cols:
+                conversion_col = conversion_cols[0]
+                click_col = click_cols[0]
+                total_conversions = df[conversion_col].sum()
+                total_clicks = df[click_col].sum()
+                if total_clicks > 0:
+                    conv_rate = (total_conversions / total_clicks) * 100
+                    kpis['Conversion Rate (%)'] = {
+                        'value': float(conv_rate),
+                        'benchmark': 2.5,  # Industry avg ~2.5%
+                        'status': 'Above' if conv_rate >= 2.5 else 'Below',
+                        'column': f"{conversion_col}/{click_col}"
+                    }
+            
+            # 6. Total Spend (if available)
+            if spend_cols:
+                cost_col = spend_cols[0]
+                kpis['Total Spend'] = {
                     'value': float(df[cost_col].sum()),
                     'benchmark': 100000,
                     'status': 'Check',
                     'column': cost_col
                 }
-            
-            if 'revenue' in ' '.join(all_cols_lower):
-                rev_col = [col for col in df.columns if 'revenue' in col.lower()][0]
-                kpis['Total Revenue'] = {
-                    'value': float(df[rev_col].sum()),
-                    'benchmark': 400000,
-                    'status': 'Check',
-                    'column': rev_col
-                }
-                
-                if 'cost' in ' '.join(all_cols_lower):
-                    cost_col = [col for col in df.columns if 'cost' in col.lower()][0]
-                    total_revenue = df[rev_col].sum()
-                    total_cost = df[cost_col].sum()
-                    if total_cost > 0:
-                        roas = total_revenue / total_cost
-                        kpis['ROAS'] = {
-                            'value': float(roas),
-                            'benchmark': 4.0,
-                            'status': 'Above' if roas >= 4.0 else 'Below',
-                            'column': f"{rev_col}/{cost_col}"
-                        }
         
         # === E-COMMERCE DATA ===
         elif 'ecommerce' in domain or 'e-commerce' in domain:
@@ -632,8 +743,16 @@ REMEMBER: Every chart MUST have x_axis and y_axis as actual column names from th
                 
                 logger.debug(f"Creating {chart_type} chart with x={x_axis}, y={y_axis}")
                 
+                # ⭐ CRITICAL FIX: Remove None/NaN values before plotting
+                # This prevents "'>' not supported between NoneType" errors
+                df_clean = df[[x_axis, y_axis]].dropna()
+                
+                if len(df_clean) == 0:
+                    logger.warning(f"Skipping chart {i+1}: no valid data after removing NaN")
+                    continue
+                
                 if chart_type == 'bar' and x_axis and y_axis:
-                    fig = px.bar(df, x=x_axis, y=y_axis, title=chart_title)
+                    fig = px.bar(df_clean, x=x_axis, y=y_axis, title=chart_title)
                     
                     # Add benchmark line
                     if 'benchmark_line' in chart_spec:
@@ -645,13 +764,13 @@ REMEMBER: Every chart MUST have x_axis and y_axis as actual column names from th
                         )
                 
                 elif chart_type == 'line' and x_axis and y_axis:
-                    fig = px.line(df, x=x_axis, y=y_axis, title=chart_title)
+                    fig = px.line(df_clean, x=x_axis, y=y_axis, title=chart_title)
                 
                 elif chart_type == 'scatter' and x_axis and y_axis:
-                    fig = px.scatter(df, x=x_axis, y=y_axis, title=chart_title)
+                    fig = px.scatter(df_clean, x=x_axis, y=y_axis, title=chart_title)
                 
                 elif chart_type == 'pie' and x_axis and y_axis:
-                    fig = px.pie(df, names=x_axis, values=y_axis, title=chart_title)
+                    fig = px.pie(df_clean, names=x_axis, values=y_axis, title=chart_title)
                 
                 if fig:
                     fig.update_layout(
