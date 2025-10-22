@@ -1014,6 +1014,177 @@ OUTPUT JSON:
                             'insight': f"{'✅ Low leverage' if debt_to_equity < 1.0 else '⚠️ Moderate leverage' if debt_to_equity < 2.0 else '🚨 High leverage risk'}"
                         }
         
+        # === MANUFACTURING/OPERATIONS DATA ===
+        elif 'manufacturing' in domain or 'production' in domain or 'operations' in domain or 'factory' in domain:
+            # Detect key manufacturing columns (be specific to avoid false matches)
+            units_produced_cols = [col for col in df.columns if 'units_produced' in col.lower() or 'units produced' in col.lower()]
+            good_units_cols = [col for col in df.columns if 'good_units' in col.lower() or 'good units' in col.lower()]
+            defective_cols = [col for col in df.columns if 'defective' in col.lower() or 'defect' in col.lower()]
+            downtime_cols = [col for col in df.columns if 'downtime' in col.lower() or 'down time' in col.lower()]
+            available_hours_cols = [col for col in df.columns if 'available' in col.lower() and 'hours' in col.lower()]
+            actual_run_cols = [col for col in df.columns if 'actual_run' in col.lower() or 'actual run' in col.lower()]
+            theoretical_max_cols = [col for col in df.columns if 'theoretical' in col.lower() or 'max_output' in col.lower() or 'max output' in col.lower()]
+            total_cost_cols = [col for col in df.columns if 'total_cost' in col.lower() or 'total cost' in col.lower()]
+            
+            if units_produced_cols and good_units_cols:
+                units_produced_col = units_produced_cols[0]
+                good_units_col = good_units_cols[0]
+                
+                total_units = df[units_produced_col].sum()
+                total_good = df[good_units_col].sum()
+                
+                # 1. First Pass Yield (FPY)
+                if total_units > 0:
+                    fpy = (total_good / total_units) * 100
+                    kpis['First Pass Yield (%)'] = {
+                        'value': float(fpy),
+                        'benchmark': 95.0,  # World-class: ≥95%
+                        'status': 'Above' if fpy >= 95.0 else 'Below',
+                        'column': f"{good_units_col}/{units_produced_col}",
+                        'insight': f"{'✅ World-class' if fpy >= 95 else '⚠️ Needs improvement'} - Target ≥95%"
+                    }
+                
+                # 2. Defect Rate
+                if defective_cols and total_units > 0:
+                    defective_col = defective_cols[0]
+                    total_defective = df[defective_col].sum()
+                    defect_rate = (total_defective / total_units) * 100
+                    
+                    kpis['Defect Rate (%)'] = {
+                        'value': float(defect_rate),
+                        'benchmark': 2.0,  # World-class: ≤2%
+                        'status': 'Below' if defect_rate <= 2.0 else 'Above',
+                        'column': f"{defective_col}/{units_produced_col}",
+                        'insight': f"{'✅ Excellent' if defect_rate <= 2 else '⚠️ High'} - Target ≤2%"
+                    }
+                
+                # 3. Production Output
+                avg_units = df[units_produced_col].mean()
+                kpis['Avg Production Output (units/shift)'] = {
+                    'value': float(avg_units),
+                    'benchmark': 950.0,
+                    'status': 'Above' if avg_units >= 950.0 else 'Below',
+                    'column': units_produced_col,
+                    'insight': f"{'✅ High output' if avg_units >= 950 else '⚠️ Low output'} - Target ≥950 units/shift"
+                }
+                
+                # 4. Cycle Time (approximate)
+                if available_hours_cols and total_units > 0:
+                    available_hours_col = available_hours_cols[0]
+                    total_hours = df[available_hours_col].sum()
+                    # Cycle time = total production time / units produced (in minutes)
+                    cycle_time = (total_hours * 60) / total_units
+                    
+                    kpis['Cycle Time (min/unit)'] = {
+                        'value': float(cycle_time),
+                        'benchmark': 0.5,  # Target: ≤0.5 min/unit
+                        'status': 'Below' if cycle_time <= 0.5 else 'Above',
+                        'column': f"{available_hours_col}/{units_produced_col}",
+                        'insight': f"{'✅ Fast' if cycle_time <= 0.5 else '⚠️ Slow'} - Target ≤0.5 min/unit"
+                    }
+            
+            # 5. Machine Utilization
+            if actual_run_cols and available_hours_cols:
+                actual_run_col = actual_run_cols[0]
+                available_hours_col = available_hours_cols[0]
+                
+                total_actual = df[actual_run_col].sum()
+                total_available = df[available_hours_col].sum()
+                
+                if total_available > 0:
+                    utilization = (total_actual / total_available) * 100
+                    kpis['Machine Utilization (%)'] = {
+                        'value': float(utilization),
+                        'benchmark': 85.0,  # Target: ≥85%
+                        'status': 'Above' if utilization >= 85.0 else 'Below',
+                        'column': f"{actual_run_col}/{available_hours_col}",
+                        'insight': f"{'✅ Excellent' if utilization >= 85 else '⚠️ Low'} - Target ≥85%"
+                    }
+            
+            # 6. Downtime Hours
+            if downtime_cols:
+                downtime_col = downtime_cols[0]
+                total_downtime = df[downtime_col].sum()
+                avg_downtime = df[downtime_col].mean()
+                
+                kpis['Total Downtime (hours)'] = {
+                    'value': float(total_downtime),
+                    'benchmark': 150.0,  # Target: ≤150 hours/month
+                    'status': 'Below' if total_downtime <= 150.0 else 'Above',
+                    'column': downtime_col,
+                    'insight': f"{'✅ Low' if total_downtime <= 150 else '⚠️ High'} - Target ≤150 hrs/month"
+                }
+                
+                kpis['Avg Downtime (hours/shift)'] = {
+                    'value': float(avg_downtime),
+                    'benchmark': 1.0,
+                    'status': 'Below' if avg_downtime <= 1.0 else 'Above',
+                    'column': downtime_col,
+                    'insight': f"{'✅ Low' if avg_downtime <= 1 else '⚠️ High'} - Target ≤1 hr/shift"
+                }
+            
+            # 7. Cost per Unit
+            if total_cost_cols and units_produced_cols:
+                total_cost_col = total_cost_cols[0]
+                units_produced_col = units_produced_cols[0]
+                
+                total_cost = df[total_cost_col].sum()
+                total_units = df[units_produced_col].sum()
+                
+                if total_units > 0:
+                    cost_per_unit = total_cost / total_units
+                    kpis['Cost per Unit (VND)'] = {
+                        'value': float(cost_per_unit),
+                        'benchmark': 30000.0,  # Target: ≤30,000 VND/unit
+                        'status': 'Below' if cost_per_unit <= 30000.0 else 'Above',
+                        'column': f"{total_cost_col}/{units_produced_col}",
+                        'insight': f"{'✅ Efficient' if cost_per_unit <= 30000 else '⚠️ High cost'} - Target ≤30K VND/unit"
+                    }
+            
+            # 8. OEE (Overall Equipment Effectiveness)
+            # OEE = Availability × Performance × Quality
+            if (available_hours_cols and downtime_cols and 
+                actual_run_cols and theoretical_max_cols and 
+                units_produced_cols and good_units_cols):
+                
+                available_col = available_hours_cols[0]
+                downtime_col = downtime_cols[0]
+                actual_run_col = actual_run_cols[0]
+                theoretical_col = theoretical_max_cols[0]
+                units_col = units_produced_cols[0]
+                good_col = good_units_cols[0]
+                
+                # Availability = (Available Time - Downtime) / Available Time
+                total_available = df[available_col].sum()
+                total_downtime = df[downtime_col].sum()
+                availability = ((total_available - total_downtime) / total_available) if total_available > 0 else 0
+                
+                # Performance = Actual Output / Theoretical Max Output
+                total_actual_output = df[units_col].sum()
+                total_theoretical = df[theoretical_col].sum()
+                performance = (total_actual_output / total_theoretical) if total_theoretical > 0 else 0
+                
+                # Quality = Good Units / Total Units
+                total_good = df[good_col].sum()
+                total_units = df[units_col].sum()
+                quality = (total_good / total_units) if total_units > 0 else 0
+                
+                # OEE = Availability × Performance × Quality
+                oee = availability * performance * quality * 100
+                
+                kpis['OEE - Overall Equipment Effectiveness (%)'] = {
+                    'value': float(oee),
+                    'benchmark': 85.0,  # World-class: ≥85%
+                    'status': 'Above' if oee >= 85.0 else 'Below',
+                    'column': f"({available_col} - {downtime_col}) × ({units_col}/{theoretical_col}) × ({good_col}/{units_col})",
+                    'insight': f"{'✅ World-class' if oee >= 85 else '⚠️ Needs improvement'} - Target ≥85%",
+                    'components': {
+                        'Availability': float(availability * 100),
+                        'Performance': float(performance * 100),
+                        'Quality': float(quality * 100)
+                    }
+                }
+        
         # === FALLBACK: UNIVERSAL KPIs ===
         else:
             if primary_metric_col:
@@ -2038,8 +2209,8 @@ REMEMBER: Every chart MUST have x_axis and y_axis as actual column names from th
                 import traceback
                 logger.error(f"Failed to create chart {i+1} '{chart_spec.get('title', 'Unknown')}': {type(e).__name__}: {str(e)}")
                 logger.error(f"Traceback: {traceback.format_exc()[:500]}")
-                if is_streamlit_context():
-                    st.warning(f"⚠️ Không tạo được chart '{chart_spec.get('title', 'Unknown')}': {str(e)}")
+                # Silent skip - user doesn't need to see chart generation failures
+                # Still logs error for debugging
                 continue
         
         return {
