@@ -229,6 +229,10 @@ def main():
         
         result = st.session_state['result']
         
+        # 🐛 DEBUG: Verify code version
+        import datetime
+        st.error(f"🐛 CODE VERSION CHECK: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - Debug code active!")
+        
         # Display domain info
         domain_info = result['domain_info']
         st.markdown(f"**Ngành nghề**: {domain_info['domain_name']} | **Expert**: {domain_info['expert_role'][:60]}...")
@@ -237,12 +241,14 @@ def main():
         st.markdown("#### 📈 Key Performance Indicators")
         kpis = result['dashboard'].get('kpis', {})
         
-        # 🐛 DEBUG: Log KPIs received from dashboard
-        st.warning(f"🐛 DEBUG: Received {len(kpis)} KPIs from dashboard")
+        # 🐛 DEBUG: FORCE DISPLAY - Use st.error to ensure visibility
+        st.error(f"🐛 DEBUG: Received {len(kpis)} KPIs from dashboard")
         if kpis:
-            st.warning(f"🐛 DEBUG: KPI keys = {list(kpis.keys())[:3]}")
+            st.error(f"🐛 DEBUG: KPI keys = {list(kpis.keys())[:3]}")
             first_kpi = list(kpis.items())[0]
-            st.warning(f"🐛 DEBUG: First KPI data = {first_kpi}")
+            st.error(f"🐛 DEBUG: First KPI data = {first_kpi}")
+        else:
+            st.error("🐛 DEBUG: KPIs DICT IS EMPTY!")
         
         if kpis:
             cols = st.columns(min(4, len(kpis)))
