@@ -229,10 +229,6 @@ def main():
         
         result = st.session_state['result']
         
-        # 🐛 DEBUG: Verify code version
-        import datetime
-        st.error(f"🐛 CODE VERSION CHECK: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - Debug code active!")
-        
         # Display domain info
         domain_info = result['domain_info']
         st.markdown(f"**Ngành nghề**: {domain_info['domain_name']} | **Expert**: {domain_info['expert_role'][:60]}...")
