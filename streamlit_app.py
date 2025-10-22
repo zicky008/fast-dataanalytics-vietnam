@@ -237,6 +237,13 @@ def main():
         st.markdown("#### 📈 Key Performance Indicators")
         kpis = result['dashboard'].get('kpis', {})
         
+        # 🐛 DEBUG: Log KPIs received from dashboard
+        st.warning(f"🐛 DEBUG: Received {len(kpis)} KPIs from dashboard")
+        if kpis:
+            st.warning(f"🐛 DEBUG: KPI keys = {list(kpis.keys())[:3]}")
+            first_kpi = list(kpis.items())[0]
+            st.warning(f"🐛 DEBUG: First KPI data = {first_kpi}")
+        
         if kpis:
             cols = st.columns(min(4, len(kpis)))
             for i, (kpi_name, kpi_data) in enumerate(list(kpis.items())[:8]):

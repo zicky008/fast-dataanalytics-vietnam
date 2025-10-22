@@ -1016,6 +1016,11 @@ OUTPUT JSON:
         
         # === MANUFACTURING/OPERATIONS DATA ===
         elif 'manufacturing' in domain or 'production' in domain or 'operations' in domain or 'factory' in domain:
+            # 🐛 DEBUG: Log when manufacturing block is reached
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"🏭 MANUFACTURING BLOCK REACHED! Domain: {domain}")
+            
             # Detect key manufacturing columns (be specific to avoid false matches)
             units_produced_cols = [col for col in df.columns if 'units_produced' in col.lower() or 'units produced' in col.lower()]
             good_units_cols = [col for col in df.columns if 'good_units' in col.lower() or 'good units' in col.lower()]
@@ -1026,12 +1031,18 @@ OUTPUT JSON:
             theoretical_max_cols = [col for col in df.columns if 'theoretical' in col.lower() or 'max_output' in col.lower() or 'max output' in col.lower()]
             total_cost_cols = [col for col in df.columns if 'total_cost' in col.lower() or 'total cost' in col.lower()]
             
+            # 🐛 DEBUG: Log detected columns
+            logger.warning(f"🔍 Detected columns - units_produced: {units_produced_cols}, good_units: {good_units_cols}")
+            
             if units_produced_cols and good_units_cols:
                 units_produced_col = units_produced_cols[0]
                 good_units_col = good_units_cols[0]
                 
                 total_units = df[units_produced_col].sum()
                 total_good = df[good_units_col].sum()
+                
+                # 🐛 DEBUG: Log calculated values
+                logger.warning(f"📊 Total units: {total_units}, Good units: {total_good}")
                 
                 # 1. First Pass Yield (FPY)
                 if total_units > 0:
@@ -1043,6 +1054,8 @@ OUTPUT JSON:
                         'column': f"{good_units_col}/{units_produced_col}",
                         'insight': f"{'✅ World-class' if fpy >= 95 else '⚠️ Needs improvement'} - Target ≥95%"
                     }
+                    # 🐛 DEBUG: Log KPI added
+                    logger.warning(f"✅ Added KPI: First Pass Yield = {fpy:.2f}%")
                 
                 # 2. Defect Rate
                 if defective_cols and total_units > 0:
@@ -1209,6 +1222,15 @@ OUTPUT JSON:
                     'status': 'Above Target',
                     'column': col_name
                 }
+        
+        # 🐛 DEBUG: Log final KPIs count before returning
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.warning(f"🎯 FINAL KPIs COUNT: {len(kpis)} KPIs calculated for domain '{domain}'")
+        if kpis:
+            logger.warning(f"📋 KPI Names: {list(kpis.keys())}")
+        else:
+            logger.warning(f"⚠️ WARNING: NO KPIs calculated!")
         
         return kpis
     
