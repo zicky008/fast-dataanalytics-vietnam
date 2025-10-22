@@ -2105,6 +2105,14 @@ REMEMBER: Every chart MUST have x_axis and y_axis as actual column names from th
             
             # ⭐ CRITICAL FIX: Force use real calculated KPIs (AI might modify them)
             # This ensures 100% accuracy - ignore whatever AI returns
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"🐛 DEBUG - About to set kpis_calculated: {len(kpis_calculated)} KPIs")
+            if kpis_calculated:
+                logger.warning(f"🐛 DEBUG - KPI names: {list(kpis_calculated.keys())[:3]}")
+            else:
+                logger.warning(f"🐛 DEBUG - kpis_calculated IS EMPTY! This is the bug!")
+            
             smart_blueprint['kpis_calculated'] = kpis_calculated
             
             # DEBUG: Verify after force replace
@@ -2341,9 +2349,12 @@ CRITICAL INSTRUCTIONS:
 
 Your response must be parseable by json.loads() immediately."""
             
-            response = self.client.generate_content(
+            # ⭐ FIX: Create model from genai module (self.client is genai module, not model)
+            model = self.client.GenerativeModel('gemini-2.0-flash-exp')
+            
+            response = model.generate_content(
                 json_prompt,
-                generation_config=genai.GenerationConfig(
+                generation_config=self.client.GenerationConfig(
                     temperature=temperature,
                     max_output_tokens=max_tokens,
                     response_mime_type="application/json"  # Force JSON mode
