@@ -237,15 +237,6 @@ def main():
         st.markdown("#### 📈 Key Performance Indicators")
         kpis = result['dashboard'].get('kpis', {})
         
-        # 🐛 DEBUG: FORCE DISPLAY - Use st.error to ensure visibility
-        st.error(f"🐛 DEBUG: Received {len(kpis)} KPIs from dashboard")
-        if kpis:
-            st.error(f"🐛 DEBUG: KPI keys = {list(kpis.keys())[:3]}")
-            first_kpi = list(kpis.items())[0]
-            st.error(f"🐛 DEBUG: First KPI data = {first_kpi}")
-        else:
-            st.error("🐛 DEBUG: KPIs DICT IS EMPTY!")
-        
         if kpis:
             # Define KPIs where LOWER is BETTER (reverse color logic)
             lower_is_better_kpis = [
