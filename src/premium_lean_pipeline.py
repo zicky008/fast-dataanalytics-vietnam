@@ -831,6 +831,189 @@ OUTPUT JSON:
                         'insight': f"{total_won} deals closed, {total_won_value:,.0f} revenue"
                     }
         
+        # === FINANCE/ACCOUNTING DATA ===
+        elif 'finance' in domain or 'accounting' in domain or 'financial' in domain:
+            # Detect key financial columns
+            revenue_cols = [col for col in df.columns if 'revenue' in col.lower() and 'gross' not in col.lower()]
+            cogs_cols = [col for col in df.columns if 'cogs' in col.lower() or 'cost_of_goods' in col.lower()]
+            gross_profit_cols = [col for col in df.columns if 'gross' in col.lower() and 'profit' in col.lower()]
+            opex_cols = [col for col in df.columns if 'opex' in col.lower() or 'operating_expense' in col.lower() or 'total_opex' in col.lower()]
+            operating_income_cols = [col for col in df.columns if 'operating_income' in col.lower() or 'operating_profit' in col.lower()]
+            net_income_cols = [col for col in df.columns if 'net_income' in col.lower() or 'net_profit' in col.lower()]
+            
+            # Cash flow columns
+            cash_ops_cols = [col for col in df.columns if 'cash' in col.lower() and 'operation' in col.lower()]
+            capex_cols = [col for col in df.columns if 'capex' in col.lower() or 'capital_expenditure' in col.lower()]
+            cash_balance_cols = [col for col in df.columns if 'cash_balance' in col.lower() or ('cash' in col.lower() and 'balance' in col.lower())]
+            
+            # Balance sheet columns
+            current_assets_cols = [col for col in df.columns if 'current_assets' in col.lower() or 'current_asset' in col.lower()]
+            current_liabilities_cols = [col for col in df.columns if 'current_liabilities' in col.lower() or 'current_liability' in col.lower()]
+            inventory_cols = [col for col in df.columns if 'inventory' in col.lower()]
+            total_debt_cols = [col for col in df.columns if 'total_liabilities' in col.lower() or 'total_debt' in col.lower()]
+            equity_cols = [col for col in df.columns if 'shareholders_equity' in col.lower() or ('equity' in col.lower() and 'raised' not in col.lower())]
+            
+            if revenue_cols and net_income_cols:
+                revenue_col = revenue_cols[0]
+                net_income_col = net_income_cols[0]
+                
+                # 1. Net Profit Margin (%)
+                avg_revenue = df[revenue_col].mean()
+                avg_net_income = df[net_income_col].mean()
+                if avg_revenue > 0:
+                    net_margin = (avg_net_income / avg_revenue) * 100
+                    kpis['Net Profit Margin (%)'] = {
+                        'value': float(net_margin),
+                        'benchmark': 15.0,  # SaaS/Tech avg 10-20%
+                        'status': 'Above' if net_margin >= 15.0 else 'Below',
+                        'column': f"{net_income_col}/{revenue_col}",
+                        'insight': f"{'✅ Healthy' if net_margin >= 15 else '⚠️ Needs improvement'} - SaaS avg 10-20%"
+                    }
+                
+                # 2. Gross Margin (%)
+                if gross_profit_cols:
+                    gross_profit_col = gross_profit_cols[0]
+                    avg_gross_profit = df[gross_profit_col].mean()
+                    gross_margin = (avg_gross_profit / avg_revenue) * 100
+                    kpis['Gross Margin (%)'] = {
+                        'value': float(gross_margin),
+                        'benchmark': 70.0,  # SaaS target >70%
+                        'status': 'Above' if gross_margin >= 70.0 else 'Below',
+                        'column': f"{gross_profit_col}/{revenue_col}",
+                        'insight': f"{'✅ Strong' if gross_margin >= 70 else '⚠️ Low for SaaS'} - Target >70%"
+                    }
+                
+                # 3. Operating Margin (%)
+                if operating_income_cols:
+                    op_income_col = operating_income_cols[0]
+                    avg_op_income = df[op_income_col].mean()
+                    op_margin = (avg_op_income / avg_revenue) * 100
+                    kpis['Operating Margin (%)'] = {
+                        'value': float(op_margin),
+                        'benchmark': 20.0,  # SaaS target 15-25%
+                        'status': 'Above' if op_margin >= 20.0 else 'Below',
+                        'column': f"{op_income_col}/{revenue_col}",
+                        'insight': f"{'✅ Efficient' if op_margin >= 20 else '⚠️ High OPEX'} - Target 15-25%"
+                    }
+                
+                # 4. Revenue Growth Rate (Month-over-Month)
+                if len(df) >= 2:
+                    # Calculate MoM growth
+                    df_sorted = df.sort_values(by=df.columns[0])  # Sort by first column (usually date/month)
+                    first_revenue = df_sorted[revenue_col].iloc[0]
+                    last_revenue = df_sorted[revenue_col].iloc[-1]
+                    months_diff = len(df_sorted) - 1
+                    
+                    if first_revenue > 0 and months_diff > 0:
+                        total_growth = ((last_revenue - first_revenue) / first_revenue) * 100
+                        avg_monthly_growth = total_growth / months_diff
+                        
+                        kpis['Revenue Growth (%)'] = {
+                            'value': float(avg_monthly_growth),
+                            'benchmark': 10.0,  # 10% MoM = unicorn trajectory
+                            'status': 'Above' if avg_monthly_growth >= 10.0 else 'Below',
+                            'column': revenue_col,
+                            'insight': f"{'🚀 Hypergrowth' if avg_monthly_growth >= 15 else '✅ Growing' if avg_monthly_growth >= 10 else '⚠️ Slow growth'} - {total_growth:.1f}% total"
+                        }
+                
+                # 5. Operating Cash Flow
+                if cash_ops_cols:
+                    cash_ops_col = cash_ops_cols[0]
+                    avg_cash_ops = df[cash_ops_col].mean()
+                    total_cash_ops = df[cash_ops_col].sum()
+                    
+                    kpis['Operating Cash Flow'] = {
+                        'value': float(total_cash_ops),
+                        'benchmark': float(total_cash_ops * 0.8),
+                        'status': 'Positive' if avg_cash_ops > 0 else 'Negative',
+                        'column': cash_ops_col,
+                        'insight': f"{'✅ Cash positive' if avg_cash_ops > 0 else '🚨 Burning cash'} - Avg {avg_cash_ops:,.0f}/month"
+                    }
+                    
+                    # 6. Free Cash Flow (OCF - CapEx)
+                    if capex_cols:
+                        capex_col = capex_cols[0]
+                        avg_capex = df[capex_col].mean()
+                        free_cash_flow = avg_cash_ops + avg_capex  # CapEx is usually negative
+                        
+                        kpis['Free Cash Flow'] = {
+                            'value': float(free_cash_flow),
+                            'benchmark': 0,
+                            'status': 'Positive' if free_cash_flow > 0 else 'Negative',
+                            'column': f"{cash_ops_col}+{capex_col}",
+                            'insight': f"{'✅ Sustainable' if free_cash_flow > 0 else '⚠️ Needs funding'} - After CapEx"
+                        }
+                    
+                    # 7. Burn Rate (for startups)
+                    if avg_cash_ops < 0:  # If burning cash
+                        burn_rate = abs(avg_cash_ops)
+                        
+                        # Calculate runway if we have cash balance
+                        if cash_balance_cols:
+                            cash_balance_col = cash_balance_cols[0]
+                            current_cash = df[cash_balance_col].iloc[-1]  # Latest balance
+                            runway_months = current_cash / burn_rate if burn_rate > 0 else 999
+                            
+                            kpis['Burn Rate (Monthly)'] = {
+                                'value': float(burn_rate),
+                                'benchmark': float(burn_rate * 0.7),  # Target: reduce 30%
+                                'status': 'Critical' if runway_months < 6 else 'Warning' if runway_months < 12 else 'Safe',
+                                'column': cash_ops_col,
+                                'insight': f"{'🚨 URGENT' if runway_months < 6 else '⚠️ Watch closely' if runway_months < 12 else '✅ Healthy'} - {runway_months:.1f} months runway"
+                            }
+                
+                # 8. Current Ratio (Liquidity)
+                if current_assets_cols and current_liabilities_cols:
+                    ca_col = current_assets_cols[0]
+                    cl_col = current_liabilities_cols[0]
+                    
+                    avg_ca = df[ca_col].mean()
+                    avg_cl = df[cl_col].mean()
+                    
+                    if avg_cl > 0:
+                        current_ratio = avg_ca / avg_cl
+                        kpis['Current Ratio'] = {
+                            'value': float(current_ratio),
+                            'benchmark': 2.0,  # Healthy: >2.0
+                            'status': 'Healthy' if current_ratio >= 2.0 else 'Warning' if current_ratio >= 1.0 else 'Critical',
+                            'column': f"{ca_col}/{cl_col}",
+                            'insight': f"{'✅ Strong liquidity' if current_ratio >= 2.0 else '⚠️ Tight liquidity' if current_ratio >= 1.0 else '🚨 Liquidity crisis'}"
+                        }
+                    
+                    # 9. Quick Ratio (Acid Test)
+                    if inventory_cols:
+                        inv_col = inventory_cols[0]
+                        avg_inv = df[inv_col].mean()
+                        quick_assets = avg_ca - avg_inv
+                        
+                        if avg_cl > 0:
+                            quick_ratio = quick_assets / avg_cl
+                            kpis['Quick Ratio'] = {
+                                'value': float(quick_ratio),
+                                'benchmark': 1.0,  # Healthy: >1.0
+                                'status': 'Healthy' if quick_ratio >= 1.0 else 'Warning',
+                                'column': f"({ca_col}-{inv_col})/{cl_col}",
+                                'insight': f"{'✅ Can cover short-term debt' if quick_ratio >= 1.0 else '⚠️ May struggle with immediate obligations'}"
+                            }
+                
+                # 10. Debt-to-Equity Ratio
+                if total_debt_cols and equity_cols:
+                    debt_col = total_debt_cols[0]
+                    equity_col = equity_cols[0]
+                    
+                    avg_debt = df[debt_col].mean()
+                    avg_equity = df[equity_col].mean()
+                    
+                    if avg_equity > 0:
+                        debt_to_equity = avg_debt / avg_equity
+                        kpis['Debt-to-Equity Ratio'] = {
+                            'value': float(debt_to_equity),
+                            'benchmark': 1.0,  # <1.0 = conservative, 1-2 = moderate, >2 = aggressive
+                            'status': 'Conservative' if debt_to_equity < 1.0 else 'Moderate' if debt_to_equity < 2.0 else 'Aggressive',
+                            'column': f"{debt_col}/{equity_col}",
+                            'insight': f"{'✅ Low leverage' if debt_to_equity < 1.0 else '⚠️ Moderate leverage' if debt_to_equity < 2.0 else '🚨 High leverage risk'}"
+                        }
+        
         # === FALLBACK: UNIVERSAL KPIs ===
         else:
             if primary_metric_col:
