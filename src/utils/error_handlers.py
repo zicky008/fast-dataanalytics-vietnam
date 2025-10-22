@@ -151,8 +151,8 @@ def user_friendly_error(error: Exception) -> str:
     if any(keyword in error_str for keyword in ['model', 'not found', '404']):
         return (
             "❌ **Lỗi model không tồn tại**\n\n"
-            "**Nguyên nhân:** Model 'gemini-2.5-flash' không khả dụng.\n\n"
-            "**Giải pháp:** Kiểm tra tên model hoặc nâng cấp google-genai package."
+            "**Nguyên nhân:** Model Gemini không khả dụng hoặc API key không hợp lệ.\n\n"
+            "**Giải pháp:** Kiểm tra GEMINI_API_KEY trong file .env hoặc Streamlit Secrets."
         )
     
     # Content filtering
