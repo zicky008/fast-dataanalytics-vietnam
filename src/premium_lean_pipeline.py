@@ -2350,7 +2350,8 @@ CRITICAL INSTRUCTIONS:
 Your response must be parseable by json.loads() immediately."""
             
             # ⭐ FIX: Create model from genai module (self.client is genai module, not model)
-            model = self.client.GenerativeModel('gemini-2.0-flash-exp')
+            # Use stable model name (not -exp) for production reliability
+            model = self.client.GenerativeModel('gemini-2.0-flash')
             
             response = model.generate_content(
                 json_prompt,
