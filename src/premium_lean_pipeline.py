@@ -493,15 +493,145 @@ OUTPUT JSON:
         
         # === E-COMMERCE DATA ===
         elif 'ecommerce' in domain or 'e-commerce' in domain:
-            if 'revenue' in ' '.join(all_cols_lower):
-                rev_col = [col for col in df.columns if 'revenue' in col.lower()][0]
+            # Detect key e-commerce columns (smart column matching)
+            revenue_cols = [col for col in df.columns if 'revenue' in col.lower()]
+            transaction_cols = [col for col in df.columns if 'transaction' in col.lower() and 'rate' not in col.lower()]
+            session_cols = [col for col in df.columns if 'session' in col.lower()]
+            user_cols = [col for col in df.columns if 'user' in col.lower() and 'rate' not in col.lower()]
+            cart_cols = [col for col in df.columns if 'cart' in col.lower() and 'abandonment' not in col.lower()]
+            checkout_cols = [col for col in df.columns if 'checkout' in col.lower()]
+            conversion_rate_cols = [col for col in df.columns if 'conversion' in col.lower() and 'rate' in col.lower()]
+            aov_cols = [col for col in df.columns if 'aov' in col.lower() or 'order_value' in col.lower()]
+            bounce_cols = [col for col in df.columns if 'bounce' in col.lower()]
+            returning_cols = [col for col in df.columns if 'returning' in col.lower()]
+            mobile_cols = [col for col in df.columns if 'mobile' in col.lower()]
+            
+            # 1. Conversion Rate = (Transactions / Sessions) × 100
+            if transaction_cols and session_cols:
+                trans_col = transaction_cols[0]
+                sess_col = session_cols[0]
+                total_transactions = df[trans_col].sum()
+                total_sessions = df[sess_col].sum()
+                if total_sessions > 0:
+                    conversion_rate = (total_transactions / total_sessions) * 100
+                    kpis['Conversion Rate (%)'] = {
+                        'value': float(conversion_rate),
+                        'benchmark': 2.5,  # Industry avg 2.5-3%
+                        'status': 'Above' if conversion_rate >= 2.5 else 'Below',
+                        'column': f"{trans_col}/{sess_col}",
+                        'insight': f"{'✅ Strong' if conversion_rate >= 3.0 else '⚠️ Room for improvement'} - Industry avg is 2.5-3%"
+                    }
+            
+            # 2. Average Order Value (AOV) = Total Revenue / Total Transactions
+            if revenue_cols and transaction_cols:
+                rev_col = revenue_cols[0]
+                trans_col = transaction_cols[0]
+                total_revenue = df[rev_col].sum()
+                total_transactions = df[trans_col].sum()
+                if total_transactions > 0:
+                    aov = total_revenue / total_transactions
+                    # Smart benchmark: use currency detection
+                    sample_revenue = df[rev_col].dropna().head(10).mean()
+                    if sample_revenue > 1000:  # Likely VND
+                        benchmark_aov = 150000  # 150K VND (~$6 USD)
+                        currency = 'VND'
+                    else:
+                        benchmark_aov = 81.49  # $81.49 USD (Shopify global avg)
+                        currency = 'USD'
+                    
+                    kpis['Average Order Value (AOV)'] = {
+                        'value': float(aov),
+                        'benchmark': benchmark_aov,
+                        'status': 'Above' if aov >= benchmark_aov else 'Below',
+                        'column': f"{rev_col}/{trans_col}",
+                        'insight': f"{'✅' if aov >= benchmark_aov else '⚠️'} Benchmark: {benchmark_aov:,.0f} {currency}"
+                    }
+            
+            # 3. Cart Abandonment Rate = (Add-to-Carts - Checkouts) / Add-to-Carts × 100
+            if cart_cols and checkout_cols:
+                cart_col = [col for col in cart_cols if 'add' in col.lower() or 'cart' in col.lower()][0]
+                checkout_col = checkout_cols[0]
+                total_carts = df[cart_col].sum()
+                total_checkouts = df[checkout_col].sum()
+                if total_carts > 0:
+                    abandonment_rate = ((total_carts - total_checkouts) / total_carts) * 100
+                    kpis['Cart Abandonment Rate (%)'] = {
+                        'value': float(abandonment_rate),
+                        'benchmark': 69.82,  # Industry avg
+                        'status': 'Below' if abandonment_rate <= 69.82 else 'Above',  # Lower is better!
+                        'column': f"({cart_col}-{checkout_col})/{cart_col}",
+                        'insight': f"{'✅ Better than' if abandonment_rate < 69.82 else '⚠️ Worse than'} 69.82% industry avg"
+                    }
+            
+            # 4. Revenue per Session
+            if revenue_cols and session_cols:
+                rev_col = revenue_cols[0]
+                sess_col = session_cols[0]
+                total_revenue = df[rev_col].sum()
+                total_sessions = df[sess_col].sum()
+                if total_sessions > 0:
+                    rps = total_revenue / total_sessions
+                    kpis['Revenue per Session'] = {
+                        'value': float(rps),
+                        'benchmark': float(rps * 0.8),  # 80% of current as baseline
+                        'status': 'Above Target',
+                        'column': f"{rev_col}/{sess_col}",
+                        'insight': 'Higher is better - increase with upsells, cross-sells'
+                    }
+            
+            # 5. Returning Customer Rate (%)
+            if returning_cols:
+                ret_col = returning_cols[0]
+                avg_returning = df[ret_col].mean()
+                kpis['Returning Customer Rate (%)'] = {
+                    'value': float(avg_returning),
+                    'benchmark': 30.0,  # Industry avg 25-30%
+                    'status': 'Above' if avg_returning >= 30.0 else 'Below',
+                    'column': ret_col,
+                    'insight': f"{'✅ Strong loyalty' if avg_returning >= 30 else '⚠️ Focus on retention'}"
+                }
+            
+            # 6. Bounce Rate (%)
+            if bounce_cols:
+                bounce_col = bounce_cols[0]
+                avg_bounce = df[bounce_col].mean()
+                kpis['Bounce Rate (%)'] = {
+                    'value': float(avg_bounce),
+                    'benchmark': 47.0,  # E-commerce avg 40-50%
+                    'status': 'Below' if avg_bounce <= 47.0 else 'Above',  # Lower is better!
+                    'column': bounce_col,
+                    'insight': f"{'✅' if avg_bounce < 47 else '⚠️'} Lower is better - Industry avg 40-50%"
+                }
+            
+            # 7. Mobile Traffic Percentage
+            if mobile_cols:
+                mobile_col = mobile_cols[0]
+                avg_mobile = df[mobile_col].mean()
+                kpis['Mobile Traffic (%)'] = {
+                    'value': float(avg_mobile),
+                    'benchmark': 60.0,  # Mobile-first threshold
+                    'status': 'Above' if avg_mobile >= 60.0 else 'Below',
+                    'column': mobile_col,
+                    'insight': f"{'📱 Mobile-first' if avg_mobile >= 60 else '💻 Desktop-focused'} - optimize accordingly"
+                }
+            
+            # 8. Add fallback AOV if only revenue exists (no transactions)
+            if revenue_cols and not transaction_cols and 'Average Order Value (AOV)' not in kpis:
+                rev_col = revenue_cols[0]
+                # Fallback: use mean of revenue column (less accurate)
                 avg_order_value = df[rev_col].mean()
+                sample_revenue = df[rev_col].dropna().head(10).mean()
+                if sample_revenue > 1000:
+                    benchmark_aov = 150000
+                else:
+                    benchmark_aov = 81.49
                 
-                kpis['AOV'] = {
+                kpis['AOV (estimated)'] = {
                     'value': float(avg_order_value),
-                    'benchmark': 81.49,
-                    'status': 'Above' if avg_order_value >= 81.49 else 'Below',
-                    'column': rev_col
+                    'benchmark': benchmark_aov,
+                    'status': 'Above' if avg_order_value >= benchmark_aov else 'Below',
+                    'column': rev_col,
+                    'insight': '⚠️ Estimated from revenue mean - upload transaction data for accuracy'
                 }
         
         # === FALLBACK: UNIVERSAL KPIs ===
@@ -530,6 +660,279 @@ OUTPUT JSON:
                 }
         
         return kpis
+    
+    def _calculate_dimension_analysis(self, df: pd.DataFrame, domain_info: Dict) -> Dict:
+        """
+        ⭐ NEW: Calculate dimension-level analysis (channel, campaign, rep, etc.)
+        
+        This provides breakdown by key dimensions for deeper insights:
+        - E-commerce: By channel (Organic, Facebook Ads, Google Ads, etc.)
+        - Marketing: By campaign
+        - Sales: By rep, by stage
+        
+        Returns:
+            Dictionary with dimension breakdowns and insights
+        """
+        analysis = {}
+        domain = domain_info.get('domain_name', 'general').lower()
+        
+        # Detect dimension columns (channel, campaign, rep, etc.)
+        channel_cols = [col for col in df.columns if 'channel' in col.lower()]
+        campaign_cols = [col for col in df.columns if 'campaign' in col.lower()]
+        rep_cols = [col for col in df.columns if 'rep' in col.lower() or 'sales' in col.lower()]
+        stage_cols = [col for col in df.columns if 'stage' in col.lower() or 'status' in col.lower()]
+        
+        # === E-COMMERCE: CHANNEL ANALYSIS ===
+        if ('ecommerce' in domain or 'e-commerce' in domain) and channel_cols:
+            channel_col = channel_cols[0]
+            
+            # Detect key metrics for channel analysis
+            revenue_cols = [col for col in df.columns if 'revenue' in col.lower()]
+            transaction_cols = [col for col in df.columns if 'transaction' in col.lower() and 'rate' not in col.lower()]
+            session_cols = [col for col in df.columns if 'session' in col.lower()]
+            cac_cols = [col for col in df.columns if 'cac' in col.lower()]
+            
+            if revenue_cols and transaction_cols and session_cols:
+                rev_col = revenue_cols[0]
+                trans_col = transaction_cols[0]
+                sess_col = session_cols[0]
+                
+                # Group by channel
+                channel_stats = df.groupby(channel_col).agg({
+                    rev_col: 'sum',
+                    trans_col: 'sum',
+                    sess_col: 'sum'
+                })
+                
+                # Calculate CR by channel
+                channel_stats['conversion_rate'] = (channel_stats[trans_col] / channel_stats[sess_col]) * 100
+                channel_stats['aov'] = channel_stats[rev_col] / channel_stats[trans_col]
+                channel_stats['revenue_per_session'] = channel_stats[rev_col] / channel_stats[sess_col]
+                
+                # Add CAC if available
+                if cac_cols:
+                    cac_col = cac_cols[0]
+                    channel_cac = df.groupby(channel_col)[cac_col].mean()
+                    channel_stats['cac'] = channel_cac
+                    
+                    # Calculate ROI = (Revenue - CAC*Transactions) / (CAC*Transactions)
+                    channel_stats['roi'] = ((channel_stats[rev_col] - channel_stats['cac'] * channel_stats[trans_col]) / 
+                                           (channel_stats['cac'] * channel_stats[trans_col]))
+                
+                # Sort by revenue (best channels first)
+                channel_stats = channel_stats.sort_values(rev_col, ascending=False)
+                
+                # Format for output
+                channel_breakdown = []
+                for channel, row in channel_stats.iterrows():
+                    channel_data = {
+                        'channel': channel,
+                        'revenue': float(row[rev_col]),
+                        'transactions': float(row[trans_col]),
+                        'sessions': float(row[sess_col]),
+                        'conversion_rate': float(row['conversion_rate']),
+                        'aov': float(row['aov']),
+                        'revenue_per_session': float(row['revenue_per_session'])
+                    }
+                    if cac_cols:
+                        channel_data['cac'] = float(row['cac'])
+                        channel_data['roi'] = float(row['roi'])
+                    
+                    channel_breakdown.append(channel_data)
+                
+                analysis['channel_breakdown'] = {
+                    'data': channel_breakdown,
+                    'insights': self._generate_channel_insights(channel_breakdown),
+                    'best_channel': channel_breakdown[0]['channel'] if channel_breakdown else None,
+                    'worst_channel': channel_breakdown[-1]['channel'] if channel_breakdown else None
+                }
+        
+        # === MARKETING: CAMPAIGN ANALYSIS ===
+        elif ('marketing' in domain or 'quảng cáo' in domain) and campaign_cols:
+            campaign_col = campaign_cols[0]
+            
+            # Detect key metrics
+            spend_cols = [col for col in df.columns if 'spend' in col.lower() or 'cost' in col.lower()]
+            revenue_cols = [col for col in df.columns if 'revenue' in col.lower()]
+            click_cols = [col for col in df.columns if 'click' in col.lower()]
+            conversion_cols = [col for col in df.columns if 'conversion' in col.lower()]
+            
+            if spend_cols and revenue_cols:
+                spend_col = spend_cols[0]
+                rev_col = revenue_cols[0]
+                
+                # Group by campaign
+                campaign_stats = df.groupby(campaign_col).agg({
+                    spend_col: 'sum',
+                    rev_col: 'sum'
+                })
+                
+                # Calculate ROAS by campaign
+                campaign_stats['roas'] = campaign_stats[rev_col] / campaign_stats[spend_col]
+                
+                # Add other metrics if available
+                if click_cols:
+                    click_col = click_cols[0]
+                    campaign_clicks = df.groupby(campaign_col)[click_col].sum()
+                    campaign_stats['clicks'] = campaign_clicks
+                    campaign_stats['cpc'] = campaign_stats[spend_col] / campaign_stats['clicks']
+                
+                if conversion_cols:
+                    conv_col = conversion_cols[0]
+                    campaign_conversions = df.groupby(campaign_col)[conv_col].sum()
+                    campaign_stats['conversions'] = campaign_conversions
+                    campaign_stats['cpa'] = campaign_stats[spend_col] / campaign_stats['conversions']
+                
+                # Sort by ROAS (best campaigns first)
+                campaign_stats = campaign_stats.sort_values('roas', ascending=False)
+                
+                # Format for output
+                campaign_breakdown = []
+                for campaign, row in campaign_stats.iterrows():
+                    campaign_data = {
+                        'campaign': campaign,
+                        'spend': float(row[spend_col]),
+                        'revenue': float(row[rev_col]),
+                        'roas': float(row['roas'])
+                    }
+                    if click_cols:
+                        campaign_data['clicks'] = float(row['clicks'])
+                        campaign_data['cpc'] = float(row['cpc'])
+                    if conversion_cols:
+                        campaign_data['conversions'] = float(row['conversions'])
+                        campaign_data['cpa'] = float(row['cpa'])
+                    
+                    campaign_breakdown.append(campaign_data)
+                
+                analysis['campaign_breakdown'] = {
+                    'data': campaign_breakdown,
+                    'insights': self._generate_campaign_insights(campaign_breakdown),
+                    'best_campaign': campaign_breakdown[0]['campaign'] if campaign_breakdown else None,
+                    'worst_campaign': campaign_breakdown[-1]['campaign'] if campaign_breakdown else None
+                }
+        
+        # === SALES: REP & STAGE ANALYSIS ===
+        elif 'sales' in domain and (rep_cols or stage_cols):
+            # Sales analysis will be implemented in next task
+            pass
+        
+        return analysis
+    
+    def _generate_channel_insights(self, channel_breakdown: list) -> list:
+        """Generate actionable insights from channel breakdown (5-star quality)"""
+        insights = []
+        
+        if not channel_breakdown:
+            return insights
+        
+        # Sort by different metrics to find true best/worst
+        by_revenue = sorted(channel_breakdown, key=lambda x: x['revenue'], reverse=True)
+        by_roi = sorted([c for c in channel_breakdown if 'roi' in c and c['roi'] != float('inf')], 
+                       key=lambda x: x['roi'], reverse=True)
+        by_cr = sorted(channel_breakdown, key=lambda x: x['conversion_rate'], reverse=True)
+        
+        # Insight 1: Best ROI channel (most important!)
+        if by_roi:
+            best_roi = by_roi[0]
+            insights.append({
+                'type': 'best_roi',
+                'message': f"🏆 {best_roi['channel']} has BEST ROI ({best_roi['roi']:.2f}x) with {best_roi['conversion_rate']:.2f}% CR",
+                'action': f"SCALE {best_roi['channel']} - highest profitability"
+            })
+        
+        # Insight 2: Unprofitable channels (ROI < 1.0 = losing money)
+        losing_money = [c for c in channel_breakdown if 'roi' in c and c['roi'] < 1.0 and c['roi'] != float('inf')]
+        if losing_money:
+            total_waste = sum(c['cac'] * c['transactions'] - c['revenue'] for c in losing_money)
+            channel_names = ', '.join([f"{c['channel']} ({c['roi']:.2f}x)" for c in losing_money[:3]])
+            insights.append({
+                'type': 'losing_money',
+                'message': f"🚨 {len(losing_money)} channels LOSING MONEY: {channel_names}",
+                'action': f"PAUSE these channels - wasting {total_waste:,.0f} VND. Shift budget to profitable channels."
+            })
+        
+        # Insight 3: High-volume low-CR vs Low-volume high-CR
+        if by_revenue and by_cr:
+            high_volume = by_revenue[0]
+            high_cr = by_cr[0]
+            
+            if high_volume['channel'] != high_cr['channel']:
+                # Different channels = opportunity
+                if high_cr['sessions'] < high_volume['sessions'] * 0.5:  # Low traffic but high CR
+                    insights.append({
+                        'type': 'hidden_gem',
+                        'message': f"💎 {high_cr['channel']} has {high_cr['conversion_rate']:.2f}% CR (best!) but only {high_cr['sessions']:,.0f} sessions",
+                        'action': f"Increase traffic to {high_cr['channel']} - scale ads, SEO, or email list"
+                    })
+        
+        # Insight 4: CAC inefficiency (3x+ difference)
+        if len(by_roi) >= 2:
+            channels_with_cac = [c for c in channel_breakdown if 'cac' in c and c['cac'] > 0]
+            if len(channels_with_cac) >= 2:
+                cheapest = min(channels_with_cac, key=lambda x: x['cac'])
+                most_expensive = max(channels_with_cac, key=lambda x: x['cac'])
+                
+                if most_expensive['cac'] / cheapest['cac'] > 3:  # 3x difference
+                    insights.append({
+                        'type': 'cac_inefficiency',
+                        'message': f"💰 {most_expensive['channel']} CAC ({most_expensive['cac']:,.0f}) is {most_expensive['cac']/cheapest['cac']:.1f}x more expensive than {cheapest['channel']} ({cheapest['cac']:,.0f})",
+                        'action': f"Optimize {most_expensive['channel']} targeting or shift budget to {cheapest['channel']}"
+                    })
+        
+        # Insight 5: Conversion rate gaps (below 2.5% benchmark)
+        low_cr_channels = [c for c in channel_breakdown if c['conversion_rate'] < 2.5]
+        if low_cr_channels:
+            channel_names = ', '.join([f"{c['channel']} ({c['conversion_rate']:.2f}%)" for c in low_cr_channels[:3]])
+            insights.append({
+                'type': 'low_conversion',
+                'message': f"⚠️ {len(low_cr_channels)} channels below 2.5% CR benchmark: {channel_names}",
+                'action': "Review landing pages, targeting, and messaging for these channels"
+            })
+        
+        return insights[:5]  # Top 5 insights only
+    
+    def _generate_campaign_insights(self, campaign_breakdown: list) -> list:
+        """Generate actionable insights from campaign breakdown"""
+        insights = []
+        
+        if not campaign_breakdown:
+            return insights
+        
+        # Find profitable vs unprofitable campaigns
+        profitable = [c for c in campaign_breakdown if c['roas'] >= 1.0]
+        unprofitable = [c for c in campaign_breakdown if c['roas'] < 1.0]
+        
+        best = campaign_breakdown[0]
+        worst = campaign_breakdown[-1]
+        
+        # Insight 1: Best campaign
+        insights.append({
+            'type': 'best_performer',
+            'message': f"🏆 {best['campaign']} is your top campaign with {best['roas']:.2f}x ROAS (${best['revenue']:,.0f} revenue)",
+            'action': f"Scale budget for {best['campaign']} - it's profitable"
+        })
+        
+        # Insight 2: Unprofitable campaigns
+        if unprofitable:
+            total_waste = sum(c['spend'] - c['revenue'] for c in unprofitable)
+            campaign_names = ', '.join([c['campaign'] for c in unprofitable[:3]])
+            insights.append({
+                'type': 'money_wasted',
+                'message': f"🚨 {len(unprofitable)} campaigns losing money (ROAS < 1.0): {campaign_names}",
+                'action': f"PAUSE these campaigns immediately - wasting ${total_waste:,.0f}"
+            })
+        
+        # Insight 3: Budget reallocation opportunity
+        if profitable and unprofitable:
+            reallocation_amount = sum(c['spend'] for c in unprofitable)
+            potential_revenue = reallocation_amount * best['roas']
+            insights.append({
+                'type': 'reallocation',
+                'message': f"💡 Shift ${reallocation_amount:,.0f} from unprofitable campaigns to {best['campaign']}",
+                'action': f"Potential revenue increase: ${potential_revenue:,.0f} ({best['roas']:.2f}x ROAS)"
+            })
+        
+        return insights
     
     @rate_limit_handler(max_retries=3, backoff_base=2)
     @log_performance("Smart Blueprint")
