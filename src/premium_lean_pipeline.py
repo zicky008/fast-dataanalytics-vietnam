@@ -481,14 +481,54 @@ OUTPUT JSON:
                         'column': f"{conversion_col}/{click_col}"
                     }
             
-            # 6. Total Spend (if available)
+            # 6. CPA (Cost Per Acquisition)
+            if spend_cols and conversion_cols:
+                cost_col = spend_cols[0]
+                conversion_col = conversion_cols[0]
+                total_cost = df[cost_col].sum()
+                total_conversions = df[conversion_col].sum()
+                if total_conversions > 0:
+                    cpa = total_cost / total_conversions
+                    # Smart benchmark based on currency
+                    sample_spend = df[cost_col].dropna().head(10).mean()
+                    if sample_spend > 100000:  # Likely VND
+                        benchmark_cpa = 200000  # 200K VND
+                        currency = 'VND'
+                    else:
+                        benchmark_cpa = 50  # $50 USD
+                        currency = 'USD'
+                    
+                    kpis['Cost Per Acquisition (CPA)'] = {
+                        'value': float(cpa),
+                        'benchmark': benchmark_cpa,
+                        'status': 'Below' if cpa <= benchmark_cpa else 'Above',  # Lower is better!
+                        'column': f"{cost_col}/{conversion_col}",
+                        'insight': f"{'✅ Efficient' if cpa <= benchmark_cpa else '⚠️ High CPA'} - Lower is better. Benchmark: {benchmark_cpa:,.0f} {currency}"
+                    }
+            
+            # 7. Engagement Rate (for social/video campaigns)
+            engagement_cols = [col for col in df.columns if 'engagement' in col.lower()]
+            if engagement_cols:
+                eng_col = engagement_cols[0]
+                avg_engagement = df[eng_col].mean()
+                kpis['Engagement Rate (%)'] = {
+                    'value': float(avg_engagement),
+                    'benchmark': 2.0,  # Social media avg 1-3%
+                    'status': 'Above' if avg_engagement >= 2.0 else 'Below',
+                    'column': eng_col,
+                    'insight': f"{'✅ Strong' if avg_engagement >= 3.0 else '⚠️ Improve'} social engagement - Industry avg 1-3%"
+                }
+            
+            # 8. Total Spend (if available)
             if spend_cols:
                 cost_col = spend_cols[0]
+                total_spend = df[cost_col].sum()
                 kpis['Total Spend'] = {
-                    'value': float(df[cost_col].sum()),
+                    'value': float(total_spend),
                     'benchmark': 100000,
                     'status': 'Check',
-                    'column': cost_col
+                    'column': cost_col,
+                    'insight': f"Budget: {total_spend:,.0f}"
                 }
         
         # === E-COMMERCE DATA ===
@@ -1061,47 +1101,104 @@ OUTPUT JSON:
         return insights[:5]  # Top 5 insights only
     
     def _generate_campaign_insights(self, campaign_breakdown: list) -> list:
-        """Generate actionable insights from campaign breakdown"""
+        """Generate actionable insights from campaign breakdown (5-star quality for CMOs)"""
         insights = []
         
         if not campaign_breakdown:
             return insights
         
-        # Find profitable vs unprofitable campaigns
-        profitable = [c for c in campaign_breakdown if c['roas'] >= 1.0]
-        unprofitable = [c for c in campaign_breakdown if c['roas'] < 1.0]
+        # Categorize campaigns by performance
+        profitable = [c for c in campaign_breakdown if c['roas'] >= 2.0]  # Strong ROI
+        breakeven = [c for c in campaign_breakdown if 0.8 <= c['roas'] < 2.0]  # Marginal
+        unprofitable = [c for c in campaign_breakdown if c['roas'] < 0.8]  # Losing money
         
-        best = campaign_breakdown[0]
-        worst = campaign_breakdown[-1]
+        best = campaign_breakdown[0]  # Highest ROAS
+        worst = campaign_breakdown[-1]  # Lowest ROAS
         
-        # Insight 1: Best campaign
-        insights.append({
-            'type': 'best_performer',
-            'message': f"🏆 {best['campaign']} is your top campaign with {best['roas']:.2f}x ROAS (${best['revenue']:,.0f} revenue)",
-            'action': f"Scale budget for {best['campaign']} - it's profitable"
-        })
+        # Insight 1: Best campaign (Scale opportunity)
+        if best['roas'] >= 1.0:
+            scale_potential = best['spend'] * 2  # 2x current spend
+            projected_revenue = scale_potential * best['roas']
+            projected_profit = projected_revenue - scale_potential
+            
+            insights.append({
+                'type': 'scale_winner',
+                'message': f"🏆 {best['campaign']}: BEST performer ({best['roas']:.2f}x ROAS, {best.get('cpa', 0):,.0f} CPA)",
+                'action': f"SCALE 2x → Invest +{best['spend']:,.0f}, expect +{projected_profit:,.0f} profit"
+            })
         
-        # Insight 2: Unprofitable campaigns
+        # Insight 2: Unprofitable campaigns (Immediate action needed)
         if unprofitable:
             total_waste = sum(c['spend'] - c['revenue'] for c in unprofitable)
-            campaign_names = ', '.join([c['campaign'] for c in unprofitable[:3]])
+            total_spend = sum(c['spend'] for c in unprofitable)
+            campaign_names = ', '.join([f"{c['campaign']} ({c['roas']:.2f}x)" for c in unprofitable[:3]])
+            
             insights.append({
-                'type': 'money_wasted',
-                'message': f"🚨 {len(unprofitable)} campaigns losing money (ROAS < 1.0): {campaign_names}",
-                'action': f"PAUSE these campaigns immediately - wasting ${total_waste:,.0f}"
+                'type': 'stop_bleeding',
+                'message': f"🚨 {len(unprofitable)} campaigns LOSING {total_waste:,.0f}: {campaign_names}",
+                'action': f"PAUSE immediately → Save {total_waste:,.0f}/period"
             })
         
-        # Insight 3: Budget reallocation opportunity
+        # Insight 3: Smart budget reallocation (Detailed calculation)
         if profitable and unprofitable:
-            reallocation_amount = sum(c['spend'] for c in unprofitable)
-            potential_revenue = reallocation_amount * best['roas']
+            # Calculate reallocation impact
+            wasted_budget = sum(c['spend'] for c in unprofitable)
+            best_roas = best['roas']
+            
+            # If moved to best campaign
+            new_revenue = wasted_budget * best_roas
+            current_lost = sum(c['spend'] - c['revenue'] for c in unprofitable)
+            net_gain = new_revenue - wasted_budget - current_lost
+            
+            # ROI improvement
+            current_total_revenue = sum(c['revenue'] for c in campaign_breakdown)
+            current_total_spend = sum(c['spend'] for c in campaign_breakdown)
+            current_roas = current_total_revenue / current_total_spend if current_total_spend > 0 else 0
+            
+            new_total_revenue = current_total_revenue - sum(c['revenue'] for c in unprofitable) + new_revenue
+            new_total_spend = current_total_spend  # Same total spend
+            new_roas = new_total_revenue / new_total_spend if new_total_spend > 0 else 0
+            
             insights.append({
-                'type': 'reallocation',
-                'message': f"💡 Shift ${reallocation_amount:,.0f} from unprofitable campaigns to {best['campaign']}",
-                'action': f"Potential revenue increase: ${potential_revenue:,.0f} ({best['roas']:.2f}x ROAS)"
+                'type': 'budget_reallocation',
+                'message': f"💰 Reallocate {wasted_budget:,.0f} from losing campaigns → {best['campaign']}",
+                'action': f"Impact: ROAS {current_roas:.2f}x → {new_roas:.2f}x (+{(new_roas-current_roas)/current_roas*100:.1f}%), Gain {net_gain:,.0f}"
             })
         
-        return insights
+        # Insight 4: Break-even campaigns (Optimization opportunity)
+        if breakeven:
+            campaign_names = ', '.join([f"{c['campaign']} ({c['roas']:.2f}x)" for c in breakeven[:2]])
+            insights.append({
+                'type': 'optimize',
+                'message': f"⚠️ {len(breakeven)} campaigns near break-even: {campaign_names}",
+                'action': f"OPTIMIZE targeting, creative, or landing pages → push ROAS > 2.0x"
+            })
+        
+        # Insight 5: CPA efficiency gap (if CPA available)
+        if 'cpa' in best and 'cpa' in worst:
+            cpa_gap = worst.get('cpa', 0) / best.get('cpa', 1) if best.get('cpa', 0) > 0 else 0
+            if cpa_gap > 3:  # 3x difference
+                insights.append({
+                    'type': 'cpa_efficiency',
+                    'message': f"💸 CPA gap: {worst['campaign']} ({worst.get('cpa', 0):,.0f}) is {cpa_gap:.1f}x more expensive than {best['campaign']} ({best.get('cpa', 0):,.0f})",
+                    'action': f"Fix {worst['campaign']} targeting or reallocate budget"
+                })
+        
+        # Insight 6: Overall portfolio health
+        if len(profitable) == 0:
+            insights.append({
+                'type': 'critical_alert',
+                'message': f"🚨 ZERO profitable campaigns! Overall ROAS < 1.0 across ALL campaigns",
+                'action': "URGENT: Pause all campaigns, audit strategy, fix fundamentals before spending more"
+            })
+        elif len(profitable) / len(campaign_breakdown) < 0.3:  # Less than 30% profitable
+            insights.append({
+                'type': 'portfolio_warning',
+                'message': f"⚠️ Only {len(profitable)}/{len(campaign_breakdown)} campaigns profitable ({len(profitable)/len(campaign_breakdown)*100:.0f}%)",
+                'action': "Review overall strategy - most campaigns underperforming"
+            })
+        
+        return insights[:5]  # Top 5 most critical insights
     
     @rate_limit_handler(max_retries=3, backoff_base=2)
     @log_performance("Smart Blueprint")
