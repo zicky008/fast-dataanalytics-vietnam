@@ -1972,10 +1972,10 @@ REMEMBER: Every chart MUST have x_axis and y_axis as actual column names from th
                     continue
                 
                 # ⭐ CRITICAL FIX: Skip if x_axis and y_axis are the same (prevents duplicate column errors)
+                # Silent skip - user doesn't need to see internal chart generation issues
                 if x_axis == y_axis:
                     logger.warning(f"Skipping chart {i+1}: x_axis and y_axis are identical ('{x_axis}') - would create duplicate columns")
-                    if is_streamlit_context():
-                        st.warning(f"⚠️ Bỏ qua biểu đồ '{chart_title}': Trục X và Y trùng nhau ('{x_axis}')")
+                    # No user-facing warning - keep UI clean and professional
                     continue
                 
                 # Validate columns exist  
@@ -2272,8 +2272,7 @@ Your response must be parseable by json.loads() immediately."""
             
             if missing_fields:
                 logger.warning(f"⚠️ Chart '{chart.get('title', 'Unknown')}' missing fields: {missing_fields} - SKIPPED")
-                if is_streamlit_context():
-                    st.warning(f"⚠️ Bỏ qua biểu đồ thiếu thông tin: {chart.get('title', 'Unknown')} (thiếu: {', '.join(missing_fields)})")
+                # Silent skip - user doesn't need to see internal validation issues
                 continue
             
             # ✅ PART 3: Verify column names exist in dataframe
@@ -2321,8 +2320,9 @@ Your response must be parseable by json.loads() immediately."""
         # ✅ Ensure minimum 3 valid charts
         if len(valid_charts) < 3:
             logger.error(f"❌ Only {len(valid_charts)} valid charts found, need at least 3")
+            # Keep this error - it's a genuine data issue user should know about
             if is_streamlit_context():
-                st.error(f"❌ Chỉ có {len(valid_charts)} biểu đồ hợp lệ, cần tối thiểu 3 biểu đồ")
+                st.error(f"❌ Không đủ dữ liệu để tạo dashboard (cần tối thiểu 3 biểu đồ, chỉ tạo được {len(valid_charts)})")
             
             # Add fallback charts if needed
             while len(valid_charts) < 3 and len(numeric_cols) >= len(valid_charts):
