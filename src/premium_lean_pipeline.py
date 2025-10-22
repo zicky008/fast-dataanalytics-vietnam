@@ -562,6 +562,44 @@ OUTPUT JSON:
                         'column': f"({cart_col}-{checkout_col})/{cart_col}",
                         'insight': f"{'✅ Better than' if abandonment_rate < 69.82 else '⚠️ Worse than'} 69.82% industry avg"
                     }
+                    
+                    # 3.1 Cart Funnel Breakdown (detailed step analysis)
+                    if transaction_cols:
+                        trans_col = transaction_cols[0]
+                        total_transactions = df[trans_col].sum()
+                        
+                        # Step 1: Add-to-Cart → Checkout
+                        cart_to_checkout_rate = (total_checkouts / total_carts) * 100 if total_carts > 0 else 0
+                        
+                        # Step 2: Checkout → Purchase
+                        checkout_to_purchase_rate = (total_transactions / total_checkouts) * 100 if total_checkouts > 0 else 0
+                        
+                        # Identify bottleneck
+                        if cart_to_checkout_rate < 40:  # Industry avg ~35-45%
+                            bottleneck = 'Add-to-Cart → Checkout'
+                            bottleneck_insight = f"🚨 Major drop-off at Add-to-Cart step ({100-cart_to_checkout_rate:.1f}% abandon)"
+                        elif checkout_to_purchase_rate < 75:  # Industry avg ~75-85%
+                            bottleneck = 'Checkout → Purchase'
+                            bottleneck_insight = f"⚠️ Checkout friction ({100-checkout_to_purchase_rate:.1f}% abandon at payment)"
+                        else:
+                            bottleneck = 'None'
+                            bottleneck_insight = f"✅ Strong funnel conversion at both steps"
+                        
+                        kpis['Cart Funnel: Add→Checkout (%)'] = {
+                            'value': float(cart_to_checkout_rate),
+                            'benchmark': 40.0,  # Industry avg
+                            'status': 'Above' if cart_to_checkout_rate >= 40.0 else 'Below',
+                            'column': f"{checkout_col}/{cart_col}",
+                            'insight': f"{bottleneck_insight}. Target: exit-intent popups, free shipping threshold"
+                        }
+                        
+                        kpis['Cart Funnel: Checkout→Purchase (%)'] = {
+                            'value': float(checkout_to_purchase_rate),
+                            'benchmark': 80.0,  # Industry avg ~80%
+                            'status': 'Above' if checkout_to_purchase_rate >= 80.0 else 'Below',
+                            'column': f"{trans_col}/{checkout_col}",
+                            'insight': f"{'✅ Strong checkout flow' if checkout_to_purchase_rate >= 80 else '⚠️ Payment friction - simplify checkout'}"
+                        }
             
             # 4. Revenue per Session
             if revenue_cols and session_cols:
@@ -607,12 +645,29 @@ OUTPUT JSON:
             if mobile_cols:
                 mobile_col = mobile_cols[0]
                 avg_mobile = df[mobile_col].mean()
+                
+                # Generate mobile optimization insight
+                if avg_mobile >= 70:
+                    mobile_insight = f"📱 MOBILE-FIRST ({avg_mobile:.1f}%) - Prioritize mobile UX, mobile checkout optimization, mobile page speed"
+                elif avg_mobile >= 60:
+                    mobile_insight = f"📱 Mobile-majority ({avg_mobile:.1f}%) - Test mobile funnel, improve mobile load time"
+                elif avg_mobile >= 40:
+                    mobile_insight = f"⚖️ Balanced traffic ({avg_mobile:.1f}% mobile) - Optimize for both devices"
+                else:
+                    mobile_insight = f"💻 Desktop-focused ({avg_mobile:.1f}% mobile) - Ensure desktop experience is premium"
+                
+                # Estimate mobile impact (assuming mobile CR is 30-50% lower than desktop)
+                if bounce_cols and avg_mobile >= 60:
+                    avg_bounce = df[bounce_cols[0]].mean()
+                    if avg_bounce > 50:
+                        mobile_insight += f" | ⚠️ High bounce ({avg_bounce:.1f}%) suggests mobile UX issues"
+                
                 kpis['Mobile Traffic (%)'] = {
                     'value': float(avg_mobile),
                     'benchmark': 60.0,  # Mobile-first threshold
                     'status': 'Above' if avg_mobile >= 60.0 else 'Below',
                     'column': mobile_col,
-                    'insight': f"{'📱 Mobile-first' if avg_mobile >= 60 else '💻 Desktop-focused'} - optimize accordingly"
+                    'insight': mobile_insight
                 }
             
             # 8. Add fallback AOV if only revenue exists (no transactions)
@@ -746,6 +801,108 @@ OUTPUT JSON:
                     'best_channel': channel_breakdown[0]['channel'] if channel_breakdown else None,
                     'worst_channel': channel_breakdown[-1]['channel'] if channel_breakdown else None
                 }
+            
+            # === E-COMMERCE: TREND ANALYSIS ===
+            # Detect date column for time-series analysis
+            date_cols = [col for col in df.columns if 'date' in col.lower() or 'time' in col.lower() or 'day' in col.lower()]
+            
+            if date_cols and revenue_cols and transaction_cols and session_cols:
+                date_col = date_cols[0]
+                rev_col = revenue_cols[0]
+                trans_col = transaction_cols[0]
+                sess_col = session_cols[0]
+                
+                # Ensure date column is datetime
+                try:
+                    df_trend = df.copy()
+                    df_trend[date_col] = pd.to_datetime(df_trend[date_col])
+                    
+                    # Group by date
+                    daily_stats = df_trend.groupby(date_col).agg({
+                        rev_col: 'sum',
+                        trans_col: 'sum',
+                        sess_col: 'sum'
+                    }).sort_index()
+                    
+                    # Calculate daily CR
+                    daily_stats['conversion_rate'] = (daily_stats[trans_col] / daily_stats[sess_col]) * 100
+                    daily_stats['revenue_per_session'] = daily_stats[rev_col] / daily_stats[sess_col]
+                    
+                    # Trend analysis: Compare first 3 days vs last 3 days
+                    if len(daily_stats) >= 6:
+                        first_3 = daily_stats.head(3)
+                        last_3 = daily_stats.tail(3)
+                        
+                        cr_first = first_3['conversion_rate'].mean()
+                        cr_last = last_3['conversion_rate'].mean()
+                        cr_change = ((cr_last - cr_first) / cr_first) * 100 if cr_first > 0 else 0
+                        
+                        rev_first = first_3[rev_col].sum()
+                        rev_last = last_3[rev_col].sum()
+                        rev_change = ((rev_last - rev_first) / rev_first) * 100 if rev_first > 0 else 0
+                        
+                        # Determine trend status
+                        if cr_change > 5:
+                            trend_status = 'improving'
+                            trend_emoji = '📈'
+                            trend_insight = f"CR improved {cr_change:.1f}% (from {cr_first:.2f}% to {cr_last:.2f}%)"
+                        elif cr_change < -5:
+                            trend_status = 'declining'
+                            trend_emoji = '📉'
+                            trend_insight = f"⚠️ CR declined {abs(cr_change):.1f}% (from {cr_first:.2f}% to {cr_last:.2f}%)"
+                        else:
+                            trend_status = 'stable'
+                            trend_emoji = '➡️'
+                            trend_insight = f"CR stable around {cr_last:.2f}%"
+                        
+                        # Best and worst days
+                        best_day = daily_stats['conversion_rate'].idxmax()
+                        worst_day = daily_stats['conversion_rate'].idxmin()
+                        best_cr = daily_stats.loc[best_day, 'conversion_rate']
+                        worst_cr = daily_stats.loc[worst_day, 'conversion_rate']
+                        
+                        analysis['performance_trends'] = {
+                            'period': f"{daily_stats.index.min().strftime('%Y-%m-%d')} to {daily_stats.index.max().strftime('%Y-%m-%d')}",
+                            'days_analyzed': len(daily_stats),
+                            'overall_trend': trend_status,
+                            'cr_change_pct': float(cr_change),
+                            'revenue_change_pct': float(rev_change),
+                            'best_day': {
+                                'date': best_day.strftime('%Y-%m-%d'),
+                                'conversion_rate': float(best_cr),
+                                'revenue': float(daily_stats.loc[best_day, rev_col])
+                            },
+                            'worst_day': {
+                                'date': worst_day.strftime('%Y-%m-%d'),
+                                'conversion_rate': float(worst_cr),
+                                'revenue': float(daily_stats.loc[worst_day, rev_col])
+                            },
+                            'insights': [
+                                {
+                                    'type': 'trend',
+                                    'message': f"{trend_emoji} {trend_insight}",
+                                    'action': self._get_trend_action(trend_status, cr_change)
+                                },
+                                {
+                                    'type': 'volatility',
+                                    'message': f"CR range: {worst_cr:.2f}% to {best_cr:.2f}% ({best_cr - worst_cr:.2f}pp variance)",
+                                    'action': f"Investigate {best_day.strftime('%A')} (best) vs {worst_day.strftime('%A')} (worst) patterns"
+                                }
+                            ]
+                        }
+                        
+                        # Revenue trend insight
+                        if abs(rev_change) > 10:
+                            rev_trend_emoji = '📈' if rev_change > 0 else '📉'
+                            analysis['performance_trends']['insights'].append({
+                                'type': 'revenue_trend',
+                                'message': f"{rev_trend_emoji} Revenue {'increased' if rev_change > 0 else 'decreased'} {abs(rev_change):.1f}%",
+                                'action': 'Monitor traffic sources and AOV changes' if rev_change < 0 else 'Scale winning strategies'
+                            })
+                    
+                except Exception as e:
+                    # If date parsing fails, skip trend analysis
+                    pass
         
         # === MARKETING: CAMPAIGN ANALYSIS ===
         elif ('marketing' in domain or 'quảng cáo' in domain) and campaign_cols:
@@ -817,6 +974,18 @@ OUTPUT JSON:
             pass
         
         return analysis
+    
+    def _get_trend_action(self, trend_status: str, change_pct: float) -> str:
+        """Get actionable recommendation based on trend"""
+        if trend_status == 'improving':
+            return f"✅ Keep doing what you're doing! Identify winning changes and double down"
+        elif trend_status == 'declining':
+            if abs(change_pct) > 15:
+                return f"🚨 URGENT: Investigate immediately - check traffic quality, site issues, competitor activity"
+            else:
+                return f"⚠️ Review recent changes (pricing, messaging, UX) that may be hurting CR"
+        else:
+            return "Monitor closely, run A/B tests to find growth opportunities"
     
     def _generate_channel_insights(self, channel_breakdown: list) -> list:
         """Generate actionable insights from channel breakdown (5-star quality)"""
