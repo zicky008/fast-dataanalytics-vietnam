@@ -1971,6 +1971,13 @@ REMEMBER: Every chart MUST have x_axis and y_axis as actual column names from th
                     logger.warning(f"Skipping chart {i+1}: missing x_axis or y_axis")
                     continue
                 
+                # ⭐ CRITICAL FIX: Skip if x_axis and y_axis are the same (prevents duplicate column errors)
+                if x_axis == y_axis:
+                    logger.warning(f"Skipping chart {i+1}: x_axis and y_axis are identical ('{x_axis}') - would create duplicate columns")
+                    if is_streamlit_context():
+                        st.warning(f"⚠️ Bỏ qua biểu đồ '{chart_title}': Trục X và Y trùng nhau ('{x_axis}')")
+                    continue
+                
                 # Validate columns exist  
                 if x_axis not in df.columns:
                     logger.warning(f"Skipping chart {i+1}: x_axis '{x_axis}' not in columns: {list(df.columns)}")
