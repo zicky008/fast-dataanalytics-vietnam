@@ -337,7 +337,8 @@ OUTPUT JSON:
         This ensures "cực kỳ chuẩn xác, uy tín, tin cậy" requirement
         """
         kpis = {}
-        domain = domain_info.get('domain_name', 'general').lower()
+        # Support both 'domain' and 'domain_name' keys for backward compatibility
+        domain = domain_info.get('domain', domain_info.get('domain_name', 'general')).lower()
         
         # ⭐ FIX: Convert string numeric columns to proper numeric types
         # This handles European CSV format (comma as decimal separator)
@@ -729,6 +730,107 @@ OUTPUT JSON:
                     'insight': '⚠️ Estimated from revenue mean - upload transaction data for accuracy'
                 }
         
+        # === SALES/CRM DATA ===
+        elif 'sales' in domain or 'crm' in domain or 'pipeline' in domain:
+            # Detect key sales columns
+            deal_value_cols = [col for col in df.columns if 'deal' in col.lower() and 'value' in col.lower() or 'amount' in col.lower()]
+            stage_cols = [col for col in df.columns if 'stage' in col.lower() or 'status' in col.lower()]
+            probability_cols = [col for col in df.columns if 'probability' in col.lower() or 'prob' in col.lower()]
+            rep_cols = [col for col in df.columns if 'rep' in col.lower() or 'owner' in col.lower() or 'sales' in col.lower()]
+            created_cols = [col for col in df.columns if 'created' in col.lower() and 'date' in col.lower()]
+            close_cols = [col for col in df.columns if 'close' in col.lower() and 'date' in col.lower()]
+            
+            if deal_value_cols and stage_cols:
+                deal_col = deal_value_cols[0]
+                stage_col = stage_cols[0]
+                
+                # Identify won and lost deals
+                won_deals = df[df[stage_col].str.contains('won', case=False, na=False)]
+                lost_deals = df[df[stage_col].str.contains('lost', case=False, na=False)]
+                pipeline_deals = df[~df[stage_col].str.contains('closed|won|lost', case=False, na=False)]
+                
+                # 1. Win Rate = Won / (Won + Lost)
+                total_won = len(won_deals)
+                total_lost = len(lost_deals)
+                if (total_won + total_lost) > 0:
+                    win_rate = (total_won / (total_won + total_lost)) * 100
+                    kpis['Win Rate (%)'] = {
+                        'value': float(win_rate),
+                        'benchmark': 30.0,  # Industry avg 25-35%
+                        'status': 'Above' if win_rate >= 30.0 else 'Below',
+                        'column': stage_col,
+                        'insight': f"{'✅ Strong' if win_rate >= 35 else '⚠️ Below industry'} - B2B SaaS avg 25-35%"
+                    }
+                
+                # 2. Total Pipeline Value (open deals)
+                if len(pipeline_deals) > 0:
+                    pipeline_value = pipeline_deals[deal_col].sum()
+                    kpis['Total Pipeline Value'] = {
+                        'value': float(pipeline_value),
+                        'benchmark': float(pipeline_value * 0.8),
+                        'status': 'Above Target',
+                        'column': deal_col,
+                        'insight': f"{len(pipeline_deals)} deals worth {pipeline_value:,.0f}"
+                    }
+                
+                # 3. Weighted Pipeline (if probability exists)
+                if probability_cols and len(pipeline_deals) > 0:
+                    prob_col = probability_cols[0]
+                    weighted_pipeline = (pipeline_deals[deal_col] * pipeline_deals[prob_col] / 100).sum()
+                    kpis['Weighted Pipeline'] = {
+                        'value': float(weighted_pipeline),
+                        'benchmark': float(weighted_pipeline * 0.8),
+                        'status': 'Above Target',
+                        'column': f"{deal_col}×{prob_col}",
+                        'insight': f"Pipeline adjusted for win probability"
+                    }
+                
+                # 4. Average Deal Size (won deals)
+                if len(won_deals) > 0:
+                    avg_deal_size = won_deals[deal_col].mean()
+                    kpis['Average Deal Size'] = {
+                        'value': float(avg_deal_size),
+                        'benchmark': float(avg_deal_size * 0.8),
+                        'status': 'Above Target',
+                        'column': deal_col,
+                        'insight': f"Won deals: {avg_deal_size:,.0f} average"
+                    }
+                
+                # 5. Sales Cycle Length (if dates available)
+                if created_cols and close_cols and len(won_deals) > 0:
+                    created_col = created_cols[0]
+                    close_col = close_cols[0]
+                    
+                    try:
+                        won_deals_copy = won_deals.copy()
+                        won_deals_copy[created_col] = pd.to_datetime(won_deals_copy[created_col], errors='coerce')
+                        won_deals_copy[close_col] = pd.to_datetime(won_deals_copy[close_col], errors='coerce')
+                        won_deals_copy['cycle_days'] = (won_deals_copy[close_col] - won_deals_copy[created_col]).dt.days
+                        
+                        avg_cycle = won_deals_copy['cycle_days'].mean()
+                        # Only add KPI if we have valid cycle data
+                        if pd.notna(avg_cycle):
+                            kpis['Sales Cycle (days)'] = {
+                                'value': float(avg_cycle),
+                                'benchmark': 30.0,  # B2B SaaS avg 30-90 days
+                                'status': 'Below' if avg_cycle <= 30.0 else 'Above',  # Lower is better
+                                'column': f"{close_col}-{created_col}",
+                                'insight': f"{'✅ Fast' if avg_cycle <= 30 else '⚠️ Long'} sales cycle - B2B avg 30-90 days"
+                            }
+                    except Exception:
+                        pass
+                
+                # 6. Pipeline Velocity (deals closed per period)
+                if len(won_deals) > 0:
+                    total_won_value = won_deals[deal_col].sum()
+                    kpis['Closed Won Revenue'] = {
+                        'value': float(total_won_value),
+                        'benchmark': float(total_won_value * 0.8),
+                        'status': 'Above Target',
+                        'column': deal_col,
+                        'insight': f"{total_won} deals closed, {total_won_value:,.0f} revenue"
+                    }
+        
         # === FALLBACK: UNIVERSAL KPIs ===
         else:
             if primary_metric_col:
@@ -769,7 +871,8 @@ OUTPUT JSON:
             Dictionary with dimension breakdowns and insights
         """
         analysis = {}
-        domain = domain_info.get('domain_name', 'general').lower()
+        # Support both 'domain' and 'domain_name' keys for backward compatibility
+        domain = domain_info.get('domain', domain_info.get('domain_name', 'general')).lower()
         
         # Detect dimension columns (channel, campaign, rep, etc.)
         channel_cols = [col for col in df.columns if 'channel' in col.lower()]
@@ -1009,9 +1112,107 @@ OUTPUT JSON:
                 }
         
         # === SALES: REP & STAGE ANALYSIS ===
-        elif 'sales' in domain and (rep_cols or stage_cols):
-            # Sales analysis will be implemented in next task
-            pass
+        elif ('sales' in domain or 'crm' in domain or 'pipeline' in domain) and (rep_cols or stage_cols):
+            # Detect key sales columns
+            deal_value_cols = [col for col in df.columns if 'deal' in col.lower() and 'value' in col.lower() or 'amount' in col.lower()]
+            stage_cols = [col for col in df.columns if 'stage' in col.lower() or 'status' in col.lower()]
+            rep_cols = [col for col in df.columns if 'rep' in col.lower() or 'owner' in col.lower()]
+            
+            # REP PERFORMANCE ANALYSIS
+            if rep_cols and deal_value_cols and stage_cols:
+                rep_col = rep_cols[0]
+                deal_col = deal_value_cols[0]
+                stage_col = stage_cols[0]
+                
+                # Filter won and lost deals
+                won_deals = df[df[stage_col].str.contains('won', case=False, na=False)]
+                lost_deals = df[df[stage_col].str.contains('lost', case=False, na=False)]
+                
+                # Group by rep
+                rep_stats = df.groupby(rep_col).agg({
+                    deal_col: 'sum'
+                }).copy()
+                
+                # Calculate wins and losses per rep
+                rep_wins = won_deals.groupby(rep_col).size()
+                rep_losses = lost_deals.groupby(rep_col).size()
+                rep_won_value = won_deals.groupby(rep_col)[deal_col].sum()
+                
+                rep_stats['wins'] = rep_wins
+                rep_stats['losses'] = rep_losses
+                rep_stats['won_revenue'] = rep_won_value
+                rep_stats = rep_stats.fillna(0)
+                
+                # Calculate win rate
+                rep_stats['total_closed'] = rep_stats['wins'] + rep_stats['losses']
+                rep_stats['win_rate'] = (rep_stats['wins'] / rep_stats['total_closed'] * 100).fillna(0)
+                rep_stats['avg_deal_size'] = (rep_stats['won_revenue'] / rep_stats['wins']).fillna(0)
+                
+                # Sort by won revenue (best reps first)
+                rep_stats = rep_stats.sort_values('won_revenue', ascending=False)
+                
+                # Format for output
+                rep_breakdown = []
+                for rep, row in rep_stats.iterrows():
+                    rep_data = {
+                        'rep': rep,
+                        'wins': int(row['wins']),
+                        'losses': int(row['losses']),
+                        'win_rate': float(row['win_rate']),
+                        'won_revenue': float(row['won_revenue']),
+                        'avg_deal_size': float(row['avg_deal_size'])
+                    }
+                    rep_breakdown.append(rep_data)
+                
+                analysis['rep_performance'] = {
+                    'data': rep_breakdown,
+                    'insights': self._generate_rep_insights(rep_breakdown),
+                    'best_rep': rep_breakdown[0]['rep'] if rep_breakdown else None,
+                    'worst_rep': rep_breakdown[-1]['rep'] if rep_breakdown else None
+                }
+            
+            # STAGE ANALYSIS (Pipeline bottlenecks)
+            if stage_cols and deal_value_cols:
+                stage_col = stage_cols[0]
+                deal_col = deal_value_cols[0]
+                
+                # Exclude closed deals for pipeline analysis
+                pipeline_deals = df[~df[stage_col].str.contains('closed|won|lost', case=False, na=False)]
+                
+                if len(pipeline_deals) > 0:
+                    # Group by stage
+                    stage_stats = pipeline_deals.groupby(stage_col).agg({
+                        deal_col: ['sum', 'count', 'mean']
+                    })
+                    stage_stats.columns = ['total_value', 'deal_count', 'avg_deal_size']
+                    stage_stats = stage_stats.sort_values('total_value', ascending=False)
+                    
+                    # Check for days_in_stage to identify stuck deals
+                    days_cols = [col for col in df.columns if 'days' in col.lower() and 'stage' in col.lower()]
+                    if days_cols:
+                        days_col = days_cols[0]
+                        stage_days = pipeline_deals.groupby(stage_col)[days_col].mean()
+                        stage_stats['avg_days_in_stage'] = stage_days
+                    
+                    # Format for output
+                    stage_breakdown = []
+                    for stage, row in stage_stats.iterrows():
+                        stage_data = {
+                            'stage': stage,
+                            'deal_count': int(row['deal_count']),
+                            'total_value': float(row['total_value']),
+                            'avg_deal_size': float(row['avg_deal_size'])
+                        }
+                        if 'avg_days_in_stage' in row:
+                            stage_data['avg_days_in_stage'] = float(row['avg_days_in_stage'])
+                        
+                        stage_breakdown.append(stage_data)
+                    
+                    analysis['pipeline_stages'] = {
+                        'data': stage_breakdown,
+                        'insights': self._generate_stage_insights(stage_breakdown),
+                        'biggest_stage': stage_breakdown[0]['stage'] if stage_breakdown else None
+                    }
         
         return analysis
     
@@ -1196,6 +1397,194 @@ OUTPUT JSON:
                 'type': 'portfolio_warning',
                 'message': f"⚠️ Only {len(profitable)}/{len(campaign_breakdown)} campaigns profitable ({len(profitable)/len(campaign_breakdown)*100:.0f}%)",
                 'action': "Review overall strategy - most campaigns underperforming"
+            })
+        
+        return insights[:5]  # Top 5 most critical insights
+    
+    def _generate_rep_insights(self, rep_breakdown: list) -> list:
+        """Generate actionable insights from rep performance (5-star quality for Sales VPs)"""
+        insights = []
+        
+        if not rep_breakdown or len(rep_breakdown) == 0:
+            return insights
+        
+        # Sort by different metrics
+        by_revenue = sorted(rep_breakdown, key=lambda x: x['won_revenue'], reverse=True)
+        by_win_rate = sorted(rep_breakdown, key=lambda x: x['win_rate'], reverse=True)
+        by_deal_size = sorted(rep_breakdown, key=lambda x: x['avg_deal_size'], reverse=True)
+        
+        best_rep = by_revenue[0]
+        worst_rep = by_revenue[-1]
+        
+        # Calculate team averages
+        avg_win_rate = sum(r['win_rate'] for r in rep_breakdown) / len(rep_breakdown)
+        avg_revenue = sum(r['won_revenue'] for r in rep_breakdown) / len(rep_breakdown)
+        avg_deal_size = sum(r['avg_deal_size'] for r in rep_breakdown) / len(rep_breakdown)
+        
+        # Insight 1: Top performer (Clone this success)
+        if best_rep['won_revenue'] > 0:
+            revenue_lead = best_rep['won_revenue'] / avg_revenue if avg_revenue > 0 else 0
+            insights.append({
+                'type': 'top_performer',
+                'message': f"🏆 {best_rep['rep']}: BEST performer ({best_rep['won_revenue']:,.0f} revenue, {best_rep['win_rate']:.1f}% win rate)",
+                'action': f"Document their winning process → Train team on their tactics ({revenue_lead:.1f}x team avg)"
+            })
+        
+        # Insight 2: Underperformers (Coaching needed)
+        low_performers = [r for r in rep_breakdown if r['win_rate'] < 25 and r['wins'] + r['losses'] >= 3]
+        if low_performers:
+            rep_names = ', '.join([f"{r['rep']} ({r['win_rate']:.1f}%)" for r in low_performers[:3]])
+            total_lost_deals = sum(r['losses'] for r in low_performers)
+            
+            insights.append({
+                'type': 'coaching_needed',
+                'message': f"⚠️ {len(low_performers)} reps below 25% win rate: {rep_names}",
+                'action': f"URGENT coaching needed → {total_lost_deals} deals lost. Review discovery calls, objection handling"
+            })
+        
+        # Insight 3: Win rate gap (Opportunity size)
+        if best_rep['win_rate'] > 0 and worst_rep['win_rate'] >= 0:
+            win_rate_gap = best_rep['win_rate'] - worst_rep['win_rate']
+            if win_rate_gap > 20:  # 20% difference
+                # Calculate opportunity: If worst rep had best rep's win rate
+                potential_wins = worst_rep['losses'] * (best_rep['win_rate'] / 100)
+                potential_revenue = potential_wins * avg_deal_size
+                
+                insights.append({
+                    'type': 'win_rate_gap',
+                    'message': f"📊 Win rate gap: {best_rep['rep']} ({best_rep['win_rate']:.1f}%) vs {worst_rep['rep']} ({worst_rep['win_rate']:.1f}%) = {win_rate_gap:.1f}% difference",
+                    'action': f"Close gap → Potential +{potential_revenue:,.0f} annual revenue by improving {worst_rep['rep']}"
+                })
+        
+        # Insight 4: Deal size variance (Targeting issue)
+        if len(by_deal_size) > 1:
+            highest_deal = by_deal_size[0]
+            lowest_deal = by_deal_size[-1]
+            
+            if highest_deal['avg_deal_size'] > 0 and lowest_deal['avg_deal_size'] > 0:
+                deal_size_ratio = highest_deal['avg_deal_size'] / lowest_deal['avg_deal_size']
+                
+                if deal_size_ratio > 3:  # 3x difference
+                    insights.append({
+                        'type': 'deal_size_variance',
+                        'message': f"💰 Deal size gap: {highest_deal['rep']} ({highest_deal['avg_deal_size']:,.0f}) vs {lowest_deal['rep']} ({lowest_deal['avg_deal_size']:,.0f}) = {deal_size_ratio:.1f}x",
+                        'action': f"Review {lowest_deal['rep']}'s lead qualification → May be chasing wrong-fit prospects"
+                    })
+        
+        # Insight 5: Team performance health
+        healthy_reps = [r for r in rep_breakdown if r['win_rate'] >= 30 and r['wins'] >= 3]
+        if len(healthy_reps) == 0:
+            insights.append({
+                'type': 'critical_alert',
+                'message': f"🚨 ZERO reps above 30% win rate! Team avg: {avg_win_rate:.1f}%",
+                'action': "URGENT: Audit entire sales process - fundamental issues in qualification, demo, or pricing"
+            })
+        elif len(healthy_reps) / len(rep_breakdown) < 0.5:  # Less than 50% healthy
+            insights.append({
+                'type': 'team_warning',
+                'message': f"⚠️ Only {len(healthy_reps)}/{len(rep_breakdown)} reps performing well ({len(healthy_reps)/len(rep_breakdown)*100:.0f}%)",
+                'action': f"Systematic training needed - team avg {avg_win_rate:.1f}% vs industry 30-35%"
+            })
+        
+        # Insight 6: Hidden gem (High win rate but low volume)
+        efficient_reps = [r for r in rep_breakdown if r['win_rate'] >= 40 and r['won_revenue'] < avg_revenue * 0.7]
+        if efficient_reps:
+            rep = efficient_reps[0]
+            insights.append({
+                'type': 'hidden_gem',
+                'message': f"💎 {rep['rep']}: High win rate ({rep['win_rate']:.1f}%) but low volume ({rep['wins']} wins)",
+                'action': f"Feed them MORE leads → Efficiency is proven, volume is opportunity"
+            })
+        
+        return insights[:5]  # Top 5 most critical insights
+    
+    def _generate_stage_insights(self, stage_breakdown: list) -> list:
+        """Generate actionable insights from pipeline stages (5-star quality for Sales VPs)"""
+        insights = []
+        
+        if not stage_breakdown or len(stage_breakdown) == 0:
+            return insights
+        
+        # Sort by value and count
+        by_value = sorted(stage_breakdown, key=lambda x: x['total_value'], reverse=True)
+        by_count = sorted(stage_breakdown, key=lambda x: x['deal_count'], reverse=True)
+        
+        # Check if days_in_stage data available
+        has_days = 'avg_days_in_stage' in stage_breakdown[0]
+        if has_days:
+            by_days = sorted([s for s in stage_breakdown if 'avg_days_in_stage' in s], 
+                           key=lambda x: x.get('avg_days_in_stage', 0), reverse=True)
+        
+        # Total pipeline metrics
+        total_value = sum(s['total_value'] for s in stage_breakdown)
+        total_deals = sum(s['deal_count'] for s in stage_breakdown)
+        
+        # Insight 1: Biggest bottleneck (where money is stuck)
+        biggest_stage = by_value[0]
+        if biggest_stage['total_value'] / total_value > 0.4:  # More than 40% of pipeline
+            insights.append({
+                'type': 'bottleneck',
+                'message': f"🚧 {biggest_stage['stage']}: BOTTLENECK ({biggest_stage['deal_count']} deals, {biggest_stage['total_value']:,.0f} stuck)",
+                'action': f"Focus HERE → {biggest_stage['total_value']/total_value*100:.0f}% of pipeline value. Fast-track top deals"
+            })
+        
+        # Insight 2: Stuck deals (velocity issue)
+        if has_days:
+            stuck_stages = [s for s in by_days if s.get('avg_days_in_stage', 0) > 30]
+            if stuck_stages:
+                stage = stuck_stages[0]
+                stuck_value = sum(s['total_value'] for s in stuck_stages)
+                
+                insights.append({
+                    'type': 'velocity_issue',
+                    'message': f"⏱️ {stage['stage']}: Deals stuck {stage.get('avg_days_in_stage', 0):.0f} days (avg)",
+                    'action': f"Review {stage['deal_count']} deals → Identify blockers, accelerate decisions ({stuck_value:,.0f} at risk)"
+                })
+        
+        # Insight 3: Early stage heavy (lead quality issue)
+        early_stages = ['Discovery', 'Qualification', 'Initial Contact', 'Lead']
+        early_value = sum(s['total_value'] for s in stage_breakdown if any(e.lower() in s['stage'].lower() for e in early_stages))
+        
+        if early_value / total_value > 0.6:  # More than 60% in early stages
+            insights.append({
+                'type': 'early_stage_heavy',
+                'message': f"⚠️ {early_value/total_value*100:.0f}% of pipeline in early stages ({early_value:,.0f})",
+                'action': "Lead quality issue OR slow progression → Tighten qualification, accelerate discovery"
+            })
+        
+        # Insight 4: Late stage concentration (good problem!)
+        late_stages = ['Negotiation', 'Proposal', 'Closed', 'Contract']
+        late_value = sum(s['total_value'] for s in stage_breakdown if any(l.lower() in s['stage'].lower() for l in late_stages))
+        
+        if late_value / total_value > 0.5:  # More than 50% in late stages
+            late_count = sum(s['deal_count'] for s in stage_breakdown if any(l.lower() in s['stage'].lower() for l in late_stages))
+            insights.append({
+                'type': 'late_stage_strong',
+                'message': f"✅ {late_value/total_value*100:.0f}% in late stages ({late_count} deals, {late_value:,.0f})",
+                'action': f"HIGH close potential → Focus sales energy here. Forecast {late_value * 0.4:,.0f} (40% win rate)"
+            })
+        
+        # Insight 5: Deal count concentration
+        if biggest_stage['deal_count'] / total_deals > 0.5:  # More than 50% of deals in one stage
+            insights.append({
+                'type': 'concentration_risk',
+                'message': f"📊 {biggest_stage['deal_count']}/{total_deals} deals ({biggest_stage['deal_count']/total_deals*100:.0f}%) in {biggest_stage['stage']}",
+                'action': "Unbalanced pipeline → Need consistent flow through ALL stages"
+            })
+        
+        # Insight 6: Pipeline health summary
+        if len(stage_breakdown) < 3:
+            insights.append({
+                'type': 'pipeline_warning',
+                'message': f"⚠️ Only {len(stage_breakdown)} active stages (need 4-6 for healthy flow)",
+                'action': "Expand pipeline visibility → Track more granular stages for better forecasting"
+            })
+        elif len(stage_breakdown) >= 5:
+            avg_stage_value = total_value / len(stage_breakdown)
+            insights.append({
+                'type': 'pipeline_health',
+                'message': f"✅ Healthy pipeline: {len(stage_breakdown)} stages, {total_deals} deals, {total_value:,.0f} total",
+                'action': f"Maintain balance → Target {avg_stage_value:,.0f}/stage, avoid bottlenecks"
             })
         
         return insights[:5]  # Top 5 most critical insights
