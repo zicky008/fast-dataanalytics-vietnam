@@ -1,0 +1,31 @@
+opportunity_id,created_date,close_date,stage,sales_rep,lead_source,industry,deal_value,probability,days_in_stage,last_activity_date,num_touchpoints,meetings_held,emails_sent,calls_made,product_interest,competitor,lead_score,region,company_size
+OPP-2401,2024-07-15,2024-09-20,Closed Won,Nguyen Van A,Inbound,Technology,450000000,100,15,2024-09-20,24,8,45,12,Enterprise Suite,Competitor A,85,South,250-500
+OPP-2402,2024-07-18,2024-09-18,Closed Won,Tran Thi B,Referral,Retail,280000000,100,12,2024-09-18,18,6,32,9,Standard Plan,None,78,North,100-250
+OPP-2403,2024-07-22,,Negotiation,Le Van C,Website,Finance,520000000,75,28,2024-10-18,32,9,58,15,Premium Plan,Competitor B,82,South,500-1000
+OPP-2404,2024-07-25,2024-10-05,Closed Won,Pham Thi D,Cold Call,Healthcare,380000000,100,18,2024-10-05,22,7,38,11,Enterprise Suite,Competitor A,80,Central,250-500
+OPP-2405,2024-07-28,,Proposal,Hoang Van E,LinkedIn,Education,195000000,60,22,2024-10-15,16,5,28,8,Basic Plan,None,65,North,50-100
+OPP-2406,2024-08-02,2024-09-25,Closed Won,Nguyen Van A,Inbound,Manufacturing,425000000,100,14,2024-09-25,26,8,48,13,Enterprise Suite,Competitor C,87,South,500-1000
+OPP-2407,2024-08-05,,Qualification,Tran Thi B,Trade Show,Logistics,310000000,30,15,2024-10-12,12,4,22,6,Standard Plan,Competitor A,58,North,100-250
+OPP-2408,2024-08-08,2024-10-12,Closed Won,Le Van C,Referral,Technology,485000000,100,16,2024-10-12,28,9,52,14,Premium Plan,None,88,South,250-500
+OPP-2409,2024-08-12,,Proposal,Pham Thi D,Website,Retail,255000000,60,18,2024-10-16,17,5,30,9,Standard Plan,Competitor B,68,Central,100-250
+OPP-2410,2024-08-15,2024-10-08,Closed Won,Hoang Van E,Cold Call,Finance,540000000,100,20,2024-10-08,30,10,62,16,Enterprise Suite,Competitor A,90,North,500-1000
+OPP-2411,2024-08-18,,Negotiation,Nguyen Van A,Inbound,Healthcare,395000000,75,25,2024-10-17,24,8,42,12,Premium Plan,Competitor C,83,South,250-500
+OPP-2412,2024-08-22,2024-10-15,Closed Won,Tran Thi B,LinkedIn,Education,185000000,100,15,2024-10-15,15,5,26,7,Basic Plan,None,72,North,50-100
+OPP-2413,2024-08-25,,Discovery,Le Van C,Referral,Manufacturing,465000000,45,18,2024-10-14,20,6,35,10,Enterprise Suite,Competitor B,75,South,500-1000
+OPP-2414,2024-08-28,2024-10-18,Closed Won,Pham Thi D,Website,Logistics,325000000,100,17,2024-10-18,21,7,36,10,Standard Plan,Competitor A,79,Central,100-250
+OPP-2415,2024-09-01,,Proposal,Hoang Van E,Trade Show,Technology,510000000,60,14,2024-10-13,27,8,50,13,Premium Plan,None,85,North,250-500
+OPP-2416,2024-09-05,2024-10-20,Closed Won,Nguyen Van A,Cold Call,Retail,290000000,100,13,2024-10-20,19,6,34,9,Standard Plan,Competitor C,76,South,100-250
+OPP-2417,2024-09-08,,Negotiation,Tran Thi B,Inbound,Finance,555000000,75,22,2024-10-19,33,10,65,17,Enterprise Suite,Competitor A,91,North,500-1000
+OPP-2418,2024-09-12,,Qualification,Le Van C,LinkedIn,Healthcare,410000000,30,12,2024-10-16,13,4,24,7,Premium Plan,Competitor B,62,South,250-500
+OPP-2419,2024-09-15,2024-10-22,Closed Won,Pham Thi D,Referral,Education,198000000,100,14,2024-10-22,16,5,29,8,Basic Plan,None,74,Central,50-100
+OPP-2420,2024-09-18,,Discovery,Hoang Van E,Website,Manufacturing,480000000,45,15,2024-10-18,22,7,38,11,Enterprise Suite,Competitor C,77,North,500-1000
+OPP-2421,2024-09-22,,Proposal,Nguyen Van A,Trade Show,Logistics,335000000,60,11,2024-10-17,18,6,32,9,Standard Plan,Competitor A,70,South,100-250
+OPP-2422,2024-09-25,2024-11-02,Closed Won,Tran Thi B,Cold Call,Technology,525000000,100,15,2024-11-02,29,9,54,14,Premium Plan,None,89,North,250-500
+OPP-2423,2024-09-28,,Negotiation,Le Van C,Inbound,Retail,305000000,75,18,2024-10-21,20,7,36,10,Standard Plan,Competitor B,73,South,100-250
+OPP-2424,2024-10-02,,Qualification,Pham Thi D,LinkedIn,Finance,570000000,30,10,2024-10-19,14,4,25,7,Enterprise Suite,Competitor A,64,Central,500-1000
+OPP-2425,2024-10-05,,Discovery,Hoang Van E,Referral,Healthcare,425000000,45,12,2024-10-20,21,6,37,11,Premium Plan,Competitor C,80,North,250-500
+OPP-2426,2024-10-08,,Proposal,Nguyen Van A,Website,Education,205000000,60,9,2024-10-20,17,5,30,8,Basic Plan,None,67,South,50-100
+OPP-2427,2024-10-12,,Negotiation,Tran Thi B,Trade Show,Manufacturing,495000000,75,15,2024-10-22,25,8,46,12,Enterprise Suite,Competitor B,84,North,500-1000
+OPP-2428,2024-10-15,,Qualification,Le Van C,Cold Call,Logistics,345000000,30,8,2024-10-21,12,4,22,6,Standard Plan,Competitor A,61,South,100-250
+OPP-2429,2024-10-18,,Discovery,Pham Thi D,Inbound,Technology,540000000,45,10,2024-10-22,23,7,40,11,Premium Plan,None,82,Central,250-500
+OPP-2430,2024-10-22,,Proposal,Hoang Van E,LinkedIn,Retail,315000000,60,6,2024-10-23,19,6,33,9,Standard Plan,Competitor C,71,North,100-250
