@@ -10,7 +10,7 @@
 
 ### Reported Problem
 ```
-Production app: https://fast-dashboard.streamlit.app/
+Production app: https://fast-nicedashboard.streamlit.app/
 - ❌ 9 KPIs show empty boxes (no numeric values)
 - ✅ Local app works fine with same data
 - ❌ Charts render but some have wrong axes/labels
@@ -139,7 +139,7 @@ return (
 ### Fix #5: Streamlit Cloud Main File Path ✅
 
 **Platform**: Streamlit Cloud  
-**App**: https://fast-dashboard.streamlit.app/
+**App**: https://fast-nicedashboard.streamlit.app/
 
 **Changed**: 
 - **Before**: Main file path = `src/app.py` ❌
@@ -277,7 +277,7 @@ Commits pushed:
 
 ### What User Needs To Do:
 1. ✅ Changed Main file path to `streamlit_app.py` ← **DONE**
-2. ⏳ Open: https://fast-dashboard.streamlit.app/
+2. ⏳ Open: https://fast-nicedashboard.streamlit.app/
 3. ⏳ Upload: `manufacturing_production_30days.xlsx`
 4. ⏳ Click: "🚀 Analyze Data"
 5. ⏳ Verify: 9 KPIs show numeric values
@@ -299,7 +299,7 @@ Commits pushed:
 - **Latest commit**: `90c64c9`
 
 ### Production:
-- **URL**: https://fast-dashboard.streamlit.app/
+- **URL**: https://fast-nicedashboard.streamlit.app/
 - **Platform**: Streamlit Cloud
 - **Main file**: `streamlit_app.py` ✅
 - **Python**: 3.10+

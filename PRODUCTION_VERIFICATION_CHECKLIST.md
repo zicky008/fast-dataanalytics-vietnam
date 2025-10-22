@@ -1,6 +1,6 @@
 # ✅ PRODUCTION VERIFICATION CHECKLIST
 
-**App URL**: https://fast-dashboard.streamlit.app/  
+**App URL**: https://fast-nicedashboard.streamlit.app/  
 **Status**: ✅ Main file path đã được thay đổi thành `streamlit_app.py`  
 **Date**: 2025-10-22
 
@@ -9,7 +9,7 @@
 ## 🎯 BƯỚC 1: Kiểm Tra App Có Load Không
 
 ### Test 1.1: Mở App
-- [ ] Mở: https://fast-dashboard.streamlit.app/
+- [ ] Mở: https://fast-nicedashboard.streamlit.app/
 - [ ] App load thành công (không có error page)
 - [ ] Thấy header: "📊 **DataAnalytics Vietnam** - Manufacturing Intelligence"
 - [ ] Thấy sidebar với "🔑 API Key Configuration"

@@ -2,6 +2,8 @@
 
 > AI-Powered Dashboard Builder với OQMLB Framework - Phiên bản Bricks.ai tại Việt Nam
 
+**🌐 Production App**: https://fast-nicedashboard.streamlit.app/
+
 ## 🎯 Vision
 
 Đưa công cụ phân tích dữ liệu chuyên nghiệp đến tay mọi SME Việt Nam - **MIỄN PHÍ**.

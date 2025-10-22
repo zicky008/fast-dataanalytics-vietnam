@@ -100,7 +100,7 @@ Sau khi upload file này lên app, bạn sẽ thấy **9 KPIs** với giá trị
 - [ ] Verify file size (~15-16 KB)
 
 ### **Step 2: Open Production App**
-- [ ] Navigate to: https://fast-dashboard.streamlit.app/
+- [ ] Navigate to: https://fast-nicedashboard.streamlit.app/
 - [ ] Wait for app to load (should be <5 seconds)
 
 ### **Step 3: Upload File**

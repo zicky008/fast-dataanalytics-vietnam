@@ -3,7 +3,7 @@
 **Test Date**: 2025-10-22
 **Tester Persona**: Operations Manager (David Chen) - Zero Tolerance for Errors
 **Test Type**: Real User Manual Testing on Production
-**App URL**: https://fast-dashboard.streamlit.app/
+**App URL**: https://fast-nicedashboard.streamlit.app/
 
 ---
 

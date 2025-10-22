@@ -2,7 +2,7 @@
 
 **Test Date**: 2025-10-22
 **Tester**: User (with Operations Manager David Chen persona)
-**App URL**: https://fast-dashboard.streamlit.app/
+**App URL**: https://fast-nicedashboard.streamlit.app/
 **Test File**: manufacturing_production_30days.xlsx (180 rows × 14 columns)
 
 ---
@@ -199,7 +199,7 @@ This will tell us EXACTLY what failed!
 ### **OPTION B: Hard Refresh Browser**
 1. Close all browser tabs with the app
 2. Clear browser cache (Ctrl+Shift+Delete)
-3. Reopen: https://fast-dashboard.streamlit.app/
+3. Reopen: https://fast-nicedashboard.streamlit.app/
 4. Upload manufacturing file again
 5. Take new screenshots
 

@@ -2,7 +2,7 @@
 
 ## VẤN ĐỀ HIỆN TẠI
 
-Production app (https://fast-dashboard.streamlit.app/) vẫn báo lỗi:
+Production app (https://fast-nicedashboard.streamlit.app/) vẫn báo lỗi:
 ```
 Model 'gemini-2.5-flash' không khả dụng
 ```
@@ -143,7 +143,7 @@ Nếu sau tất cả steps trên vẫn không hoạt động:
 
 ## EXPECTED FINAL STATE
 
-✅ **Production app**: https://fast-dashboard.streamlit.app/
+✅ **Production app**: https://fast-nicedashboard.streamlit.app/
 ✅ **Local app**: https://8501-il3t21q4q4u3y4euhfp08-de59bda9.sandbox.novita.ai
 
 Both should show:

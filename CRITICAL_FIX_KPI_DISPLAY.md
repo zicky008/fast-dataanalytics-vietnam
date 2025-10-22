@@ -109,7 +109,7 @@ Sample KPIs:
 
 ### Deployment Status
 - ✅ Local app: https://8501-il3t21q4q4u3y4euhfp08-de59bda9.sandbox.novita.ai
-- 🔄 Production: https://fast-dashboard.streamlit.app/ (deploying...)
+- 🔄 Production: https://fast-nicedashboard.streamlit.app/ (deploying...)
 
 ---
 

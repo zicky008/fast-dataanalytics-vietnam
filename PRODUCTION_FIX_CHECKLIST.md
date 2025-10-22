@@ -52,7 +52,7 @@
 ## 🧪 VERIFICATION STEPS (After Fix)
 
 ### 1. Test Upload
-- Go to: https://fast-dashboard.streamlit.app/
+- Go to: https://fast-nicedashboard.streamlit.app/
 - Upload: `sample_data/manufacturing_production_30days.xlsx`
 - Click "Analyze Data"
 
@@ -76,7 +76,7 @@ Should see **9 KPIs** with numeric values:
 
 ### 4. Compare with Local
 - Local: https://8501-il3t21q4q4u3y4euhfp08-de59bda9.sandbox.novita.ai
-- Production: https://fast-dashboard.streamlit.app/
+- Production: https://fast-nicedashboard.streamlit.app/
 - Should be **IDENTICAL** ✅
 
 ---

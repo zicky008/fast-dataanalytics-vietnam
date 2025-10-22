@@ -54,7 +54,7 @@ App sẽ **auto-redeploy** (~2-3 phút)
 ### Step 6: Verify
 
 - Wait 2-3 minutes
-- Refresh: https://fast-dashboard.streamlit.app/
+- Refresh: https://fast-nicedashboard.streamlit.app/
 - Test upload manufacturing data
 - ✅ Should see 9 KPIs with values
 
@@ -166,7 +166,7 @@ fast-dashboard          ⋯
 
 3. **Compare with local**:
    - Local: https://8501-il3t21q4q4u3y4euhfp08-de59bda9.sandbox.novita.ai
-   - Production: https://fast-dashboard.streamlit.app/
+   - Production: https://fast-nicedashboard.streamlit.app/
    - Should be IDENTICAL
 
 ---
