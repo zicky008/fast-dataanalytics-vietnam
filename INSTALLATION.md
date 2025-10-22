@@ -54,7 +54,7 @@ echo "GEMINI_API_KEY=your_api_key_here" > .env
 
 ### Step 5: Run Application
 ```bash
-streamlit run src/app.py
+streamlit run streamlit_app.py
 ```
 
 Application will open at: **http://localhost:8501**
@@ -219,7 +219,7 @@ python -c "import google.generativeai as genai; import os; from dotenv import lo
 2. **Deploy**:
    - Go to https://share.streamlit.io/
    - Connect GitHub repository
-   - Select `src/app.py` as main file
+   - Select `streamlit_app.py` as main file
    - Add `GEMINI_API_KEY` to Secrets
    - Click Deploy
 

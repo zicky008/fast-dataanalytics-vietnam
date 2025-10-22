@@ -72,7 +72,7 @@ git push origin main
 
    **Repository**: `YOUR_USERNAME/dataanalytics-vietnam`  
    **Branch**: `main`  
-   **Main file path**: `src/app.py`
+   **Main file path**: `streamlit_app.py`
 
 3. Click **"Advanced settings"** (expand)
 
@@ -359,7 +359,7 @@ git push origin main
 **Deployment Issues**:
 1. Check Streamlit Cloud logs first
 2. Review this guide
-3. Test locally: `streamlit run src/app.py`
+3. Test locally: `streamlit run streamlit_app.py`
 4. Create GitHub issue with error details
 
 **Streamlit Support**:

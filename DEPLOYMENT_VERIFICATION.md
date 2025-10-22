@@ -259,7 +259,7 @@ When all checkboxes above are checked, mark Task #16 as **COMPLETED** and procee
 **App URL**: https://fast-dataanalytics.streamlit.app/  
 **Repository**: YOUR_GITHUB_USERNAME/dataanalytics-vietnam  
 **Branch**: main  
-**Main File**: src/app.py  
+**Main File**: streamlit_app.py  
 **Python Version**: 3.11  
 **Dependencies**: See requirements.txt  
 **Secrets**: GEMINI_API_KEY (configured in Streamlit Cloud)

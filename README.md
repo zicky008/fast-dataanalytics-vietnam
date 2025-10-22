@@ -131,7 +131,7 @@ pip install -r requirements.txt
 echo "GEMINI_API_KEY=your_api_key_here" > .env
 
 # 5. Run application
-streamlit run src/app.py
+streamlit run streamlit_app.py
 ```
 
 **Get free Gemini API key**: https://aistudio.google.com/app/apikey

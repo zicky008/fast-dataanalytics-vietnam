@@ -17,8 +17,8 @@ Thay vì hiển thị **DataAnalytics Vietnam Premium Lean Pipeline**.
 **Root Cause**: Streamlit Cloud đang chạy **default template** thay vì code thực tế.
 
 **Lý do cụ thể**:
-1. Streamlit Cloud deployment config trỏ đến `src/app.py`
-2. File `src/app.py` **không tồn tại** trong repo
+1. Streamlit Cloud deployment config trỏ đến `streamlit_app.py`
+2. File `streamlit_app.py` **không tồn tại** trong repo
 3. Streamlit Cloud fallback sang default template
 
 **Cấu trúc project**:
@@ -35,9 +35,9 @@ webapp/
 
 ## ✅ **Giải pháp đã áp dụng**
 
-### **Bước 1: Tạo `src/app.py`**
+### **Bước 1: Tạo `streamlit_app.py`**
 
-Đã tạo file `src/app.py` với:
+Đã tạo file `streamlit_app.py` với:
 - ✅ Full Premium Lean Pipeline UI (11.3KB)
 - ✅ 3-tab interface: Upload & Analyze, Dashboard, Insights
 - ✅ Custom CSS (gradient header, professional styling)
@@ -49,8 +49,8 @@ webapp/
 ### **Bước 2: Commit code**
 
 ```bash
-git add src/app.py
-git commit -m "🔧 Fix deployment: Create src/app.py for Streamlit Cloud"
+git add streamlit_app.py
+git commit -m "🔧 Fix deployment: Create streamlit_app.py for Streamlit Cloud"
 ```
 
 **Commit hash**: `204f66c`
@@ -134,7 +134,7 @@ git push origin main
 
 1. Streamlit Cloud dashboard → Your app → Settings
 2. Check **"Main file path"**:
-   - Should be: `src/app.py`
+   - Should be: `streamlit_app.py`
    - Or: `streamlit_app.py` (both work now)
 3. If wrong, update and save
 4. App will auto-restart
@@ -156,7 +156,7 @@ If nothing works:
    - New app
    - Repository: YOUR_USERNAME/dataanalytics-vietnam
    - Branch: main
-   - Main file: `src/app.py`
+   - Main file: `streamlit_app.py`
    - Secrets: Add `GEMINI_API_KEY`
 3. Deploy!
 
@@ -167,12 +167,12 @@ If nothing works:
 Nếu bạn muốn dùng `streamlit_app.py` (file ở root):
 
 **Streamlit Cloud Settings**:
-- Main file path: `streamlit_app.py` (thay vì `src/app.py`)
+- Main file path: `streamlit_app.py` (thay vì `streamlit_app.py`)
 
 **Advantages**:
 - ✅ File đã tồn tại, đầy đủ code
 - ✅ Imports đúng đường dẫn
-- ✅ Không cần tạo `src/app.py`
+- ✅ Không cần tạo `streamlit_app.py`
 
 **Disadvantages**:
 - ❌ Không follow best practice (code nên ở `src/`)
@@ -217,7 +217,7 @@ Performance:
 
 ## 🎯 **Summary: 3 Steps to Fix**
 
-1. ✅ **Code fixed** - Created `src/app.py` with full UI
+1. ✅ **Code fixed** - Created `streamlit_app.py` with full UI
 2. ⏳ **Push to GitHub** - `git push origin main` (YOU NEED TO DO THIS)
 3. ⏳ **Wait for redeploy** - Streamlit Cloud auto-rebuilds (2-3 min)
 
@@ -228,7 +228,7 @@ Performance:
 Nếu vẫn gặp vấn đề:
 
 1. **Check commit**: `git log --oneline -1` → Should see "204f66c Fix deployment"
-2. **Check file**: `ls -la src/app.py` → Should exist (11.3KB)
+2. **Check file**: `ls -la streamlit_app.py` → Should exist (11.3KB)
 3. **Push status**: `git status` → Should say "up to date" after push
 4. **Streamlit logs**: Check for Python errors in dashboard
 
