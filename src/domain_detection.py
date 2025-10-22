@@ -98,6 +98,33 @@ DOMAIN_PROFILES = {
         'insights_focus': ['Profitability', 'Cost control', 'Cash management', 'Financial health'],
         'benchmarks': {'gross_margin': '40%+ (SaaS)', 'operating_margin': '20%+'}
     },
+    'manufacturing': {
+        'name': 'Manufacturing / Sản Xuất',
+        'expert_role': 'Operations Manager (20+ years manufacturing experience, Six Sigma Black Belt)',
+        'keywords': ['production', 'machine', 'units_produced', 'good_units', 'defective', 'defect', 
+                     'downtime', 'oee', 'yield', 'shift', 'production_line', 'manufacturing',
+                     'theoretical_max', 'actual_run', 'available_hours', 'scrap', 'quality'],
+        'key_kpis': ['OEE (Overall Equipment Effectiveness)', 'First Pass Yield', 'Defect Rate', 
+                     'Machine Utilization', 'Cycle Time', 'Downtime %', 'Cost per Unit', 
+                     'Scrap Rate', 'Throughput'],
+        'insights_focus': ['OEE optimization', 'Quality improvement', 'Downtime reduction', 
+                          'Defect root cause analysis', 'Cost per unit reduction'],
+        'benchmarks': {
+            'oee': '85% (world-class), 60% (average)',
+            'first_pass_yield': '95%+ (excellent)',
+            'defect_rate': '≤2% (world-class)',
+            'machine_utilization': '90%+ (excellent)',
+            'downtime': '≤5% (target)'
+        },
+        'validation_rules': {
+            'oee': '= availability × performance × quality',
+            'units_produced': '= good_units + defective_units',
+            'availability': '= (available_hours - downtime_hours) / available_hours',
+            'performance': '= units_produced / theoretical_max_output',
+            'quality': '= good_units / units_produced'
+        },
+        'data_sources': 'Industry standard OEE calculations, Six Sigma methodology'
+    },
     'operations': {
         'name': 'Operations / Vận Hành',
         'expert_role': 'Chief Operations Officer (COO)',
