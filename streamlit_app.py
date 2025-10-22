@@ -251,10 +251,30 @@ def main():
             st.error("🐛 DEBUG: KPIs DICT IS EMPTY!")
         
         if kpis:
+            # Define KPIs where LOWER is BETTER (reverse color logic)
+            lower_is_better_kpis = [
+                'Defect Rate',
+                'Downtime',
+                'Cost per Unit',
+                'Avg Downtime',
+                'Total Downtime',
+                'Cost'
+            ]
+            
             cols = st.columns(min(4, len(kpis)))
             for i, (kpi_name, kpi_data) in enumerate(list(kpis.items())[:8]):
                 with cols[i % 4]:
-                    delta_color = "normal" if kpi_data.get('status') == 'Above' else "inverse"
+                    # Check if this is a "lower is better" KPI
+                    is_lower_better = any(keyword in kpi_name for keyword in lower_is_better_kpis)
+                    
+                    # Reverse logic for "lower is better" KPIs
+                    if is_lower_better:
+                        # For lower is better: Below benchmark = good (green), Above = bad (red)
+                        delta_color = "inverse" if kpi_data.get('status') == 'Above' else "normal"
+                    else:
+                        # For higher is better: Above benchmark = good (green), Below = bad (red)
+                        delta_color = "normal" if kpi_data.get('status') == 'Above' else "inverse"
+                    
                     st.metric(
                         label=kpi_name,
                         value=f"{kpi_data['value']:.1f}",
