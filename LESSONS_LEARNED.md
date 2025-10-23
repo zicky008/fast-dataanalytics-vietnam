@@ -108,6 +108,71 @@ grep -rn "🐛\|DEBUG\|TODO\|FIXME" . --include="*.py" --include="*.js"
 
 ---
 
+### ⚠️ Lesson #4: Comprehensive Bug Fixes - Check ALL Occurrences
+**Date**: 2025-10-23  
+**Issue**: Fixed debug code in one place, missed another occurrence  
+**Impact**: Had to fix twice, wasted time, incomplete fix  
+
+**What Happened**:
+- Fixed debug code at line 234 (first fix)
+- Later user reported MORE debug messages at lines 240-247
+- Had to fix again in second commit
+- Should have found all occurrences in first pass
+
+**Root Cause**:
+- Fixed specific reported issue without comprehensive search
+- Didn't verify similar patterns elsewhere
+- Assumed one fix was complete
+
+**Prevention Rules**:
+```bash
+# When fixing any bug, ALWAYS search comprehensively:
+
+# 1. Search with broad pattern
+grep -rn "DEBUG\|🐛" . --include="*.py" --include="*.js"
+
+# 2. Check related patterns
+grep -rn "st.error\|console.log\|print(" . --include="*.py" --include="*.js"
+
+# 3. Verify in all related files
+# If fixing in streamlit_app.py, check:
+# - Other .py files in same directory
+# - Files that import this module
+# - Similar UI components
+
+# 4. Test thoroughly before claiming "fixed"
+```
+
+**Best Practices**:
+1. ✅ Think: "Where else might this pattern exist?"
+2. ✅ Search codebase comprehensively, not just reported location
+3. ✅ Use multiple search patterns (synonyms, variations)
+4. ✅ Check git history for similar fixes before
+5. ✅ Test all related functionality, not just one case
+
+**Example Command Pattern**:
+```bash
+# Good: Comprehensive search
+cd /home/user/webapp
+grep -rn "ERROR\|DEBUG\|WARNING\|INFO\|🐛" . --include="*.py" | grep -v "^#" | grep -v "logging"
+
+# Better: Multiple passes with different patterns
+grep -rn "st.error\|st.warning" . --include="*.py"
+grep -rn "print(" . --include="*.py" | grep -v "# print"
+```
+
+**Files Affected**:
+- `streamlit_app.py` line 234 (first fix - commit e57ce6a)
+- `streamlit_app.py` lines 240-247 (second fix - same session)
+
+**Lesson Applied**:
+> "Một lần fix đúng cách > Hai lần fix vội vàng"  
+> (One thorough fix > Two rushed fixes)
+
+**Status**: ✅ Fixed completely, comprehensive search rule established
+
+---
+
 ## 🎯 PROJECT-SPECIFIC RULES
 
 ### Production App Configuration

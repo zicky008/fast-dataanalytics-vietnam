@@ -2,6 +2,8 @@
 
 **For User**: Copy-paste này vào chat đầu session mới để AI load context nhanh nhất
 
+📁 **File Location**: All files ở `/home/user/webapp/`
+
 ---
 
 ## 📋 TEMPLATE FOR USER
@@ -10,6 +12,7 @@
 Chào AI! Session mới bắt đầu.
 
 Trước khi làm việc, hãy đọc theo thứ tự:
+(All files ở /home/user/webapp/)
 
 1. SESSION_HANDOVER_PROTOCOL.md (workflow guide)
 2. PRODUCTION_INFO.md (current state)
