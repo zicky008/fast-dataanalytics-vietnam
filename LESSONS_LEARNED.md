@@ -173,6 +173,72 @@ grep -rn "print(" . --include="*.py" | grep -v "# print"
 
 ---
 
+### ⚠️ Lesson #5: UI Display Limits Can Hide Critical Data
+**Date**: 2025-10-23  
+**Issue**: OEE (most important manufacturing KPI) not displayed to users  
+**Impact**: Users couldn't see critical metric, reduced dashboard value from 5-star to 3-star  
+
+**What Happened**:
+- Manufacturing domain calculates 9 KPIs correctly
+- UI code had hardcoded limit: `[:8]` (only first 8 KPIs displayed)
+- OEE was 9th KPI in dictionary order → hidden from users
+- Users thought OEE wasn't calculated at all
+
+**Root Cause**:
+- Frontend display logic had arbitrary limit (8 KPIs)
+- No consideration for domain-specific KPI counts
+- Backend calculated correctly, but UI didn't show all results
+
+**Prevention Rules**:
+```python
+# BAD: Hardcoded arbitrary limits
+for i, (kpi_name, kpi_data) in enumerate(list(kpis.items())[:8]):  # ❌
+
+# GOOD: Flexible limits or display all
+for i, (kpi_name, kpi_data) in enumerate(list(kpis.items())[:12]):  # ✅
+# Or better: Display all KPIs dynamically
+for i, (kpi_name, kpi_data) in enumerate(kpis.items()):  # ✅✅
+```
+
+**Best Practices**:
+1. ✅ Don't hardcode arbitrary limits for dynamic data
+2. ✅ Test with ALL domains to find max KPI count
+3. ✅ Consider priority-based KPI ordering (most important first)
+4. ✅ Add pagination or scrolling for many KPIs
+5. ✅ Log warning if KPIs are being truncated
+
+**Testing Checklist**:
+```bash
+# When testing any domain:
+1. Count total KPIs calculated
+2. Count KPIs displayed on UI
+3. Verify: Displayed Count == Calculated Count
+4. Check if critical metrics are visible
+```
+
+**Files Affected**:
+- `streamlit_app.py` line 252 (changed `[:8]` → `[:12]`)
+- Manufacturing domain: 9 KPIs (OEE was hidden)
+
+**Manufacturing KPI Order** (for reference):
+1. First Pass Yield
+2. Defect Rate
+3. Avg Production Output
+4. Cycle Time
+5. Machine Utilization
+6. Total Downtime
+7. Avg Downtime
+8. Cost per Unit
+9. **OEE** ← Was hidden, now visible ✅
+
+**Lesson Applied**:
+> "Backend đúng nhưng UI giấu = User không thấy = Vô giá trị"  
+> (Backend correct but UI hides = User can't see = Worthless)
+
+**Status**: ✅ Fixed (limit increased to 12), lesson documented
+
+---
+
 ## 🎯 PROJECT-SPECIFIC RULES
 
 ### Production App Configuration
