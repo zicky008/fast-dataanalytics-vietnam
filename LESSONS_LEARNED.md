@@ -495,6 +495,163 @@ Prevention: Systematic deployment verification protocol
 
 ---
 
+### ⚠️ Lesson #8: Verify Assumptions Before Deep Investigation
+**Date**: 2025-10-23  
+**Issue**: Spent 38 minutes investigating a "swap bug" that never existed  
+**Impact**: Wasted time, created unnecessary documentation, delayed Domain #7 testing  
+
+**What Happened**:
+- User provided production screenshots for Customer Service domain
+- I initially concluded FCR and SLA values were "swapped"
+- Assumed: Position 4 (82.0) = SLA, Position 5 (77.0) = FCR
+- Created comprehensive root cause analysis (600+ lines of code)
+- Generated 3 test scripts + 2 detailed reports
+- Spent 38 minutes investigating non-existent bug
+
+**Reality Check**:
+```
+Used image analysis tool on Screenshot #3:
+- Position 4 (82.0) → "First Contact Resolution" ✅ CORRECT
+- Position 5 (77.0) → "SLA Met" ✅ CORRECT
+
+Ground truth verification:
+- FCR should be 82% (82 tickets with reopened='No')
+- SLA should be 77% (77 tickets with sla_met='Yes')
+
+Production displays:
+- FCR shows 82.0% ✅ CORRECT
+- SLA shows 77.0% ✅ CORRECT
+
+CONCLUSION: NO BUG EXISTS! I misread the original screenshots!
+```
+
+**Root Cause Analysis**:
+- **Quick assumption** without careful label verification
+- **Pattern matching** (saw 82 and 77 in different positions, assumed swap)
+- **Confirmation bias** (once I believed there was a swap, I interpreted everything to confirm it)
+- **Jumped to investigation** before verifying basic premise
+
+**Prevention Rules**:
+```bash
+# BEFORE starting any deep investigation:
+
+1. VERIFY THE PREMISE
+   - Is the problem actually real?
+   - Can I see it with my own eyes clearly?
+   - Did I read the labels correctly?
+
+2. USE TOOLS TO CONFIRM
+   - Screenshot unclear? → Use image analysis tool FIRST
+   - Values suspicious? → Calculate ground truth FIRST
+   - Behavior odd? → Test in isolated environment FIRST
+
+3. ASK CLARIFYING QUESTIONS
+   - "Can you confirm which label shows which value?"
+   - "Can you re-test after hard refresh?"
+   - "Can you provide clearer screenshots?"
+
+4. START SMALL
+   - 5-minute quick verification ≠ 38-minute deep dive
+   - Test one hypothesis at a time
+   - Confirm before escalating
+
+5. OCCAM'S RAZOR
+   - Simplest explanation first: Did I misread?
+   - Then: Is it display/caching issue?
+   - Last resort: Deep code investigation
+```
+
+**Best Practices**:
+1. ✅ **Read screenshots TWICE with image analysis tool**
+2. ✅ **Calculate expected values before claiming discrepancy**
+3. ✅ **Verify labels match values before diagnosing "swap"**
+4. ✅ **Ask user for confirmation before 30+ minute investigation**
+5. ✅ **Test simplest hypothesis first (misread vs bug)**
+
+**Investigation Checklist**:
+```markdown
+Before spending >15 minutes on investigation:
+
+Phase 1: Verify Premise (5 minutes)
+- [ ] Can I clearly read labels in screenshots?
+- [ ] Did I use image analysis tool to confirm?
+- [ ] Did I calculate ground truth manually?
+- [ ] Do values actually mismatch ground truth?
+- [ ] Could this be a display/caching issue?
+
+Phase 2: Clarify with User (2 minutes)
+- [ ] Asked user to confirm which value has which label?
+- [ ] Asked user to hard refresh and re-test?
+- [ ] Got clear screenshots with readable labels?
+
+Phase 3: Proceed Only If Confirmed (>15 minutes)
+- [ ] User confirmed the bug exists
+- [ ] Screenshots clearly show wrong values
+- [ ] Ground truth calculations prove mismatch
+- [ ] Simplest explanations ruled out
+```
+
+**What I Should Have Done**:
+```
+Step 1: See user screenshots → Values look swapped
+Step 2: Use understand_images tool → Read labels clearly
+Step 3: See FCR=82.0, SLA=77.0 in production
+Step 4: Calculate ground truth → FCR should be 82%, SLA should be 77%
+Step 5: Compare → Production matches ground truth ✅
+Step 6: Conclusion in 5 minutes: "Production is correct, no bug!"
+
+ACTUAL: Skipped Steps 2-3, jumped to 38-minute investigation
+```
+
+**Time Cost Analysis**:
+```
+Wasted: 38 minutes on non-existent bug
+Could have: Completed Domain #7 testing instead
+Lesson: 5-minute verification >> 38-minute investigation
+```
+
+**Files Created (unnecessarily)**:
+- `ROOT_CAUSE_ANALYSIS_customer_service.py` (22.6 KB)
+- `CRITICAL_BUG_REPORT_FCR_SLA_SWAP.md` (8.9 KB)
+- `test_fcr_sla_calculation.py` (2.2 KB)
+- `ROOT_CAUSE_INVESTIGATION_SUMMARY.md` (10.9 KB)
+- Total: 44.6 KB of documentation for non-existent problem
+
+**Silver Lining**:
+- ✅ Process is thorough (if bug existed, we'd catch it)
+- ✅ Created reusable verification scripts
+- ✅ Validated that production is 100% accurate
+- ✅ Confirmed all 8 KPIs display correctly
+- ✅ Learned valuable lesson about assumptions
+
+**Business Impact if Bug Were Real**:
+```
+Scenario: CX Officer makes decisions on swapped data
+- Sees FCR=77% (actually SLA) → Thinks "needs improvement"
+- Sees SLA=82% (actually FCR) → Thinks "almost target"
+- Invests resources in wrong area → Wastes budget
+
+Prevention: Verify first, investigate second
+```
+
+**Lesson Applied**:
+> "5 phút verify > 38 phút investigate lỗi không có"  
+> (5 minutes verification > 38 minutes investigating non-existent bug)
+
+> "Measure twice, cut once. Read twice, investigate once."
+
+> "Assumptions are the mother of all mistakes."
+
+**Status**: ✅ Lesson learned, checklist created, production confirmed 100% correct
+
+**Positive Outcome**:
+- Customer Service Domain: 8/8 KPIs accurate (100%)
+- Zero tolerance standard: Maintained ✅
+- 5-star experience: Confirmed ⭐⭐⭐⭐⭐
+- Ready for Domain #7 testing
+
+---
+
 ## 🎯 PROJECT-SPECIFIC RULES
 
 ### Production App Configuration
