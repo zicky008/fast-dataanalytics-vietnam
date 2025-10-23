@@ -34,6 +34,89 @@ from domain_detection import (
 )
 
 
+# ==================================================================================
+# DOMAIN-SPECIFIC DEDUPLICATION RULES (MDM Best Practices)
+# ==================================================================================
+# Based on Master Data Management (MDM) survivorship rules and ISO 8000 standards
+# Research: See RESEARCH_DUPLICATE_CONTROL_ANALYSIS.md
+# ==================================================================================
+
+DEDUPLICATION_RULES = {
+    'HR / Nhân Sự': {
+        'enabled': True,
+        'strategy': 'key_based',
+        'key_columns': ['employee id', 'employee_id', 'emp id', 'emp_id', 'ssn', 'national id', 'staff id', 'nhân viên'],
+        'keep': 'last',  # Keep most recent record
+        'threshold': 0.05,  # Warn if >5% duplicates (normal: 1-5%)
+        'description': 'Deduplicate by employee identifier, keep latest record'
+    },
+    'Marketing': {
+        'enabled': True,
+        'strategy': 'key_based',
+        'key_columns': ['email', 'campaign id', 'campaign_id', 'campaign', 'customer id'],
+        'keep': 'first',  # Keep first campaign response
+        'threshold': 0.15,  # 15% duplicates normal in marketing
+        'description': 'Keep one record per email per campaign'
+    },
+    'Finance / Tài Chính': {
+        'enabled': True,
+        'strategy': 'key_based',
+        'key_columns': ['account number', 'account_number', 'transaction id', 'transaction_id', 'invoice id'],
+        'keep': 'last',  # Keep most recent transaction
+        'threshold': 0.01,  # Finance should have <1% duplicates
+        'description': 'Remove duplicate transactions (fraud prevention)'
+    },
+    'E-commerce / Thương mại điện tử': {
+        'enabled': True,
+        'strategy': 'key_based',
+        'key_columns': ['order id', 'order_id', 'customer id', 'customer_id', 'transaction id'],
+        'keep': 'last',
+        'threshold': 0.10,
+        'description': 'Keep latest order status per customer'
+    },
+    'Sales / Kinh Doanh': {
+        'enabled': True,
+        'strategy': 'key_based',
+        'key_columns': ['opportunity id', 'opportunity_id', 'deal id', 'deal_id', 'lead id'],
+        'keep': 'last',
+        'threshold': 0.20,  # Sales data often has duplicates
+        'description': 'Keep latest opportunity status'
+    },
+    'Customer Service / Chăm sóc khách hàng': {
+        'enabled': True,
+        'strategy': 'key_based',
+        'key_columns': ['ticket id', 'ticket_id', 'case id', 'case_id', 'support id'],
+        'keep': 'last',  # Keep latest ticket status (preserves reopens)
+        'threshold': 0.05,
+        'description': 'Keep latest ticket status (reopened tickets preserved)'
+    },
+    'Manufacturing / Sản xuất': {
+        'enabled': True,
+        'strategy': 'key_based',
+        'key_columns': ['serial number', 'serial_number', 'batch id', 'batch_id', 'product id', 'part number'],
+        'keep': 'last',
+        'threshold': 0.02,
+        'description': 'Keep latest quality measurement per unit'
+    },
+    'Operations / Vận hành': {
+        'enabled': True,
+        'strategy': 'key_based',
+        'key_columns': ['order id', 'shipment id', 'tracking number', 'warehouse id'],
+        'keep': 'last',
+        'threshold': 0.10,
+        'description': 'Keep latest operational status'
+    },
+    '_default': {
+        'enabled': True,
+        'strategy': 'all_columns',
+        'key_columns': [],
+        'keep': 'first',
+        'threshold': 0.05,
+        'description': 'Remove exact duplicates (all columns match)'
+    }
+}
+
+
 def is_streamlit_context():
     """Check if running in Streamlit context"""
     try:
@@ -257,8 +340,8 @@ OUTPUT JSON:
         try:
             cleaning_plan = json.loads(result)
             
-            # Apply cleaning (simplified)
-            df_cleaned = self._apply_fast_cleaning(df, cleaning_plan)
+            # Apply cleaning (simplified) - now with domain-specific deduplication
+            df_cleaned = self._apply_fast_cleaning(df, cleaning_plan, domain_info)
             
             # Validate quality gates
             validation = self._validate_quality_gates(df_cleaned, cleaning_plan)
@@ -2469,14 +2552,20 @@ Your response must be parseable by json.loads() immediately."""
             error_msg = user_friendly_error(e)
             return (False, error_msg)
     
-    def _apply_fast_cleaning(self, df: pd.DataFrame, cleaning_plan: Dict) -> pd.DataFrame:
+    def _apply_fast_cleaning(self, df: pd.DataFrame, cleaning_plan: Dict, domain_info: Dict) -> pd.DataFrame:
         """
-        Fast data cleaning execution
+        Fast data cleaning execution with domain-specific deduplication
         
         ⭐ CRITICAL: Only handle ACTUAL missing values to preserve data accuracy.
         Do NOT modify non-null values - this changes statistics (mean, median, etc.)
+        
+        ⭐ NEW: Domain-specific deduplication using MDM best practices
+        - Different domains have different duplicate handling strategies
+        - Uses semantic key columns (Employee ID, Order ID, etc.) not all columns
+        - Provides warnings when duplicate rate exceeds domain-specific thresholds
         """
         df_clean = df.copy()
+        original_count = len(df_clean)
         
         # Handle missing values - ONLY if they actually exist
         missing_handled = cleaning_plan.get('cleaning_summary', {}).get('missing_handled', {})
@@ -2495,10 +2584,123 @@ Your response must be parseable by json.loads() immediately."""
                 if len(df_clean[col].mode()) > 0:
                     df_clean[col] = df_clean[col].fillna(df_clean[col].mode()[0])
         
-        # Remove duplicates
-        df_clean = df_clean.drop_duplicates()
+        # ==================================================================================
+        # DOMAIN-SPECIFIC DEDUPLICATION (NEW - Phase 1 Implementation)
+        # ==================================================================================
+        duplicates_removed, dedup_info = self._smart_deduplication(
+            df_clean, 
+            domain_info, 
+            original_count
+        )
+        df_clean = dedup_info['df_cleaned']
+        
+        # Update cleaning plan with deduplication details
+        cleaning_plan.setdefault('cleaning_summary', {})['duplicates_removed'] = duplicates_removed
+        cleaning_plan.setdefault('cleaning_summary', {})['deduplication_strategy'] = dedup_info['strategy']
+        cleaning_plan.setdefault('cleaning_summary', {})['key_columns_used'] = dedup_info['key_columns']
+        cleaning_plan.setdefault('cleaning_summary', {})['duplicate_rate'] = dedup_info['duplicate_rate']
+        
+        # Show warning if excessive duplicates
+        if dedup_info.get('warning'):
+            if is_streamlit_context():
+                st.warning(dedup_info['warning'])
         
         return df_clean
+    
+    def _smart_deduplication(self, df: pd.DataFrame, domain_info: Dict, original_count: int) -> Tuple[int, Dict]:
+        """
+        Domain-specific smart deduplication using MDM best practices
+        
+        Returns:
+            Tuple of (duplicates_removed, dedup_info_dict)
+        """
+        domain_name = domain_info.get('domain_name', '_default')
+        
+        # Get domain-specific rules (with fallback to default)
+        rules = DEDUPLICATION_RULES.get(domain_name, DEDUPLICATION_RULES['_default'])
+        
+        if not rules['enabled']:
+            return 0, {
+                'df_cleaned': df,
+                'strategy': 'Disabled',
+                'key_columns': [],
+                'duplicate_rate': 0.0
+            }
+        
+        # Identify key columns using fuzzy matching
+        key_cols = self._find_key_columns(df, rules['key_columns'])
+        
+        # Apply deduplication
+        if key_cols and rules['strategy'] == 'key_based':
+            # Deduplicate based on semantic key columns
+            df_cleaned = df.drop_duplicates(subset=key_cols, keep=rules['keep'])
+            strategy = f"{rules['description']} (Key columns: {', '.join(key_cols)})"
+        else:
+            # Fallback: deduplicate on all columns
+            df_cleaned = df.drop_duplicates(keep=rules['keep'])
+            strategy = "Remove exact duplicates (all columns match)"
+            key_cols = ['All columns']
+        
+        # Calculate metrics
+        duplicates_removed = original_count - len(df_cleaned)
+        duplicate_rate = duplicates_removed / original_count if original_count > 0 else 0.0
+        
+        # Generate warning if excessive
+        warning = None
+        if duplicate_rate > rules['threshold']:
+            warning = (
+                f"⚠️ **High duplicate rate detected**: {duplicate_rate:.1%} "
+                f"({duplicates_removed:,} of {original_count:,} rows)\\n\\n"
+                f"**Expected for {domain_name}**: <{rules['threshold']:.1%}\\n\\n"
+                f"**Possible reasons**:\\n"
+                f"- Synthetic/test data with intentional duplicates\\n"
+                f"- Data export error (repeated rows)\\n"
+                f"- Legitimate scenarios (multi-job employees, survey responses)\\n\\n"
+                f"**Strategy applied**: {strategy}"
+            )
+        
+        return duplicates_removed, {
+            'df_cleaned': df_cleaned,
+            'strategy': strategy,
+            'key_columns': key_cols,
+            'duplicate_rate': duplicate_rate,
+            'warning': warning
+        }
+    
+    def _find_key_columns(self, df: pd.DataFrame, candidate_patterns: List[str]) -> List[str]:
+        """
+        Find key columns using fuzzy matching on candidate patterns
+        
+        Examples:
+            Patterns: ['employee id', 'emp_id']
+            Matches: 'Employee_ID', 'EMP ID', 'EmployeeId'
+        
+        Returns:
+            List of matched column names from dataframe
+        """
+        import re
+        
+        matched_cols = []
+        df_cols_lower = [col.lower().strip() for col in df.columns]
+        
+        for pattern in candidate_patterns:
+            pattern_normalized = pattern.lower().strip().replace(' ', '').replace('_', '')
+            
+            for i, df_col in enumerate(df.columns):
+                df_col_normalized = df_cols_lower[i].replace(' ', '').replace('_', '')
+                
+                # Exact match (normalized)
+                if pattern_normalized == df_col_normalized:
+                    if df_col not in matched_cols:
+                        matched_cols.append(df_col)
+                    break
+                
+                # Contains match (for composite names like 'customer_email_id')
+                elif pattern_normalized in df_col_normalized or df_col_normalized in pattern_normalized:
+                    if df_col not in matched_cols:
+                        matched_cols.append(df_col)
+        
+        return matched_cols
     
     def _validate_quality_gates(self, df_cleaned: pd.DataFrame, cleaning_plan: Dict) -> Dict:
         """Validate ISO 8000 quality gates"""
