@@ -1014,6 +1014,124 @@ OUTPUT JSON:
                             'insight': f"{'✅ Low leverage' if debt_to_equity < 1.0 else '⚠️ Moderate leverage' if debt_to_equity < 2.0 else '🚨 High leverage risk'}"
                         }
         
+        # === CUSTOMER SERVICE/SUPPORT DATA ===
+        elif 'customer' in domain and ('service' in domain or 'support' in domain):
+            # Detect key customer service columns
+            response_time_cols = [col for col in df.columns if 'response' in col.lower() and 'time' in col.lower()]
+            resolution_time_cols = [col for col in df.columns if 'resolution' in col.lower() and 'time' in col.lower()]
+            csat_cols = [col for col in df.columns if 'satisfaction' in col.lower() or 'csat' in col.lower()]
+            sla_cols = [col for col in df.columns if 'sla' in col.lower()]
+            reopened_cols = [col for col in df.columns if 'reopen' in col.lower()]
+            escalated_cols = [col for col in df.columns if 'escalat' in col.lower()]
+            ticket_value_cols = [col for col in df.columns if 'ticket' in col.lower() and 'value' in col.lower()]
+            channel_cols = [col for col in df.columns if 'channel' in col.lower()]
+            
+            # 1. Average First Response Time
+            if response_time_cols:
+                response_col = response_time_cols[0]
+                avg_response = df[response_col].mean()
+                kpis['Avg First Response Time (min)'] = {
+                    'value': float(avg_response),
+                    'benchmark': 15.0,  # Industry best: <15 min
+                    'status': 'Below' if avg_response <= 15.0 else 'Above',  # Lower is better
+                    'column': response_col,
+                    'insight': f"{'✅ Fast' if avg_response <= 15 else '⚠️ Slow'} - Target <15 min for good CX"
+                }
+            
+            # 2. Average Resolution Time
+            if resolution_time_cols:
+                resolution_col = resolution_time_cols[0]
+                avg_resolution = df[resolution_col].mean()
+                kpis['Avg Resolution Time (hrs)'] = {
+                    'value': float(avg_resolution),
+                    'benchmark': 4.0,  # Target: <4 hours
+                    'status': 'Below' if avg_resolution <= 4.0 else 'Above',  # Lower is better
+                    'column': resolution_col,
+                    'insight': f"{'✅ Efficient' if avg_resolution <= 4 else '⚠️ Long'} - Target <4 hrs"
+                }
+            
+            # 3. Customer Satisfaction Score (CSAT)
+            if csat_cols:
+                csat_col = csat_cols[0]
+                avg_csat = df[csat_col].mean()
+                kpis['CSAT Score'] = {
+                    'value': float(avg_csat),
+                    'benchmark': 4.5,  # Target: ≥4.5/5
+                    'status': 'Above' if avg_csat >= 4.5 else 'Below',
+                    'column': csat_col,
+                    'insight': f"{'✅ Excellent' if avg_csat >= 4.5 else '⚠️ Needs improvement'} - Target ≥4.5/5"
+                }
+            
+            # 4. First Contact Resolution (FCR)
+            if reopened_cols:
+                reopen_col = reopened_cols[0]
+                total_tickets = len(df)
+                # Assuming 'No' or False means not reopened (first contact resolution)
+                not_reopened = df[reopen_col].astype(str).str.lower().isin(['no', 'false', '0']).sum()
+                fcr_rate = (not_reopened / total_tickets) * 100
+                kpis['First Contact Resolution (%)'] = {
+                    'value': float(fcr_rate),
+                    'benchmark': 75.0,  # Industry benchmark: 70-75%
+                    'status': 'Above' if fcr_rate >= 75.0 else 'Below',
+                    'column': reopen_col,
+                    'insight': f"{'✅ Strong' if fcr_rate >= 75 else '⚠️ Low'} - Industry avg 70-75%"
+                }
+            
+            # 5. SLA Compliance
+            if sla_cols:
+                sla_col = sla_cols[0]
+                total_tickets = len(df)
+                # Assuming 'Yes' or True means SLA met
+                sla_met = df[sla_col].astype(str).str.lower().isin(['yes', 'true', '1']).sum()
+                sla_rate = (sla_met / total_tickets) * 100
+                kpis['SLA Met (%)'] = {
+                    'value': float(sla_rate),
+                    'benchmark': 85.0,  # Target: ≥85%
+                    'status': 'Above' if sla_rate >= 85.0 else 'Below',
+                    'column': sla_col,
+                    'insight': f"{'✅ Good' if sla_rate >= 85 else '⚠️ Below target'} - Target ≥85%"
+                }
+            
+            # 6. Escalation Rate
+            if escalated_cols:
+                escalated_col = escalated_cols[0]
+                total_tickets = len(df)
+                escalated = df[escalated_col].astype(str).str.lower().isin(['yes', 'true', '1']).sum()
+                escalation_rate = (escalated / total_tickets) * 100
+                kpis['Escalation Rate (%)'] = {
+                    'value': float(escalation_rate),
+                    'benchmark': 15.0,  # Target: <15%
+                    'status': 'Below' if escalation_rate <= 15.0 else 'Above',  # Lower is better
+                    'column': escalated_col,
+                    'insight': f"{'✅ Low' if escalation_rate <= 15 else '⚠️ High'} - Target <15%"
+                }
+            
+            # 7. Reopen Rate
+            if reopened_cols:
+                reopen_col = reopened_cols[0]
+                total_tickets = len(df)
+                reopened = df[reopen_col].astype(str).str.lower().isin(['yes', 'true', '1']).sum()
+                reopen_rate = (reopened / total_tickets) * 100
+                kpis['Reopen Rate (%)'] = {
+                    'value': float(reopen_rate),
+                    'benchmark': 10.0,  # Target: <10%
+                    'status': 'Below' if reopen_rate <= 10.0 else 'Above',  # Lower is better
+                    'column': reopen_col,
+                    'insight': f"{'✅ Good quality' if reopen_rate <= 10 else '⚠️ High'} - Target <10%"
+                }
+            
+            # 8. Total Ticket Value (business impact)
+            if ticket_value_cols:
+                ticket_value_col = ticket_value_cols[0]
+                total_value = df[ticket_value_col].sum()
+                kpis['Total Ticket Value (VND)'] = {
+                    'value': float(total_value),
+                    'benchmark': float(total_value * 0.8),
+                    'status': 'Above Target',
+                    'column': ticket_value_col,
+                    'insight': f"Total business value: {total_value:,.0f} VND"
+                }
+        
         # === MANUFACTURING/OPERATIONS DATA ===
         elif 'manufacturing' in domain or 'production' in domain or 'operations' in domain or 'factory' in domain:
             # Detect key manufacturing columns (be specific to avoid false matches)
