@@ -238,6 +238,34 @@ def main():
         kpis = result['dashboard'].get('kpis', {})
         
         if kpis:
+            # ⭐ VALIDATION: Check for suspicious KPI values
+            validation_warnings = []
+            for kpi_name, kpi_data in kpis.items():
+                value = kpi_data.get('value', 0)
+                
+                # CTR should be 0-100% (percentage)
+                if 'CTR' in kpi_name and '(%)' in kpi_name:
+                    if value > 100:
+                        validation_warnings.append(f"⚠️ {kpi_name} = {value:.1f} (Should be 0-100%). Possible unit error.")
+                    elif value > 50:
+                        validation_warnings.append(f"⚠️ {kpi_name} = {value:.1f}% (Unusually high, verify data).")
+                
+                # Conversion Rate should be 0-100%
+                if 'Conversion Rate' in kpi_name and '(%)' in kpi_name:
+                    if value > 100:
+                        validation_warnings.append(f"⚠️ {kpi_name} = {value:.1f} (Should be 0-100%). Possible unit error.")
+                
+                # ROAS should be reasonable (typically 0-20)
+                if 'ROAS' in kpi_name:
+                    if value > 100:
+                        validation_warnings.append(f"⚠️ {kpi_name} = {value:.1f} (Unusually high, verify calculation).")
+            
+            # Show validation warnings if any
+            if validation_warnings:
+                with st.expander("⚠️ Data Quality Warnings", expanded=False):
+                    for warning in validation_warnings:
+                        st.warning(warning)
+            
             # Define KPIs where LOWER is BETTER (reverse color logic)
             lower_is_better_kpis = [
                 'Defect Rate',
