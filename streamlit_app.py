@@ -249,7 +249,7 @@ def main():
             ]
             
             cols = st.columns(min(4, len(kpis)))
-            for i, (kpi_name, kpi_data) in enumerate(list(kpis.items())[:8]):
+            for i, (kpi_name, kpi_data) in enumerate(list(kpis.items())[:12]):
                 with cols[i % 4]:
                     # Check if this is a "lower is better" KPI
                     is_lower_better = any(keyword in kpi_name for keyword in lower_is_better_kpis)
