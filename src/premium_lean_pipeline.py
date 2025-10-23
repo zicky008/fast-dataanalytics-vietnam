@@ -50,7 +50,7 @@ DEDUPLICATION_RULES = {
         'threshold': 0.05,  # Warn if >5% duplicates (normal: 1-5%)
         'description': 'Deduplicate by employee identifier, keep latest record'
     },
-    'Marketing': {
+    'Marketing / Quảng Cáo': {
         'enabled': True,
         'strategy': 'key_based',
         'key_columns': ['email', 'campaign id', 'campaign_id', 'campaign', 'customer id'],
@@ -66,7 +66,7 @@ DEDUPLICATION_RULES = {
         'threshold': 0.01,  # Finance should have <1% duplicates
         'description': 'Remove duplicate transactions (fraud prevention)'
     },
-    'E-commerce / Thương mại điện tử': {
+    'E-commerce / Bán Hàng Trực Tuyến': {
         'enabled': True,
         'strategy': 'key_based',
         'key_columns': ['order id', 'order_id', 'customer id', 'customer_id', 'transaction id'],
@@ -82,7 +82,7 @@ DEDUPLICATION_RULES = {
         'threshold': 0.20,  # Sales data often has duplicates
         'description': 'Keep latest opportunity status'
     },
-    'Customer Service / Chăm sóc khách hàng': {
+    'Customer Service / Chăm Sóc Khách Hàng': {
         'enabled': True,
         'strategy': 'key_based',
         'key_columns': ['ticket id', 'ticket_id', 'case id', 'case_id', 'support id'],
@@ -90,7 +90,7 @@ DEDUPLICATION_RULES = {
         'threshold': 0.05,
         'description': 'Keep latest ticket status (reopened tickets preserved)'
     },
-    'Manufacturing / Sản xuất': {
+    'Manufacturing / Sản Xuất': {
         'enabled': True,
         'strategy': 'key_based',
         'key_columns': ['serial number', 'serial_number', 'batch id', 'batch_id', 'product id', 'part number'],
@@ -98,7 +98,7 @@ DEDUPLICATION_RULES = {
         'threshold': 0.02,
         'description': 'Keep latest quality measurement per unit'
     },
-    'Operations / Vận hành': {
+    'Operations / Vận Hành': {
         'enabled': True,
         'strategy': 'key_based',
         'key_columns': ['order id', 'shipment id', 'tracking number', 'warehouse id'],
@@ -2650,12 +2650,12 @@ Your response must be parseable by json.loads() immediately."""
         if duplicate_rate > rules['threshold']:
             warning = (
                 f"⚠️ **High duplicate rate detected**: {duplicate_rate:.1%} "
-                f"({duplicates_removed:,} of {original_count:,} rows)\\n\\n"
-                f"**Expected for {domain_name}**: <{rules['threshold']:.1%}\\n\\n"
-                f"**Possible reasons**:\\n"
-                f"- Synthetic/test data with intentional duplicates\\n"
-                f"- Data export error (repeated rows)\\n"
-                f"- Legitimate scenarios (multi-job employees, survey responses)\\n\\n"
+                f"({duplicates_removed:,} of {original_count:,} rows)\n\n"
+                f"**Expected for {domain_name}**: <{rules['threshold']:.1%}\n\n"
+                f"**Possible reasons**:\n"
+                f"- Synthetic/test data with intentional duplicates\n"
+                f"- Data export error (repeated rows)\n"
+                f"- Legitimate scenarios (multi-job employees, survey responses)\n\n"
                 f"**Strategy applied**: {strategy}"
             )
         
