@@ -1,0 +1,101 @@
+ticket_id,created_date,resolved_date,channel,category,priority,agent_id,agent_name,first_response_time_mins,resolution_time_hours,customer_satisfaction_score,reopened,escalated,sla_met,ticket_value_vnd,customer_segment
+TK001,2024-10-01 08:15,2024-10-01 10:30,Email,Technical Issue,High,AG001,Nguyen Van A,15,2.25,5,No,No,Yes,5000000,Premium
+TK002,2024-10-01 09:20,2024-10-01 09:45,Live Chat,Billing Question,Medium,AG002,Tran Thi B,3,0.42,5,No,No,Yes,2500000,Standard
+TK003,2024-10-01 10:05,2024-10-01 16:30,Phone,Product Defect,High,AG003,Le Van C,8,6.42,4,No,Yes,No,8000000,Premium
+TK004,2024-10-01 11:30,2024-10-01 12:00,Live Chat,How-to Question,Low,AG001,Nguyen Van A,5,0.50,5,No,No,Yes,500000,Standard
+TK005,2024-10-01 13:45,2024-10-02 09:15,Email,Account Access,Medium,AG004,Pham Thi D,45,19.50,3,Yes,No,No,3000000,Standard
+TK006,2024-10-01 14:20,2024-10-01 15:00,Phone,Shipping Delay,High,AG002,Tran Thi B,12,0.67,4,No,No,Yes,6500000,Premium
+TK007,2024-10-01 15:50,2024-10-01 16:30,Live Chat,Feature Request,Low,AG005,Hoang Van E,10,0.67,5,No,No,Yes,1000000,Standard
+TK008,2024-10-02 08:30,2024-10-02 11:45,Email,Technical Issue,Medium,AG001,Nguyen Van A,20,3.25,4,No,No,Yes,4000000,Standard
+TK009,2024-10-02 09:15,2024-10-02 09:35,Live Chat,Billing Question,Low,AG003,Le Van C,5,0.33,5,No,No,Yes,1500000,Standard
+TK010,2024-10-02 10:00,2024-10-02 14:30,Phone,Product Defect,High,AG002,Tran Thi B,10,4.50,3,Yes,Yes,No,9000000,Premium
+TK011,2024-10-02 11:20,2024-10-02 12:00,Email,How-to Question,Low,AG004,Pham Thi D,25,0.67,5,No,No,Yes,800000,Standard
+TK012,2024-10-02 13:40,2024-10-03 10:20,Email,Account Access,High,AG005,Hoang Van E,60,20.67,2,Yes,Yes,No,5500000,Premium
+TK013,2024-10-02 14:55,2024-10-02 15:30,Live Chat,Shipping Delay,Medium,AG001,Nguyen Van A,7,0.58,5,No,No,Yes,3500000,Standard
+TK014,2024-10-02 16:10,2024-10-02 17:00,Phone,Feature Request,Low,AG003,Le Van C,15,0.83,4,No,No,Yes,1200000,Standard
+TK015,2024-10-03 08:05,2024-10-03 10:30,Email,Technical Issue,High,AG002,Tran Thi B,18,2.42,4,No,No,Yes,6000000,Premium
+TK016,2024-10-03 09:30,2024-10-03 09:55,Live Chat,Billing Question,Medium,AG004,Pham Thi D,5,0.42,5,No,No,Yes,2000000,Standard
+TK017,2024-10-03 10:45,2024-10-03 16:00,Phone,Product Defect,High,AG001,Nguyen Van A,12,5.25,3,No,Yes,No,8500000,Premium
+TK018,2024-10-03 12:00,2024-10-03 12:30,Live Chat,How-to Question,Low,AG005,Hoang Van E,8,0.50,5,No,No,Yes,600000,Standard
+TK019,2024-10-03 13:20,2024-10-04 09:00,Email,Account Access,Medium,AG003,Le Van C,50,19.67,3,Yes,No,No,4500000,Standard
+TK020,2024-10-03 14:40,2024-10-03 15:30,Phone,Shipping Delay,High,AG002,Tran Thi B,10,0.83,4,No,No,Yes,7000000,Premium
+TK021,2024-10-03 15:55,2024-10-03 16:40,Live Chat,Feature Request,Low,AG004,Pham Thi D,12,0.75,5,No,No,Yes,900000,Standard
+TK022,2024-10-04 08:20,2024-10-04 11:00,Email,Technical Issue,Medium,AG001,Nguyen Van A,22,2.67,4,No,No,Yes,3800000,Standard
+TK023,2024-10-04 09:40,2024-10-04 10:05,Live Chat,Billing Question,Low,AG005,Hoang Van E,6,0.42,5,No,No,Yes,1800000,Standard
+TK024,2024-10-04 10:30,2024-10-04 15:45,Phone,Product Defect,High,AG003,Le Van C,15,5.25,4,No,Yes,Yes,7500000,Premium
+TK025,2024-10-04 11:50,2024-10-04 12:30,Email,How-to Question,Low,AG002,Tran Thi B,20,0.67,5,No,No,Yes,750000,Standard
+TK026,2024-10-04 13:15,2024-10-05 08:45,Email,Account Access,High,AG004,Pham Thi D,55,19.50,3,Yes,Yes,No,5000000,Premium
+TK027,2024-10-04 14:30,2024-10-04 15:15,Live Chat,Shipping Delay,Medium,AG001,Nguyen Van A,8,0.75,5,No,No,Yes,4000000,Standard
+TK028,2024-10-04 15:45,2024-10-04 16:30,Phone,Feature Request,Low,AG005,Hoang Van E,18,0.75,4,No,No,Yes,1100000,Standard
+TK029,2024-10-05 08:10,2024-10-05 10:45,Email,Technical Issue,High,AG003,Le Van C,16,2.58,5,No,No,Yes,6500000,Premium
+TK030,2024-10-05 09:25,2024-10-05 09:50,Live Chat,Billing Question,Medium,AG002,Tran Thi B,4,0.42,5,No,No,Yes,2200000,Standard
+TK031,2024-10-05 10:50,2024-10-05 16:30,Phone,Product Defect,High,AG004,Pham Thi D,10,5.67,3,No,Yes,No,9500000,Premium
+TK032,2024-10-05 12:05,2024-10-05 12:40,Live Chat,How-to Question,Low,AG001,Nguyen Van A,7,0.58,5,No,No,Yes,850000,Standard
+TK033,2024-10-05 13:30,2024-10-06 10:00,Email,Account Access,Medium,AG005,Hoang Van E,48,20.50,2,Yes,No,No,4800000,Standard
+TK034,2024-10-05 14:45,2024-10-05 15:30,Phone,Shipping Delay,High,AG003,Le Van C,11,0.75,4,No,No,Yes,7200000,Premium
+TK035,2024-10-05 16:00,2024-10-05 16:50,Live Chat,Feature Request,Low,AG002,Tran Thi B,13,0.83,5,No,No,Yes,950000,Standard
+TK036,2024-10-06 08:30,2024-10-06 11:15,Email,Technical Issue,Medium,AG004,Pham Thi D,19,2.75,4,No,No,Yes,4200000,Standard
+TK037,2024-10-06 09:45,2024-10-06 10:10,Live Chat,Billing Question,Low,AG001,Nguyen Van A,5,0.42,5,No,No,Yes,1900000,Standard
+TK038,2024-10-06 11:00,2024-10-06 16:45,Phone,Product Defect,High,AG005,Hoang Van E,14,5.75,3,Yes,Yes,No,8800000,Premium
+TK039,2024-10-06 12:20,2024-10-06 13:00,Email,How-to Question,Low,AG003,Le Van C,23,0.67,5,No,No,Yes,700000,Standard
+TK040,2024-10-06 13:50,2024-10-07 09:30,Email,Account Access,High,AG002,Tran Thi B,58,19.67,3,Yes,Yes,No,5300000,Premium
+TK041,2024-10-06 15:10,2024-10-06 16:00,Live Chat,Shipping Delay,Medium,AG004,Pham Thi D,9,0.83,5,No,No,Yes,3800000,Standard
+TK042,2024-10-06 16:25,2024-10-06 17:15,Phone,Feature Request,Low,AG001,Nguyen Van A,16,0.83,4,No,No,Yes,1050000,Standard
+TK043,2024-10-07 08:15,2024-10-07 10:50,Email,Technical Issue,High,AG005,Hoang Van E,17,2.58,4,No,No,Yes,6200000,Premium
+TK044,2024-10-07 09:35,2024-10-07 10:00,Live Chat,Billing Question,Medium,AG003,Le Van C,6,0.42,5,No,No,Yes,2100000,Standard
+TK045,2024-10-07 10:55,2024-10-07 16:20,Phone,Product Defect,High,AG002,Tran Thi B,13,5.42,4,No,Yes,Yes,7800000,Premium
+TK046,2024-10-07 12:10,2024-10-07 12:45,Live Chat,How-to Question,Low,AG004,Pham Thi D,8,0.58,5,No,No,Yes,820000,Standard
+TK047,2024-10-07 13:40,2024-10-08 10:15,Email,Account Access,Medium,AG001,Nguyen Van A,52,20.58,3,Yes,No,No,4600000,Standard
+TK048,2024-10-07 14:55,2024-10-07 15:45,Phone,Shipping Delay,High,AG005,Hoang Van E,12,0.83,4,No,No,Yes,6800000,Premium
+TK049,2024-10-07 16:20,2024-10-07 17:10,Live Chat,Feature Request,Low,AG003,Le Van C,14,0.83,5,No,No,Yes,980000,Standard
+TK050,2024-10-08 08:25,2024-10-08 11:00,Email,Technical Issue,Medium,AG002,Tran Thi B,21,2.58,4,No,No,Yes,4100000,Standard
+TK051,2024-10-08 09:50,2024-10-08 10:15,Live Chat,Billing Question,Low,AG004,Pham Thi D,5,0.42,5,No,No,Yes,1850000,Standard
+TK052,2024-10-08 11:10,2024-10-08 17:00,Phone,Product Defect,High,AG001,Nguyen Van A,11,5.83,3,No,Yes,No,9200000,Premium
+TK053,2024-10-08 12:30,2024-10-08 13:10,Email,How-to Question,Low,AG005,Hoang Van E,24,0.67,5,No,No,Yes,780000,Standard
+TK054,2024-10-08 14:00,2024-10-09 09:45,Email,Account Access,High,AG003,Le Van C,56,19.75,2,Yes,Yes,No,5100000,Premium
+TK055,2024-10-08 15:20,2024-10-08 16:10,Live Chat,Shipping Delay,Medium,AG002,Tran Thi B,10,0.83,5,No,No,Yes,3900000,Standard
+TK056,2024-10-08 16:40,2024-10-08 17:30,Phone,Feature Request,Low,AG004,Pham Thi D,17,0.83,4,No,No,Yes,1080000,Standard
+TK057,2024-10-09 08:20,2024-10-09 10:55,Email,Technical Issue,High,AG001,Nguyen Van A,18,2.58,5,No,No,Yes,6400000,Premium
+TK058,2024-10-09 09:40,2024-10-09 10:05,Live Chat,Billing Question,Medium,AG005,Hoang Van E,5,0.42,5,No,No,Yes,2050000,Standard
+TK059,2024-10-09 11:00,2024-10-09 16:30,Phone,Product Defect,High,AG003,Le Van C,12,5.50,4,No,Yes,Yes,8100000,Premium
+TK060,2024-10-09 12:25,2024-10-09 13:00,Live Chat,How-to Question,Low,AG002,Tran Thi B,9,0.58,5,No,No,Yes,800000,Standard
+TK061,2024-10-09 13:55,2024-10-10 10:20,Email,Account Access,Medium,AG004,Pham Thi D,50,20.42,3,Yes,No,No,4700000,Standard
+TK062,2024-10-09 15:10,2024-10-09 16:00,Phone,Shipping Delay,High,AG001,Nguyen Van A,13,0.83,4,No,No,Yes,7100000,Premium
+TK063,2024-10-09 16:30,2024-10-09 17:20,Live Chat,Feature Request,Low,AG005,Hoang Van E,15,0.83,5,No,No,Yes,1020000,Standard
+TK064,2024-10-10 08:30,2024-10-10 11:10,Email,Technical Issue,Medium,AG003,Le Van C,20,2.67,4,No,No,Yes,4300000,Standard
+TK065,2024-10-10 09:55,2024-10-10 10:20,Live Chat,Billing Question,Low,AG002,Tran Thi B,6,0.42,5,No,No,Yes,1950000,Standard
+TK066,2024-10-10 11:15,2024-10-10 17:00,Phone,Product Defect,High,AG004,Pham Thi D,10,5.75,3,Yes,Yes,No,8900000,Premium
+TK067,2024-10-10 12:40,2024-10-10 13:20,Email,How-to Question,Low,AG001,Nguyen Van A,22,0.67,5,No,No,Yes,770000,Standard
+TK068,2024-10-10 14:10,2024-10-11 09:50,Email,Account Access,High,AG005,Hoang Van E,54,19.67,3,Yes,Yes,No,5200000,Premium
+TK069,2024-10-10 15:30,2024-10-10 16:20,Live Chat,Shipping Delay,Medium,AG003,Le Van C,11,0.83,5,No,No,Yes,3700000,Standard
+TK070,2024-10-10 16:50,2024-10-10 17:40,Phone,Feature Request,Low,AG002,Tran Thi B,18,0.83,4,No,No,Yes,1090000,Standard
+TK071,2024-10-11 08:25,2024-10-11 11:00,Email,Technical Issue,High,AG004,Pham Thi D,19,2.58,4,No,No,Yes,6300000,Premium
+TK072,2024-10-11 09:45,2024-10-11 10:10,Live Chat,Billing Question,Medium,AG001,Nguyen Van A,7,0.42,5,No,No,Yes,2080000,Standard
+TK073,2024-10-11 11:05,2024-10-11 16:40,Phone,Product Defect,High,AG005,Hoang Van E,14,5.58,4,No,Yes,Yes,8300000,Premium
+TK074,2024-10-11 12:30,2024-10-11 13:10,Live Chat,How-to Question,Low,AG003,Le Van C,10,0.67,5,No,No,Yes,810000,Standard
+TK075,2024-10-11 14:00,2024-10-12 10:30,Email,Account Access,Medium,AG002,Tran Thi B,49,20.50,3,Yes,No,No,4900000,Standard
+TK076,2024-10-11 15:25,2024-10-11 16:15,Phone,Shipping Delay,High,AG004,Pham Thi D,12,0.83,4,No,No,Yes,6900000,Premium
+TK077,2024-10-11 16:45,2024-10-11 17:35,Live Chat,Feature Request,Low,AG001,Nguyen Van A,16,0.83,5,No,No,Yes,1030000,Standard
+TK078,2024-10-12 08:35,2024-10-12 11:15,Email,Technical Issue,Medium,AG005,Hoang Van E,21,2.67,4,No,No,Yes,4250000,Standard
+TK079,2024-10-12 10:00,2024-10-12 10:25,Live Chat,Billing Question,Low,AG003,Le Van C,8,0.42,5,No,No,Yes,1980000,Standard
+TK080,2024-10-12 11:20,2024-10-12 17:10,Phone,Product Defect,High,AG002,Tran Thi B,11,5.83,3,No,Yes,No,9100000,Premium
+TK081,2024-10-12 12:45,2024-10-12 13:25,Email,How-to Question,Low,AG004,Pham Thi D,25,0.67,5,No,No,Yes,790000,Standard
+TK082,2024-10-12 14:20,2024-10-13 10:00,Email,Account Access,High,AG001,Nguyen Van A,57,19.67,2,Yes,Yes,No,5400000,Premium
+TK083,2024-10-12 15:40,2024-10-12 16:30,Live Chat,Shipping Delay,Medium,AG005,Hoang Van E,12,0.83,5,No,No,Yes,3850000,Standard
+TK084,2024-10-12 17:00,2024-10-12 17:50,Phone,Feature Request,Low,AG003,Le Van C,19,0.83,4,No,No,Yes,1070000,Standard
+TK085,2024-10-13 08:30,2024-10-13 11:10,Email,Technical Issue,High,AG002,Tran Thi B,20,2.67,5,No,No,Yes,6600000,Premium
+TK086,2024-10-13 09:50,2024-10-13 10:15,Live Chat,Billing Question,Medium,AG004,Pham Thi D,6,0.42,5,No,No,Yes,2120000,Standard
+TK087,2024-10-13 11:10,2024-10-13 16:50,Phone,Product Defect,High,AG001,Nguyen Van A,13,5.67,4,No,Yes,Yes,8400000,Premium
+TK088,2024-10-13 12:35,2024-10-13 13:15,Live Chat,How-to Question,Low,AG005,Hoang Van E,11,0.67,5,No,No,Yes,825000,Standard
+TK089,2024-10-13 14:10,2024-10-14 10:40,Email,Account Access,Medium,AG003,Le Van C,51,20.50,3,Yes,No,No,4850000,Standard
+TK090,2024-10-13 15:35,2024-10-13 16:25,Phone,Shipping Delay,High,AG002,Tran Thi B,14,0.83,4,No,No,Yes,7050000,Premium
+TK091,2024-10-13 17:00,2024-10-13 17:50,Live Chat,Feature Request,Low,AG004,Pham Thi D,17,0.83,5,No,No,Yes,1040000,Standard
+TK092,2024-10-14 08:40,2024-10-14 11:20,Email,Technical Issue,Medium,AG001,Nguyen Van A,22,2.67,4,No,No,Yes,4350000,Standard
+TK093,2024-10-14 10:05,2024-10-14 10:30,Live Chat,Billing Question,Low,AG005,Hoang Van E,9,0.42,5,No,No,Yes,2010000,Standard
+TK094,2024-10-14 11:25,2024-10-14 17:15,Phone,Product Defect,High,AG003,Le Van C,12,5.83,3,Yes,Yes,No,9300000,Premium
+TK095,2024-10-14 12:50,2024-10-14 13:30,Email,How-to Question,Low,AG002,Tran Thi B,26,0.67,5,No,No,Yes,805000,Standard
+TK096,2024-10-14 14:30,2024-10-15 10:10,Email,Account Access,High,AG004,Pham Thi D,53,19.67,3,Yes,Yes,No,5250000,Premium
+TK097,2024-10-14 15:50,2024-10-14 16:40,Live Chat,Shipping Delay,Medium,AG001,Nguyen Van A,13,0.83,5,No,No,Yes,3950000,Standard
+TK098,2024-10-14 17:10,2024-10-14 18:00,Phone,Feature Request,Low,AG005,Hoang Van E,20,0.83,4,No,No,Yes,1095000,Standard
+TK099,2024-10-15 08:45,2024-10-15 11:25,Email,Technical Issue,High,AG003,Le Van C,23,2.67,5,No,No,Yes,6700000,Premium
+TK100,2024-10-15 10:10,2024-10-15 10:35,Live Chat,Billing Question,Medium,AG002,Tran Thi B,10,0.42,5,No,No,Yes,2150000,Standard

@@ -1016,11 +1016,6 @@ OUTPUT JSON:
         
         # === MANUFACTURING/OPERATIONS DATA ===
         elif 'manufacturing' in domain or 'production' in domain or 'operations' in domain or 'factory' in domain:
-            # 🐛 DEBUG: Log when manufacturing block is reached
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.warning(f"🏭 MANUFACTURING BLOCK REACHED! Domain: {domain}")
-            
             # Detect key manufacturing columns (be specific to avoid false matches)
             units_produced_cols = [col for col in df.columns if 'units_produced' in col.lower() or 'units produced' in col.lower()]
             good_units_cols = [col for col in df.columns if 'good_units' in col.lower() or 'good units' in col.lower()]
@@ -1031,18 +1026,12 @@ OUTPUT JSON:
             theoretical_max_cols = [col for col in df.columns if 'theoretical' in col.lower() or 'max_output' in col.lower() or 'max output' in col.lower()]
             total_cost_cols = [col for col in df.columns if 'total_cost' in col.lower() or 'total cost' in col.lower()]
             
-            # 🐛 DEBUG: Log detected columns
-            logger.warning(f"🔍 Detected columns - units_produced: {units_produced_cols}, good_units: {good_units_cols}")
-            
             if units_produced_cols and good_units_cols:
                 units_produced_col = units_produced_cols[0]
                 good_units_col = good_units_cols[0]
                 
                 total_units = df[units_produced_col].sum()
                 total_good = df[good_units_col].sum()
-                
-                # 🐛 DEBUG: Log calculated values
-                logger.warning(f"📊 Total units: {total_units}, Good units: {total_good}")
                 
                 # 1. First Pass Yield (FPY)
                 if total_units > 0:
@@ -1054,8 +1043,6 @@ OUTPUT JSON:
                         'column': f"{good_units_col}/{units_produced_col}",
                         'insight': f"{'✅ World-class' if fpy >= 95 else '⚠️ Needs improvement'} - Target ≥95%"
                     }
-                    # 🐛 DEBUG: Log KPI added
-                    logger.warning(f"✅ Added KPI: First Pass Yield = {fpy:.2f}%")
                 
                 # 2. Defect Rate
                 if defective_cols and total_units > 0:
@@ -1222,15 +1209,6 @@ OUTPUT JSON:
                     'status': 'Above Target',
                     'column': col_name
                 }
-        
-        # 🐛 DEBUG: Log final KPIs count before returning
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.warning(f"🎯 FINAL KPIs COUNT: {len(kpis)} KPIs calculated for domain '{domain}'")
-        if kpis:
-            logger.warning(f"📋 KPI Names: {list(kpis.keys())}")
-        else:
-            logger.warning(f"⚠️ WARNING: NO KPIs calculated!")
         
         return kpis
     
@@ -1986,12 +1964,6 @@ OUTPUT JSON:
         # ⭐ NEW: Calculate KPIs from REAL DATA first
         kpis_calculated = self._calculate_real_kpis(df, domain_info)
         
-        # DEBUG: Log real calculated values
-        import logging
-        logger = logging.getLogger(__name__)
-        if 'Average Salary' in kpis_calculated:
-            logger.info(f"🔍 STEP 2A - Real KPI calculated: ${kpis_calculated['Average Salary']['value']:,.2f}")
-        
         # Combined prompt with STRICT chart requirements
         prompt = f"""
 {domain_context}
@@ -2095,29 +2067,8 @@ REMEMBER: Every chart MUST have x_axis and y_axis as actual column names from th
         try:
             smart_blueprint = json.loads(result)
             
-            # DEBUG: Check AI response before force replace
-            ai_kpis = smart_blueprint.get('kpis_calculated', {})
-            if 'Average Salary' in ai_kpis and 'Average Salary' in kpis_calculated:
-                import logging
-                logger = logging.getLogger(__name__)
-                logger.info(f"🔍 DEBUG - AI returned: ${ai_kpis['Average Salary']['value']:,.2f}")
-                logger.info(f"🔍 DEBUG - Real calculated: ${kpis_calculated['Average Salary']['value']:,.2f}")
-            
-            # ⭐ CRITICAL FIX: Force use real calculated KPIs (AI might modify them)
-            # This ensures 100% accuracy - ignore whatever AI returns
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.warning(f"🐛 DEBUG - About to set kpis_calculated: {len(kpis_calculated)} KPIs")
-            if kpis_calculated:
-                logger.warning(f"🐛 DEBUG - KPI names: {list(kpis_calculated.keys())[:3]}")
-            else:
-                logger.warning(f"🐛 DEBUG - kpis_calculated IS EMPTY! This is the bug!")
-            
+            # ⭐ CRITICAL: Force use real calculated KPIs (ensures 100% accuracy)
             smart_blueprint['kpis_calculated'] = kpis_calculated
-            
-            # DEBUG: Verify after force replace
-            if 'Average Salary' in smart_blueprint['kpis_calculated']:
-                logger.info(f"🔍 DEBUG - After force replace: ${smart_blueprint['kpis_calculated']['Average Salary']['value']:,.2f}")
             
             # ✅ PART 2: Validate and fix chart specifications
             smart_blueprint = self._validate_and_fix_charts(smart_blueprint, df)
