@@ -239,6 +239,116 @@ for i, (kpi_name, kpi_data) in enumerate(kpis.items()):  # ✅✅
 
 ---
 
+### ⚠️ Lesson #6: KPI Validation Prevents Data Quality Issues at Scale
+**Date**: 2025-10-23  
+**Issue**: Marketing Domain testing revealed potential KPI misalignment concerns  
+**Impact**: If KPIs display wrong values, CMO makes million-dollar wrong decisions  
+
+**What Happened**:
+- During Marketing Domain testing (Phase 2), tester role as CMO
+- User test file showed suspicious KPI values (possible old code version or different file)
+- CTR appeared as 14,129.8 (should be 3.73%) - looked like CPC value
+- Impressions showed 2.06B (should be 3.9M) - looked like Spend value
+- Values mathematically impossible for percentages
+
+**Root Cause Analysis**:
+```
+Code validation showed:
+- Backend calculation logic: ✅ 100% CORRECT
+  - CTR formula: (clicks / impressions) * 100 = 3.73% ✅
+  - All KPIs calculated correctly from raw data ✅
+  - Line 2071 force overrides AI-generated KPIs with real calculated values ✅
+
+Possible causes for screenshot discrepancy:
+1. Production running old code version (before force override was added)
+2. User tested with different file structure (different columns)
+3. Display misalignment if dictionary iteration order changes
+```
+
+**Prevention Solution - Defense in Depth**:
+```python
+# Add validation warnings in UI (streamlit_app.py):
+validation_warnings = []
+
+# CTR should be 0-100% (percentage)
+if 'CTR' in kpi_name and '(%)' in kpi_name:
+    if value > 100:
+        validation_warnings.append(f"⚠️ {kpi_name} = {value:.1f} (Should be 0-100%). Possible unit error.")
+
+# Show warnings to alert users of data quality issues
+if validation_warnings:
+    with st.expander("⚠️ Data Quality Warnings", expanded=False):
+        for warning in validation_warnings:
+            st.warning(warning)
+```
+
+**Best Practices**:
+1. ✅ **Validation at multiple layers**:
+   - Backend: Calculate correctly with assertions
+   - Frontend: Validate displayed values make sense
+   - User feedback: Alert if values look suspicious
+
+2. ✅ **Add sanity checks for domain-specific KPIs**:
+   ```python
+   # Marketing domain checks:
+   - CTR: Must be 0-100%
+   - Conversion Rate: Must be 0-100%
+   - ROAS: Typically 0-20 (flag if > 100)
+   - Impressions: Should be > Clicks (basic logic check)
+   ```
+
+3. ✅ **Test with real production data**:
+   - Use actual CSV files from target domains
+   - Calculate expected values manually
+   - Compare dashboard output with manual calculations
+   - Verify 100% match before claiming "correct"
+
+4. ✅ **Defense against AI hallucination**:
+   - Never trust AI-generated KPI values directly
+   - Always force override with real calculated values (line 2071)
+   - Add assertions to catch if AI returns wrong structure
+   - Log KPI values at each step for debugging
+
+**Testing Checklist for Each Domain**:
+```bash
+# Comprehensive domain testing protocol:
+1. ✅ Read sample data CSV manually
+2. ✅ Calculate expected KPIs with calculator/Python
+3. ✅ Upload to app and run pipeline
+4. ✅ Compare EVERY KPI value (dashboard vs manual calc)
+5. ✅ Verify 100% accuracy (zero tolerance)
+6. ✅ Check for validation warnings in UI
+7. ✅ Test with multiple files per domain
+```
+
+**Files Affected**:
+- `streamlit_app.py` lines 236-271 (added validation warnings)
+- `src/premium_lean_pipeline.py` line 2071 (force override KPIs - already existed)
+- `MARKETING_DOMAIN_BUG_REPORT_2025-10-23.md` (comprehensive analysis)
+
+**Business Impact Example**:
+```
+Scenario: CMO with ₫2B marketing budget
+- Wrong CTR (14.1% vs 3.73%) → Over-confidence
+- Increases Facebook budget by 50% (₫500M)
+- But actual CTR is only 3.73% (not 14.1%)
+- Result: Wasted ₫100M+ on underperforming channel
+
+Prevention: Validation warnings catch this BEFORE decision
+```
+
+**Lesson Applied**:
+> "Chi tiết nhỏ (validation) chưa có → Scale lên (₫2B budget) = Sự cố nặng nề (₫100M wasted)"  
+> (Small detail missing (validation) → Scale up (₫2B budget) = Heavy consequences (₫100M wasted))
+
+**Status**: ✅ Fixed (validation warnings added), comprehensive testing protocol established
+
+**Related Documents**:
+- `MARKETING_DOMAIN_BUG_REPORT_2025-10-23.md` - 16KB detailed analysis
+- Marketing test protocol - CMO zero-tolerance testing approach
+
+---
+
 ## 🎯 PROJECT-SPECIFIC RULES
 
 ### Production App Configuration
