@@ -1,7 +1,8 @@
 """
 DataAnalytics Vietnam - Streamlit App
-Premium Lean Pipeline với UI chuyên nghiệp
-Target: 55 seconds với 5-star UX
+Premium Lean Pipeline with 5-Star UX
+Version: 2.0 (Bilingual, Dark Mode, Export Features)
+Target: 55 seconds with professional UX
 """
 
 import streamlit as st
@@ -9,6 +10,8 @@ import pandas as pd
 import os
 from dotenv import load_dotenv
 import sys
+import base64
+from datetime import datetime
 
 # Add src to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
@@ -16,155 +19,425 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 # Load environment variables
 load_dotenv()
 
-# Import pipeline
+# Import pipeline and utilities
 from premium_lean_pipeline import PremiumLeanPipeline
 from utils.validators import safe_file_upload
+from utils.i18n import get_text, format_number, format_currency, convert_vnd_to_usd
+from utils.branding import get_logo_svg, get_brand_colors
 
-# Page config
+# Import export utilities with error handling
+try:
+    from utils.export_utils import export_to_pdf, export_to_powerpoint
+    EXPORT_AVAILABLE = True
+except ImportError:
+    EXPORT_AVAILABLE = False
+    print("⚠️ Export libraries not installed. PDF/PPT export disabled.")
+
+# ============================================
+# SESSION STATE INITIALIZATION
+# ============================================
+def initialize_session_state():
+    """Initialize session state variables"""
+    if 'language' not in st.session_state:
+        st.session_state['language'] = 'vi'  # Default Vietnamese
+    
+    if 'theme' not in st.session_state:
+        st.session_state['theme'] = 'light'  # Default light theme
+    
+    if 'currency' not in st.session_state:
+        st.session_state['currency'] = 'VND'  # Default VND
+    
+    if 'result' not in st.session_state:
+        st.session_state['result'] = None
+    
+    if 'df' not in st.session_state:
+        st.session_state['df'] = None
+
+# ============================================
+# THEME MANAGEMENT
+# ============================================
+def get_theme_css(theme='light'):
+    """Generate CSS for light/dark theme"""
+    colors = get_brand_colors()
+    theme_colors = colors['light_theme'] if theme == 'light' else colors['dark_theme']
+    
+    return f"""
+    <style>
+        /* Global Theme */
+        :root {{
+            --primary-color: {theme_colors['primary']};
+            --secondary-color: {theme_colors['secondary']};
+            --accent-color: {theme_colors['accent']};
+            --success-color: {theme_colors['success']};
+            --warning-color: {theme_colors['warning']};
+            --danger-color: {theme_colors['danger']};
+            --text-primary: {theme_colors['text_primary']};
+            --text-secondary: {theme_colors['text_secondary']};
+            --background: {theme_colors['background']};
+            --surface: {theme_colors['surface']};
+            --border: {theme_colors['border']};
+        }}
+        
+        /* Main Container */
+        .main {{
+            background-color: var(--background);
+            color: var(--text-primary);
+        }}
+        
+        /* Headers */
+        .main-header {{
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            font-family: 'Inter', -apple-system, sans-serif;
+        }}
+        
+        .subtitle {{
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }}
+        
+        /* Cards */
+        .metric-card {{
+            background: var(--surface);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border-left: 4px solid var(--accent-color);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 1rem;
+        }}
+        
+        .success-box {{
+            background: {theme_colors['success']}22;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border-left: 4px solid var(--success-color);
+            margin: 1rem 0;
+        }}
+        
+        .info-box {{
+            background: {theme_colors['accent']}22;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border-left: 4px solid var(--accent-color);
+        }}
+        
+        .warning-box {{
+            background: {theme_colors['warning']}22;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border-left: 4px solid var(--warning-color);
+        }}
+        
+        /* Buttons */
+        .stButton > button {{
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }}
+        
+        .stButton > button:hover {{
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }}
+        
+        /* Metrics */
+        [data-testid="stMetricValue"] {{
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }}
+        
+        /* Sidebar */
+        [data-testid="stSidebar"] {{
+            background-color: var(--surface);
+        }}
+        
+        /* Tables */
+        .dataframe {{
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+        }}
+        
+        /* Expanders */
+        .streamlit-expanderHeader {{
+            background-color: var(--surface);
+            border-radius: 0.5rem;
+        }}
+        
+        /* Professional number formatting */
+        .formatted-number {{
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-weight: 600;
+        }}
+        
+        /* Logo container */
+        .logo-container {{
+            padding: 1rem;
+            text-align: center;
+            margin-bottom: 1rem;
+        }}
+        
+        /* Language selector */
+        .language-badge {{
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: var(--accent-color);
+            color: white;
+            border-radius: 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin: 0.25rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }}
+        
+        .language-badge:hover {{
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }}
+    </style>
+    """
+
+# ============================================
+# PAGE CONFIG
+# ============================================
 st.set_page_config(
-    page_title="DataAnalytics Vietnam - Bricks.ai cho SMEs Việt Nam",
+    page_title="DataAnalytics Vietnam - AI-Powered Business Intelligence",
     page_icon="📊",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
+    menu_items={
+        'Get Help': 'https://dataanalytics.vn/help',
+        'Report a bug': 'https://dataanalytics.vn/support',
+        'About': 'DataAnalytics Vietnam - Professional BI for Vietnamese SMEs'
+    }
 )
 
-# Custom CSS for better UX
-st.markdown("""
-<style>
-    .main-header {
-        font-size: 2.5rem;
-        font-weight: bold;
-        color: #1E40AF;
-        margin-bottom: 0.5rem;
-    }
-    .subtitle {
-        font-size: 1.2rem;
-        color: #64748B;
-        margin-bottom: 2rem;
-    }
-    .metric-card {
-        background: #F8FAFC;
-        padding: 1rem;
-        border-radius: 0.5rem;
-        border-left: 4px solid #3B82F6;
-    }
-    .success-box {
-        background: #DCFCE7;
-        padding: 1rem;
-        border-radius: 0.5rem;
-        border-left: 4px solid #22C55E;
-    }
-</style>
-""", unsafe_allow_html=True)
+# Initialize session state
+initialize_session_state()
 
-# Initialize Gemini client
+# Apply theme CSS
+st.markdown(get_theme_css(st.session_state['theme']), unsafe_allow_html=True)
+
+# ============================================
+# GEMINI CLIENT
+# ============================================
 @st.cache_resource
 def get_gemini_client():
-    """Initialize Gemini client với caching"""
+    """Initialize Gemini client with caching"""
     try:
         import google.generativeai as genai
         api_key = os.getenv('GEMINI_API_KEY')
         
         if not api_key:
-            st.error("❌ Chưa có GEMINI_API_KEY. Vui lòng thêm vào file .env")
+            lang = st.session_state.get('language', 'vi')
+            error_msg = "❌ GEMINI_API_KEY not found. Please add to .env file" if lang == 'en' else "❌ Chưa có GEMINI_API_KEY. Vui lòng thêm vào file .env"
+            st.error(error_msg)
             st.stop()
         
         genai.configure(api_key=api_key)
         return genai
     
     except Exception as e:
-        st.error(f"❌ Lỗi kết nối Gemini API: {str(e)}")
+        lang = st.session_state.get('language', 'vi')
+        error_msg = f"❌ Gemini API connection error: {str(e)}" if lang == 'en' else f"❌ Lỗi kết nối Gemini API: {str(e)}"
+        st.error(error_msg)
         st.stop()
 
+# ============================================
+# UTILITY FUNCTIONS
+# ============================================
+def format_kpi_value(value: float, kpi_name: str, lang: str = 'vi', currency: str = 'VND') -> str:
+    """
+    Format KPI value with proper thousand separators and currency conversion
+    
+    Args:
+        value: Numeric value
+        kpi_name: Name of KPI to determine formatting
+        lang: Language code
+        currency: Currency preference
+    
+    Returns:
+        Formatted string
+    """
+    # Detect if this is a percentage KPI
+    is_percentage = any(keyword in kpi_name for keyword in ['%', 'Rate', 'CTR', 'Conversion', 'Percentage'])
+    
+    # Detect if this is a currency KPI (VND)
+    is_currency = any(keyword in kpi_name for keyword in ['Revenue', 'Cost', 'Sales', 'Price', 'VND', 'Doanh Thu', 'Chi Phí'])
+    
+    if is_percentage:
+        # Percentage: just add % symbol
+        return f"{format_number(value, lang, 1)}%"
+    elif is_currency and currency == 'USD' and lang == 'en':
+        # Convert VND to USD for English mode
+        usd_value = convert_vnd_to_usd(value)
+        return format_currency(usd_value, 'USD', lang, 2)
+    elif is_currency:
+        # Display as VND
+        return format_currency(value, 'VND', lang, 0)
+    else:
+        # Regular number with thousand separators
+        decimals = 0 if value > 100 else 1
+        return format_number(value, lang, decimals)
 
-# Main app
+def get_data_quality_guide(lang='vi'):
+    """Get data quality guide content"""
+    return get_text('data_guide_content', lang)
+
+# ============================================
+# MAIN APP
+# ============================================
 def main():
-    """Main app function"""
+    """Main application function"""
     
-    # Header
-    st.markdown('<div class="main-header">📊 DataAnalytics Vietnam</div>', unsafe_allow_html=True)
-    st.markdown('<div class="subtitle">Dashboard chuyên nghiệp trong 60 giây - Được xây dựng cho SMEs Việt Nam</div>', unsafe_allow_html=True)
+    lang = st.session_state['language']
+    theme = st.session_state['theme']
+    currency = st.session_state['currency']
     
-    # Sidebar
+    # ============================================
+    # SIDEBAR
+    # ============================================
     with st.sidebar:
-        st.image("https://via.placeholder.com/300x100/1E40AF/FFFFFF?text=DataAnalytics+VN", use_container_width=True)
+        # Logo
+        st.markdown('<div class="logo-container">', unsafe_allow_html=True)
+        logo_svg = get_logo_svg(variant='dark' if theme == 'dark' else 'light')
+        st.markdown(logo_svg, unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
         
-        st.markdown("### 🚀 Premium Features")
-        st.markdown("""
-        ✅ **ISO 8000 Compliance** - Dữ liệu chuẩn quốc tế
+        st.markdown("---")
         
-        ✅ **Domain Expertise** - Insights từ CMO/CFO/COO
+        # Settings Section
+        st.markdown(f"### {get_text('settings', lang)}")
         
-        ✅ **Data Lineage** - Minh bạch 100%
+        # Language Selector
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("🇻🇳 Tiếng Việt", use_container_width=True, type="primary" if lang == 'vi' else "secondary"):
+                st.session_state['language'] = 'vi'
+                st.rerun()
         
-        ✅ **Industry Benchmarks** - Chuẩn 2024
+        with col2:
+            if st.button("🇬🇧 English", use_container_width=True, type="primary" if lang == 'en' else "secondary"):
+                st.session_state['language'] = 'en'
+                st.rerun()
         
-        ✅ **Vietnamese Native** - Ngôn ngữ bản địa
+        # Theme Selector
+        st.markdown(f"**{get_text('theme', lang)}**")
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button(get_text('light_mode', lang), use_container_width=True, type="primary" if theme == 'light' else "secondary"):
+                st.session_state['theme'] = 'light'
+                st.rerun()
+        
+        with col2:
+            if st.button(get_text('dark_mode', lang), use_container_width=True, type="primary" if theme == 'dark' else "secondary"):
+                st.session_state['theme'] = 'dark'
+                st.rerun()
+        
+        # Currency Selector (for English mode)
+        if lang == 'en':
+            st.markdown(f"**{get_text('currency_display', lang)}**")
+            currency_option = st.radio(
+                "",
+                ['VND', 'USD'],
+                index=0 if currency == 'VND' else 1,
+                label_visibility="collapsed"
+            )
+            if currency_option != st.session_state['currency']:
+                st.session_state['currency'] = currency_option
+                st.rerun()
+        
+        st.markdown("---")
+        
+        # Premium Features
+        st.markdown(f"### {get_text('premium_features', lang)}")
+        st.markdown(f"""
+        ✅ {get_text('iso_compliance', lang)}
+        
+        ✅ {get_text('domain_expertise', lang)}
+        
+        ✅ {get_text('data_lineage', lang)}
+        
+        ✅ {get_text('industry_benchmarks', lang)}
+        
+        ✅ {get_text('vietnamese_native', lang)}
         """)
         
         st.markdown("---")
-        st.markdown("### 💰 Pricing")
-        st.success("""
-        **FREE**: 60 AI messages/tháng
         
-        **PRO**: 199k VND/tháng
-        - 500 AI messages
-        - Priority support
-        - Unlimited dashboards
+        # Pricing
+        st.markdown(f"### {get_text('pricing', lang)}")
+        st.success(f"""
+        {get_text('free_plan', lang)}
+        
+        {get_text('pro_plan', lang)}
+        {get_text('pro_features', lang)}
         """)
         
         st.markdown("---")
-        st.caption("Built with ❤️ for Vietnamese SMEs")
+        
+        # Data Quality Guide
+        with st.expander(get_text('data_guide_title', lang), expanded=False):
+            st.markdown(get_data_quality_guide(lang))
+        
+        st.markdown("---")
+        st.caption(get_text('app_tagline', lang))
     
-    # Main content
-    tab1, tab2, tab3 = st.tabs(["📤 Upload & Analyze", "📊 Dashboard", "💡 Insights"])
+    # ============================================
+    # HEADER
+    # ============================================
+    st.markdown(f'<div class="main-header">📊 DataAnalytics Vietnam</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="subtitle">{get_text("app_subtitle", lang)}</div>', unsafe_allow_html=True)
     
+    # ============================================
+    # MAIN TABS
+    # ============================================
+    tab1, tab2, tab3 = st.tabs([
+        get_text('tab_upload', lang),
+        get_text('tab_dashboard', lang),
+        get_text('tab_insights', lang)
+    ])
+    
+    # ============================================
+    # TAB 1: UPLOAD & ANALYZE
+    # ============================================
     with tab1:
-        st.markdown("### 📤 Upload Dữ Liệu")
+        st.markdown(f"### {get_text('upload_title', lang)}")
         
         # Instructions
-        with st.expander("📖 Hướng dẫn sử dụng", expanded=False):
-            st.markdown("""
-            **Bước 1**: Upload file CSV/Excel (tối đa 200MB)
-            
-            **Bước 2**: (Tùy chọn) Mô tả dữ liệu để AI hiểu rõ hơn
-            
-            **Bước 3**: Nhấn "🚀 Phân Tích Ngay" và chờ ~60 giây
-            
-            **Kết quả**: Dashboard chuyên nghiệp + Insights từ chuyên gia
-            
-            **Lưu ý**: 
-            - Dữ liệu của bạn được xử lý an toàn, không lưu trữ
-            - Kết quả tuân thủ chuẩn ISO 8000
-            - Có thể export PDF/PowerPoint sau khi hoàn thành
-            """)
+        with st.expander(get_text('instructions_title', lang), expanded=False):
+            st.markdown(get_text('instructions_content', lang))
         
         # File upload
         uploaded_file = st.file_uploader(
-            "Chọn file CSV hoặc Excel",
+            get_text('choose_file', lang),
             type=['csv', 'xlsx', 'xls'],
-            help="File tối đa 200MB. Hỗ trợ UTF-8 và Latin1 encoding"
+            help=get_text('file_help', lang)
         )
         
         # Dataset description
         dataset_description = st.text_area(
-            "Mô tả dữ liệu (tùy chọn)",
-            placeholder="Ví dụ: Dữ liệu marketing campaign từ Facebook Ads tháng 1/2024...",
-            help="Mô tả giúp AI hiểu rõ hơn về dữ liệu của bạn"
+            get_text('dataset_description', lang),
+            placeholder=get_text('dataset_placeholder', lang),
+            help=get_text('dataset_help', lang)
         )
         
         # Analyze button
         if uploaded_file:
             col1, col2 = st.columns([1, 3])
             with col1:
-                analyze_button = st.button("🚀 Phân Tích Ngay", type="primary", use_container_width=True)
+                analyze_button = st.button(get_text('analyze_button', lang), type="primary", use_container_width=True)
             with col2:
-                st.caption("⏱️ Dự kiến ~60 giây | ✅ ISO 8000 Compliant | 🔒 Bảo mật")
+                st.caption(get_text('time_estimate', lang))
         
         # Process file
         if uploaded_file and 'analyze_button' in locals() and analyze_button:
             # Load file
-            with st.spinner("📁 Đang tải file..."):
+            with st.spinner(get_text('loading_file', lang)):
                 success, df, message = safe_file_upload(uploaded_file, max_size_mb=200)
             
             if not success:
@@ -174,13 +447,13 @@ def main():
             st.success(message)
             
             # Display data preview
-            with st.expander("👀 Xem Trước Dữ Liệu", expanded=False):
+            with st.expander(get_text('preview_data', lang), expanded=False):
                 st.dataframe(df.head(10), use_container_width=True)
-                st.caption(f"📊 Shape: {df.shape[0]:,} rows × {df.shape[1]} columns")
+                st.caption(get_text('shape_info', lang).format(rows=df.shape[0], cols=df.shape[1]))
             
             # Run pipeline
             st.markdown("---")
-            st.markdown("### ⚙️ Đang Xử Lý...")
+            st.markdown(f"### {get_text('processing', lang)}")
             
             # Initialize pipeline
             gemini_client = get_gemini_client()
@@ -191,7 +464,7 @@ def main():
             
             # Check result
             if not result['success']:
-                st.error(f"❌ Lỗi: {result['error']}")
+                st.error(f"❌ {get_text('error', lang) if lang == 'en' else 'Lỗi'}: {result['error']}")
                 st.stop()
             
             # Save to session state
@@ -206,35 +479,41 @@ def main():
             
             st.markdown('<div class="success-box">', unsafe_allow_html=True)
             st.markdown(f"""
-            ### ✅ Hoàn Thành!
+            ### {get_text('success_title', lang)}
             
-            ⏱️ **Thời gian**: {total_time:.1f} giây
+            {get_text('success_time', lang).format(time=total_time)}
             
-            ⭐ **Quality Score**: {quality_score:.1f}/100 (ISO 8000 Compliant)
+            {get_text('success_quality', lang).format(score=quality_score)}
             
-            📊 **Charts**: {len(result['dashboard']['charts'])} biểu đồ được tạo
+            {get_text('success_charts', lang).format(count=len(result['dashboard']['charts']))}
             
-            💡 **Insights**: {len(result['insights']['key_insights'])} insights từ {result['domain_info']['expert_role'][:50]}...
+            {get_text('success_insights', lang).format(count=len(result['insights']['key_insights']), expert=result['domain_info']['expert_role'][:50])}
             
-            👉 Chuyển sang tab **Dashboard** và **Insights** để xem kết quả!
+            {get_text('success_next', lang)}
             """)
             st.markdown('</div>', unsafe_allow_html=True)
     
+    # ============================================
+    # TAB 2: DASHBOARD
+    # ============================================
     with tab2:
-        st.markdown("### 📊 Professional Dashboard")
+        st.markdown(f"### {get_text('dashboard_title', lang)}")
         
-        if 'result' not in st.session_state:
-            st.info("👈 Upload dữ liệu ở tab **Upload & Analyze** để bắt đầu")
+        if 'result' not in st.session_state or st.session_state['result'] is None:
+            st.info(get_text('upload_prompt', lang))
             st.stop()
         
         result = st.session_state['result']
         
         # Display domain info
         domain_info = result['domain_info']
-        st.markdown(f"**Ngành nghề**: {domain_info['domain_name']} | **Expert**: {domain_info['expert_role'][:60]}...")
+        st.markdown(get_text('industry', lang).format(
+            domain=domain_info['domain_name'],
+            expert=domain_info['expert_role'][:60]
+        ))
         
         # Display KPIs
-        st.markdown("#### 📈 Key Performance Indicators")
+        st.markdown(f"#### {get_text('kpis_title', lang)}")
         kpis = result['dashboard'].get('kpis', {})
         
         if kpis:
@@ -262,18 +541,14 @@ def main():
             
             # Show validation warnings if any
             if validation_warnings:
-                with st.expander("⚠️ Data Quality Warnings", expanded=False):
+                with st.expander(get_text('data_quality_warnings', lang), expanded=False):
                     for warning in validation_warnings:
                         st.warning(warning)
             
             # Define KPIs where LOWER is BETTER (reverse color logic)
             lower_is_better_kpis = [
-                'Defect Rate',
-                'Downtime',
-                'Cost per Unit',
-                'Avg Downtime',
-                'Total Downtime',
-                'Cost'
+                'Defect Rate', 'Downtime', 'Cost per Unit', 'Avg Downtime',
+                'Total Downtime', 'Cost', 'Churn Rate', 'Error Rate'
             ]
             
             cols = st.columns(min(4, len(kpis)))
@@ -284,28 +559,37 @@ def main():
                     
                     # Reverse logic for "lower is better" KPIs
                     if is_lower_better:
-                        # For lower is better: Below benchmark = good (green), Above = bad (red)
                         delta_color = "inverse" if kpi_data.get('status') == 'Above' else "normal"
                     else:
-                        # For higher is better: Above benchmark = good (green), Below = bad (red)
                         delta_color = "normal" if kpi_data.get('status') == 'Above' else "inverse"
+                    
+                    # Format value with thousand separators and currency conversion
+                    formatted_value = format_kpi_value(kpi_data['value'], kpi_name, lang, currency)
                     
                     st.metric(
                         label=kpi_name,
-                        value=f"{kpi_data['value']:.1f}",
+                        value=formatted_value,
                         delta=kpi_data.get('status', ''),
                         delta_color=delta_color
                     )
-                    st.caption(f"Benchmark: {kpi_data.get('benchmark', 'N/A')}")
+                    
+                    # Format benchmark
+                    benchmark_value = kpi_data.get('benchmark', 'N/A')
+                    if benchmark_value != 'N/A' and isinstance(benchmark_value, (int, float)):
+                        benchmark_formatted = format_kpi_value(benchmark_value, kpi_name, lang, currency)
+                    else:
+                        benchmark_formatted = benchmark_value
+                    
+                    st.caption(get_text('benchmark', lang).format(value=benchmark_formatted))
         
         # Display charts
         st.markdown("---")
-        st.markdown("#### 📊 Interactive Charts")
+        st.markdown(f"#### {get_text('charts_title', lang)}")
         
         charts = result['dashboard']['charts']
         
         if len(charts) == 0:
-            st.warning("Không có biểu đồ nào được tạo. Vui lòng kiểm tra dữ liệu đầu vào.")
+            st.warning(get_text('no_charts', lang))
         else:
             # Display charts in 2 columns
             for i in range(0, len(charts), 2):
@@ -313,40 +597,82 @@ def main():
                 
                 with col1:
                     if i < len(charts):
-                        st.plotly_chart(charts[i]['figure'], use_container_width=True)
+                        st.plotly_chart(charts[i]['figure'], use_container_width=True, key=f"chart_{i}")
                 
                 with col2:
                     if i + 1 < len(charts):
-                        st.plotly_chart(charts[i+1]['figure'], use_container_width=True)
+                        st.plotly_chart(charts[i+1]['figure'], use_container_width=True, key=f"chart_{i+1}")
         
         # Export options
         st.markdown("---")
-        st.markdown("#### 📥 Export Options")
-        col1, col2, col3 = st.columns(3)
+        st.markdown(f"#### {get_text('export_title', lang)}")
+        col1, col2, col3, col4 = st.columns(4)
         
         with col1:
-            if st.button("📄 Export PDF", use_container_width=True):
-                st.info("🚧 Tính năng đang phát triển")
+            if st.button(get_text('export_pdf', lang), use_container_width=True):
+                if EXPORT_AVAILABLE:
+                    try:
+                        with st.spinner("🔄 Generating PDF..."):
+                            pdf_bytes = export_to_pdf(result, st.session_state['df'], lang)
+                        
+                        # Offer download
+                        st.download_button(
+                            label="⬇️ Download PDF",
+                            data=pdf_bytes,
+                            file_name=f"DataAnalytics_Report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
+                            mime="application/pdf",
+                            use_container_width=True
+                        )
+                        st.success("✅ PDF ready for download!")
+                    except Exception as e:
+                        st.error(f"❌ PDF generation failed: {str(e)}")
+                else:
+                    st.info(get_text('feature_coming', lang))
         
         with col2:
-            if st.button("📊 Export PowerPoint", use_container_width=True):
-                st.info("🚧 Tính năng đang phát triển")
+            if st.button(get_text('export_ppt', lang), use_container_width=True):
+                if EXPORT_AVAILABLE:
+                    try:
+                        with st.spinner("🔄 Generating PowerPoint..."):
+                            ppt_bytes = export_to_powerpoint(result, st.session_state['df'], lang)
+                        
+                        # Offer download
+                        st.download_button(
+                            label="⬇️ Download PPT",
+                            data=ppt_bytes,
+                            file_name=f"DataAnalytics_Report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pptx",
+                            mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                            use_container_width=True
+                        )
+                        st.success("✅ PowerPoint ready for download!")
+                    except Exception as e:
+                        st.error(f"❌ PowerPoint generation failed: {str(e)}")
+                else:
+                    st.info(get_text('feature_coming', lang))
         
         with col3:
-            if st.button("📊 Download Data", use_container_width=True):
+            if st.button(get_text('export_data', lang), use_container_width=True):
                 csv = st.session_state['df'].to_csv(index=False).encode('utf-8')
                 st.download_button(
-                    label="💾 Download CSV",
+                    label=get_text('download_csv', lang),
                     data=csv,
-                    file_name='cleaned_data.csv',
+                    file_name=f'cleaned_data_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv',
                     mime='text/csv',
+                    use_container_width=True
                 )
-    
-    with tab3:
-        st.markdown("### 💡 Expert Insights")
         
-        if 'result' not in st.session_state:
-            st.info("👈 Upload dữ liệu ở tab **Upload & Analyze** để bắt đầu")
+        with col4:
+            if st.button("📧 Share via Email", use_container_width=True):
+                st.info(get_text('feature_coming', lang))
+    
+    # ============================================
+    # TAB 3: INSIGHTS
+    # ============================================
+    with tab3:
+        st.markdown(f"### {get_text('insights_title', lang)}")
+        
+        if 'result' not in st.session_state or st.session_state['result'] is None:
+            st.info(get_text('upload_prompt', lang))
             st.stop()
         
         result = st.session_state['result']
@@ -354,28 +680,28 @@ def main():
         domain_info = result['domain_info']
         
         # Expert info
-        st.markdown(f"**Perspective từ**: {domain_info['expert_role']}")
-        st.markdown(f"**Ngành nghề**: {domain_info['domain_name']}")
+        st.markdown(get_text('perspective', lang).format(expert=domain_info['expert_role']))
+        st.markdown(get_text('industry_label', lang).format(domain=domain_info['domain_name']))
         
         # Executive summary
         st.markdown("---")
-        st.markdown("#### 📋 Executive Summary")
-        st.info(insights.get('executive_summary', 'No summary available'))
+        st.markdown(f"#### {get_text('executive_summary', lang)}")
+        st.info(insights.get('executive_summary', get_text('no_summary', lang)))
         
         # Key insights
         st.markdown("---")
-        st.markdown("#### 🎯 Key Insights")
+        st.markdown(f"#### {get_text('key_insights', lang)}")
         
         for insight in insights.get('key_insights', []):
             impact_emoji = "🔴" if insight['impact'] == 'high' else "🟡" if insight['impact'] == 'medium' else "🟢"
             
             with st.expander(f"{impact_emoji} {insight['title']}", expanded=True):
                 st.markdown(insight['description'])
-                st.caption(f"Impact: **{insight['impact'].upper()}**")
+                st.caption(get_text('impact', lang).format(level=insight['impact'].upper()))
         
         # Recommendations
         st.markdown("---")
-        st.markdown("#### 🚀 Actionable Recommendations")
+        st.markdown(f"#### {get_text('recommendations', lang)}")
         
         for rec in insights.get('recommendations', []):
             priority_emoji = "🔴" if rec['priority'] == 'high' else "🟡" if rec['priority'] == 'medium' else "🟢"
@@ -383,38 +709,41 @@ def main():
             st.success(f"""
             {priority_emoji} **[{rec['priority'].upper()}] {rec['action']}**
             
-            📊 Expected Impact: {rec['expected_impact']}
+            {get_text('expected_impact', lang).format(impact=rec['expected_impact'])}
             
-            ⏱️ Timeline: {rec['timeline']}
+            {get_text('timeline', lang).format(time=rec['timeline'])}
             """)
         
         # Risk alerts
         if insights.get('risk_alerts'):
             st.markdown("---")
-            st.markdown("#### ⚠️ Risk Alerts")
+            st.markdown(f"#### {get_text('risk_alerts', lang)}")
             
             for risk in insights['risk_alerts']:
                 severity_emoji = "🔴" if risk['severity'] == 'high' else "🟡" if risk['severity'] == 'medium' else "🟢"
-                st.warning(f"{severity_emoji} **{risk['risk']}** (Severity: {risk['severity']})")
+                st.warning(f"{severity_emoji} **{risk['risk']}** ({get_text('severity', lang).format(level=risk['severity'])})")
         
         # Quality badge
         st.markdown("---")
-        st.markdown("#### ✅ Quality Assurance")
+        st.markdown(f"#### {get_text('quality_assurance', lang)}")
         
         col1, col2, col3 = st.columns(3)
         
         with col1:
-            st.metric("Quality Score", f"{result['quality_scores']['overall']:.0f}/100")
-            st.caption("ISO 8000 Compliant")
+            st.metric(get_text('quality_score', lang), f"{result['quality_scores']['overall']:.0f}/100")
+            st.caption(get_text('iso_compliant', lang))
         
         with col2:
-            st.metric("Data Cleaning", f"{result['quality_scores']['cleaning']:.0f}/100")
-            st.caption("Missing <2%, Duplicates = 0")
+            st.metric(get_text('data_cleaning', lang), f"{result['quality_scores']['cleaning']:.0f}/100")
+            st.caption(get_text('cleaning_note', lang))
         
         with col3:
-            st.metric("Blueprint Quality", f"{result['quality_scores']['blueprint']:.0f}/100")
-            st.caption("5 criteria ≥80%")
+            st.metric(get_text('blueprint_quality', lang), f"{result['quality_scores']['blueprint']:.0f}/100")
+            st.caption(get_text('blueprint_note', lang))
 
 
+# ============================================
+# RUN APP
+# ============================================
 if __name__ == "__main__":
     main()
