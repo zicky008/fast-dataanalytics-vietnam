@@ -33,10 +33,10 @@ pydantic>=2.0.0
 tenacity>=8.2.0  # For retry logic
 
 # ============================================
-# OPTIONAL: PDF EXPORT (Future Feature)
+# PDF/PPTX EXPORT
 # ============================================
-# reportlab>=4.0.0
-# fpdf2>=2.7.0
+reportlab>=4.0.0
+python-pptx>=0.6.21
 
 # ============================================
 # DEVELOPMENT ONLY (Remove for production)
