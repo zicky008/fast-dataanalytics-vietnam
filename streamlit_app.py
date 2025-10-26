@@ -316,8 +316,12 @@ def get_theme_css(theme='light'):
             border-color: {theme_colors['primary']} !important;
         }}
         
-        /* Uploaded File Name Display - CRITICAL FIX for Issue #4 - Dark Mode Visibility */
-        /* Target ALL text elements within file uploader including the filename */
+        /* Uploaded File Name Display - SUPER AGGRESSIVE FIX - Dark Mode Visibility */
+        /* Target EVERYTHING within file uploader - nuclear option */
+        [data-testid="stFileUploader"],
+        [data-testid="stFileUploader"] *,
+        [data-testid="stFileUploadDropzone"],
+        [data-testid="stFileUploadDropzone"] *,
         .uploadedFileName,
         .uploadedFile,
         [data-testid="stFileUploader"] small,
@@ -325,16 +329,30 @@ def get_theme_css(theme='light'):
         [data-testid="stFileUploader"] span,
         [data-testid="stFileUploader"] label,
         [data-testid="stFileUploader"] p,
+        [data-testid="stFileUploader"] div,
         [data-testid="stFileUploader"] div[data-testid="stMarkdownContainer"],
         [data-testid="stFileUploadDropzone"] span,
         [data-testid="stFileUploadDropzone"] p,
+        [data-testid="stFileUploadDropzone"] div,
         /* Additional selectors for the filename display line */
         [data-testid="stFileUploader"] section span,
         [data-testid="stFileUploader"] section small,
-        [data-testid="stFileUploader"] [class*="uploadedFile"] span,
+        [data-testid="stFileUploader"] section div,
+        [data-testid="stFileUploader"] [class*="uploadedFile"],
+        [data-testid="stFileUploader"] [class*="uploadedFile"] *,
         [data-testid="stFileUploader"] div span {{
             color: {theme_colors['text_primary']} !important;
             font-weight: 500 !important;
+        }}
+        
+        /* Extra aggressive - target by direct hierarchy */
+        [data-testid="stFileUploader"] > div > div > div {{
+            color: {theme_colors['text_primary']} !important;
+        }}
+        
+        /* Nuclear option - all text nodes inside file uploader area */
+        section[data-testid="stFileUploader"] * {{
+            color: {theme_colors['text_primary']} !important;
         }}
         
         /* File Uploader Helper Text */
