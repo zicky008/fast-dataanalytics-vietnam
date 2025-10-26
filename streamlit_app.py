@@ -316,11 +316,14 @@ def get_theme_css(theme='light'):
             border-color: {theme_colors['primary']} !important;
         }}
         
-        /* Uploaded File Name Display - CRITICAL FIX */
+        /* Uploaded File Name Display - CRITICAL FIX for Issue #3 */
         .uploadedFileName,
         [data-testid="stFileUploader"] small,
-        [data-testid="stFileUploader"] .stMarkdown {{
+        [data-testid="stFileUploader"] .stMarkdown,
+        [data-testid="stFileUploader"] span,
+        [data-testid="stFileUploader"] div[data-testid="stMarkdownContainer"] {{
             color: {theme_colors['text_primary']} !important;
+            font-weight: 500 !important;
         }}
         
         /* File Uploader Helper Text */
@@ -361,12 +364,29 @@ def get_theme_css(theme='light'):
             border-radius: 0.5rem;
         }}
         
-        /* FORCE Expander Headers */
+        /* FORCE Expander Headers - COMPREHENSIVE */
         .streamlit-expanderHeader,
-        [data-testid="stExpander"] {{
+        [data-testid="stExpander"],
+        [data-testid="stExpander"] summary,
+        [data-testid="stExpander"] > div > div > div {{
             background-color: {theme_colors['surface']} !important;
             color: {theme_colors['text_primary']} !important;
             border-radius: 0.5rem;
+        }}
+        
+        /* Expander Header Text - CRITICAL FIX for Issue #4 */
+        .streamlit-expanderHeader p,
+        .streamlit-expanderHeader span,
+        [data-testid="stExpander"] summary p,
+        [data-testid="stExpander"] summary span,
+        [data-testid="stExpander"] [data-testid="stMarkdownContainer"] p {{
+            color: {theme_colors['text_primary']} !important;
+            font-weight: 600 !important;
+        }}
+        
+        /* Expander Content */
+        [data-testid="stExpander"] [data-testid="stMarkdownContainer"] {{
+            color: {theme_colors['text_primary']} !important;
         }}
         
         /* Professional number formatting */
@@ -459,6 +479,23 @@ def get_theme_css(theme='light'):
             background-color: {theme_colors['accent']} !important;
             color: white !important;
         }}
+        
+        /* Spinner Container - CRITICAL FIX for Issue #1 */
+        [data-testid="stSpinner"],
+        [data-testid="stSpinner"] > div,
+        .stSpinner,
+        .stSpinner > div {{
+            background-color: {theme_colors['background']} !important;
+            color: {theme_colors['text_primary']} !important;
+        }}
+        
+        /* Spinner Text */
+        [data-testid="stSpinner"] p,
+        [data-testid="stSpinner"] span,
+        .stSpinner p,
+        .stSpinner span {{
+            color: {theme_colors['text_primary']} !important;
+        }}
     </style>
     """
 
@@ -527,21 +564,31 @@ def format_kpi_value(value: float, kpi_name: str, lang: str = 'vi', currency: st
     # Detect if this is a percentage KPI
     is_percentage = any(keyword in kpi_name for keyword in ['%', 'Rate', 'CTR', 'Conversion', 'Percentage'])
     
-    # Detect if this is a currency KPI (VND)
-    is_currency = any(keyword in kpi_name for keyword in ['Revenue', 'Cost', 'Sales', 'Price', 'VND', 'Doanh Thu', 'Chi Phí'])
+    # Detect if this is a currency KPI (VND) - IMPROVED DETECTION for Issue #2
+    is_currency = any(keyword in kpi_name for keyword in [
+        'Revenue', 'Cost', 'Sales', 'Price', 'VND', 'Spend', 'CPA', 'CPC', 'CPM',
+        'Doanh Thu', 'Chi Phí', 'Value', 'Amount', 'Total', 'Average'
+    ])
     
-    if is_percentage:
-        # Percentage: just add % symbol
+    # CRITICAL FIX Issue #2: Percentage KPIs should NOT have thousand separators in the % value
+    # But if it's "Conversion Rate (%)" we want just the number with %, not formatted
+    if is_percentage and '%' in kpi_name:
+        # For percentage KPIs with explicit % in name, return plain value with %
+        # Example: "CTR (%): 3.5" should be "3.5%" NOT "3,5%" or "3.5%"
+        decimals = 1 if value < 10 else 1
+        return f"{value:.{decimals}f}%"
+    elif is_percentage:
+        # For rate KPIs without % in name (e.g., "Conversion Rate")
         return f"{format_number(value, lang, 1)}%"
     elif is_currency and currency == 'USD' and lang == 'en':
-        # Convert VND to USD for English mode
+        # Convert VND to USD for English mode with thousand separators
         usd_value = convert_vnd_to_usd(value)
         return format_currency(usd_value, 'USD', lang, 2)
     elif is_currency:
-        # Display as VND
+        # Display as VND with thousand separators - CRITICAL for Issue #2
         return format_currency(value, 'VND', lang, 0)
     else:
-        # Regular number with thousand separators
+        # Regular number with thousand separators - CRITICAL for Issue #2
         decimals = 0 if value > 100 else 1
         return format_number(value, lang, decimals)
 
