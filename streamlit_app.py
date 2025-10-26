@@ -106,7 +106,38 @@ def get_theme_css(theme='light'):
         [data-testid="stSidebar"] p,
         [data-testid="stSidebar"] span,
         [data-testid="stSidebar"] label,
-        [data-testid="stSidebar"] .stMarkdown {{
+        [data-testid="stSidebar"] div,
+        [data-testid="stSidebar"] .stMarkdown,
+        [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] {{
+            color: {theme_colors['text_primary']} !important;
+        }}
+        
+        /* Sidebar Buttons - COMPREHENSIVE */
+        [data-testid="stSidebar"] button,
+        [data-testid="stSidebar"] .stButton > button {{
+            color: {theme_colors['text_primary']} !important;
+            background-color: {theme_colors['surface']} !important;
+            border: 1px solid {theme_colors['border']} !important;
+        }}
+        
+        /* Sidebar Primary Buttons */
+        [data-testid="stSidebar"] button[kind="primary"],
+        [data-testid="stSidebar"] .stButton > button[kind="primary"] {{
+            background-color: {theme_colors['primary']} !important;
+            color: white !important;
+            border-color: {theme_colors['primary']} !important;
+        }}
+        
+        /* Sidebar Success/Alert Boxes (for Pricing) */
+        [data-testid="stSidebar"] .stSuccess,
+        [data-testid="stSidebar"] .stAlert {{
+            background-color: {theme_colors['success']}22 !important;
+            color: {theme_colors['text_primary']} !important;
+            border-color: {theme_colors['success']} !important;
+        }}
+        
+        [data-testid="stSidebar"] .stSuccess *,
+        [data-testid="stSidebar"] .stAlert * {{
             color: {theme_colors['text_primary']} !important;
         }}
         
@@ -181,19 +212,74 @@ def get_theme_css(theme='light'):
             border-left: 4px solid {theme_colors['warning']};
         }}
         
-        /* FORCE Streamlit Success/Info/Warning/Error Boxes */
-        .stAlert, .stSuccess, .stInfo, .stWarning, .stError {{
+        /* FORCE Streamlit Success/Info/Warning/Error Boxes - COMPREHENSIVE */
+        .stAlert, 
+        .stSuccess, 
+        .stInfo, 
+        .stWarning, 
+        .stError,
+        [data-testid="stNotification"],
+        [data-testid="stAlert"] {{
             background-color: {theme_colors['surface']} !important;
             color: {theme_colors['text_primary']} !important;
             border-color: {theme_colors['border']} !important;
         }}
         
-        /* Buttons */
+        /* Force Text Inside Alert Boxes - CRITICAL FIX */
+        .stAlert *,
+        .stSuccess *,
+        .stInfo *,
+        .stWarning *,
+        .stError *,
+        [data-testid="stNotification"] *,
+        [data-testid="stAlert"] * {{
+            color: {theme_colors['text_primary']} !important;
+        }}
+        
+        /* White Background Insight Boxes - CRITICAL FIX FOR INSIGHTS TAB */
+        div[style*="background: white"],
+        div[style*="background:white"],
+        div[style*="background-color: white"],
+        div[style*="background-color:white"],
+        div[style*="background: #FFFFFF"],
+        div[style*="background-color: #FFFFFF"] {{
+            background-color: {theme_colors['surface']} !important;
+            color: {theme_colors['text_primary']} !important;
+        }}
+        
+        div[style*="background: white"] *,
+        div[style*="background:white"] *,
+        div[style*="background-color: white"] *,
+        div[style*="background-color:white"] *,
+        div[style*="background: #FFFFFF"] *,
+        div[style*="background-color: #FFFFFF"] * {{
+            color: {theme_colors['text_primary']} !important;
+        }}
+        
+        /* Buttons - COMPREHENSIVE OVERRIDE */
         .stButton > button {{
             border-radius: 0.5rem;
             font-weight: 500;
             transition: all 0.3s ease;
             color: {theme_colors['text_primary']} !important;
+            background-color: {theme_colors['surface']} !important;
+            border: 1px solid {theme_colors['border']} !important;
+        }}
+        
+        /* Primary Button Override */
+        .stButton > button[kind="primary"],
+        .stButton > button[data-baseweb="button"][kind="primary"] {{
+            background-color: {theme_colors['primary']} !important;
+            color: white !important;
+            border-color: {theme_colors['primary']} !important;
+        }}
+        
+        /* Secondary Button Override - CRITICAL FIX */
+        .stButton > button[kind="secondary"],
+        .stButton > button[data-baseweb="button"][kind="secondary"] {{
+            background-color: {theme_colors['surface']} !important;
+            color: {theme_colors['text_primary']} !important;
+            border: 1px solid {theme_colors['border']} !important;
         }}
         
         .stButton > button:hover {{
@@ -212,20 +298,59 @@ def get_theme_css(theme='light'):
             color: {theme_colors['text_secondary']} !important;
         }}
         
-        /* FORCE File Uploader */
+        /* FORCE File Uploader - COMPREHENSIVE */
         [data-testid="stFileUploader"],
+        [data-testid="stFileUploader"] section,
+        [data-testid="stFileUploader"] > div,
         .uploadedFile {{
             background-color: {theme_colors['surface']} !important;
             color: {theme_colors['text_primary']} !important;
             border-color: {theme_colors['border']} !important;
         }}
         
-        /* FORCE Text Input */
+        /* File Uploader "Browse files" Button - CRITICAL FIX */
+        [data-testid="stFileUploader"] button,
+        [data-testid="stFileUploader"] button span {{
+            background-color: {theme_colors['primary']} !important;
+            color: white !important;
+            border-color: {theme_colors['primary']} !important;
+        }}
+        
+        /* Uploaded File Name Display - CRITICAL FIX */
+        .uploadedFileName,
+        [data-testid="stFileUploader"] small,
+        [data-testid="stFileUploader"] .stMarkdown {{
+            color: {theme_colors['text_primary']} !important;
+        }}
+        
+        /* File Uploader Helper Text */
+        [data-testid="stFileUploader"] [data-testid="stMarkdownContainer"] {{
+            color: {theme_colors['text_secondary']} !important;
+        }}
+        
+        /* FORCE Text Input - COMPREHENSIVE */
         .stTextInput input,
-        .stTextArea textarea {{
+        .stTextArea textarea,
+        [data-baseweb="input"],
+        [data-baseweb="textarea"] {{
             background-color: {theme_colors['surface']} !important;
             color: {theme_colors['text_primary']} !important;
             border-color: {theme_colors['border']} !important;
+        }}
+        
+        /* Placeholder Text - CRITICAL FIX */
+        .stTextInput input::placeholder,
+        .stTextArea textarea::placeholder,
+        [data-baseweb="input"]::placeholder,
+        [data-baseweb="textarea"]::placeholder {{
+            color: {theme_colors['text_secondary']} !important;
+            opacity: 0.7 !important;
+        }}
+        
+        /* Text Input Labels */
+        .stTextInput label,
+        .stTextArea label {{
+            color: {theme_colors['text_primary']} !important;
         }}
         
         /* Tables */
@@ -284,14 +409,55 @@ def get_theme_css(theme='light'):
         }}
         
         /* FORCE Radio Buttons */
-        .stRadio label {{
+        .stRadio label,
+        .stRadio > label > div {{
             color: {theme_colors['text_primary']} !important;
         }}
         
         /* FORCE Selectbox */
         .stSelectbox label,
-        .stSelectbox div {{
+        .stSelectbox div,
+        [data-baseweb="select"] {{
             color: {theme_colors['text_primary']} !important;
+        }}
+        
+        /* Captions and Helper Text - COMPREHENSIVE */
+        .stCaption,
+        [data-testid="stCaptionContainer"],
+        small,
+        .caption-text {{
+            color: {theme_colors['text_secondary']} !important;
+        }}
+        
+        /* Empty State Messages - CRITICAL FIX FOR DASHBOARD TAB */
+        .element-container p,
+        [data-testid="stMarkdownContainer"] p {{
+            color: {theme_colors['text_primary']} !important;
+        }}
+        
+        /* Links */
+        a, a:visited {{
+            color: {theme_colors['accent']} !important;
+        }}
+        
+        a:hover {{
+            color: {theme_colors['primary']} !important;
+        }}
+        
+        /* Dividers */
+        hr, .stDivider {{
+            border-color: {theme_colors['border']} !important;
+        }}
+        
+        /* Checkbox */
+        .stCheckbox label {{
+            color: {theme_colors['text_primary']} !important;
+        }}
+        
+        /* Download Button */
+        [data-testid="stDownloadButton"] button {{
+            background-color: {theme_colors['accent']} !important;
+            color: white !important;
         }}
     </style>
     """
