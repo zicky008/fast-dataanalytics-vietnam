@@ -732,6 +732,16 @@ def main():
             help=get_text('file_help', lang)
         )
         
+        # Display uploaded filename explicitly for better UX
+        if uploaded_file is not None:
+            file_size_kb = uploaded_file.size / 1024
+            if file_size_kb < 1024:
+                size_str = f"{file_size_kb:.1f}KB"
+            else:
+                size_str = f"{file_size_kb / 1024:.1f}MB"
+            
+            st.success(f"📎 **{uploaded_file.name}** ({size_str})")
+        
         # Dataset description
         dataset_description = st.text_area(
             get_text('dataset_description', lang),
