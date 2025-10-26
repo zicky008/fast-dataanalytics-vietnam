@@ -13,12 +13,14 @@ import pandas as pd
 import streamlit as st
 from typing import Tuple, Optional
 import chardet
+from utils.i18n import get_text
 
 
 def safe_file_upload(
     uploaded_file,
     max_size_mb: int = 200,
-    show_progress: bool = True
+    show_progress: bool = True,
+    lang: str = 'vi'
 ) -> Tuple[bool, Optional[pd.DataFrame], str]:
     """
     Safely upload and parse CSV/Excel files with comprehensive error handling.
@@ -47,14 +49,13 @@ def safe_file_upload(
             return (
                 False,
                 None,
-                f"❌ File quá lớn: {file_size_mb:.1f}MB (giới hạn: {max_size_mb}MB). "
-                f"Vui lòng giảm kích thước file hoặc chia nhỏ dữ liệu."
+                get_text('file_too_large', lang, size=file_size_mb, limit=max_size_mb)
             )
         
         # Show progress for large files
         if show_progress and file_size_mb > 5:
             progress_bar = st.progress(0)
-            st.info(f"⏳ Đang tải file {file_size_mb:.1f}MB...")
+            st.info(get_text('loading_file', lang, size=file_size_mb))
         
         # Determine file type
         file_name = uploaded_file.name.lower()
@@ -76,12 +77,12 @@ def safe_file_upload(
                 uploaded_file.seek(0)
                 try:
                     df = pd.read_csv(uploaded_file, encoding=detected_encoding)
-                    st.warning(f"⚠️ File được đọc với encoding: {detected_encoding}")
+                    st.warning(get_text('encoding_detected', lang, encoding=detected_encoding))
                 except Exception:
                     # Last resort: latin1 always works
                     uploaded_file.seek(0)
                     df = pd.read_csv(uploaded_file, encoding='latin1')
-                    st.warning("⚠️ File được đọc với encoding: latin1 (có thể có lỗi tiếng Việt)")
+                    st.warning(get_text('encoding_latin1', lang))
         
         elif file_name.endswith(('.xlsx', '.xls')):
             if show_progress and file_size_mb > 5:
@@ -94,15 +95,14 @@ def safe_file_upload(
             return (
                 False,
                 None,
-                f"❌ Định dạng file không hỗ trợ: {file_name}. "
-                f"Chỉ chấp nhận: .csv, .xlsx, .xls"
+                get_text('unsupported_format', lang, filename=file_name)
             )
         
         if show_progress and file_size_mb > 5:
             progress_bar.progress(60)
         
         # Validate dataframe
-        is_valid, validation_msg = validate_dataframe(df)
+        is_valid, validation_msg = validate_dataframe(df, lang)
         if not is_valid:
             return (False, None, validation_msg)
         
@@ -111,7 +111,7 @@ def safe_file_upload(
         
         if show_progress and file_size_mb > 5:
             progress_bar.progress(100)
-            st.success(f"✅ Upload thành công: {len(df):,} dòng × {len(df.columns)} cột")
+            st.success(get_text('upload_success', lang, rows=len(df), cols=len(df.columns)))
         
         # Include filename and size in success message for better UX
         file_size_kb = uploaded_file.size / 1024
@@ -127,21 +127,20 @@ def safe_file_upload(
         )
     
     except pd.errors.EmptyDataError:
-        return (False, None, "❌ File rỗng. Vui lòng kiểm tra lại file CSV/Excel.")
+        return (False, None, get_text('file_empty', lang))
     
     except pd.errors.ParserError as e:
         return (
             False,
             None,
-            f"❌ Lỗi parse file CSV. File có thể bị lỗi format:\n{str(e)[:200]}"
+            get_text('parse_error', lang, error=str(e)[:200])
         )
     
     except Exception as e:
         return (
             False,
             None,
-            f"❌ Lỗi không xác định khi đọc file:\n{str(e)[:200]}\n\n"
-            f"Gợi ý: Kiểm tra file có đúng format CSV/Excel không?"
+            get_text('unknown_error', lang, error=str(e)[:200])
         )
 
 
@@ -193,7 +192,7 @@ def sanitize_column_names(df: pd.DataFrame) -> pd.DataFrame:
     return df.rename(columns=new_cols)
 
 
-def validate_dataframe(df: pd.DataFrame) -> Tuple[bool, str]:
+def validate_dataframe(df: pd.DataFrame, lang: str = 'vi') -> Tuple[bool, str]:
     """
     Validate DataFrame quality and structure.
     
@@ -205,43 +204,43 @@ def validate_dataframe(df: pd.DataFrame) -> Tuple[bool, str]:
     
     Args:
         df: DataFrame to validate
+        lang: Language code ('vi' or 'en')
     
     Returns:
         Tuple of (is_valid: bool, message: str)
     """
     # Check empty
     if df is None or df.empty:
-        return (False, "❌ DataFrame rỗng. Không có dữ liệu để phân tích.")
+        return (False, get_text('dataframe_empty', lang))
     
     # Check dimensions
     rows, cols = df.shape
     if rows == 0:
-        return (False, "❌ DataFrame không có dòng dữ liệu nào.")
+        return (False, get_text('no_rows', lang))
     
     if cols == 0:
-        return (False, "❌ DataFrame không có cột nào.")
+        return (False, get_text('no_columns', lang))
     
     # Check if all NaN
     if df.isna().all().all():
-        return (False, "❌ Tất cả giá trị trong DataFrame đều là NaN/null.")
+        return (False, get_text('all_nan', lang))
     
     # Check size (prevent memory issues)
     total_cells = rows * cols
     if total_cells > 10_000_000:  # 10M cells
         return (
             False,
-            f"❌ DataFrame quá lớn: {rows:,} dòng × {cols} cột = {total_cells:,} cells.\n"
-            f"Giới hạn: 10,000,000 cells. Vui lòng giảm kích thước dữ liệu."
+            get_text('too_large_cells', lang, rows=rows, cols=cols, cells=total_cells)
         )
     
     # Check for single row (might be header issue)
     if rows == 1:
         return (
             False,
-            "⚠️ DataFrame chỉ có 1 dòng. Có thể file CSV thiếu dữ liệu hoặc header không đúng?"
+            get_text('single_row', lang)
         )
     
-    return (True, f"✅ DataFrame hợp lệ: {rows:,} dòng × {cols} cột")
+    return (True, get_text('dataframe_valid', lang, rows=rows, cols=cols))
 
 
 def detect_encoding(file_path: str, sample_size: int = 10000) -> str:

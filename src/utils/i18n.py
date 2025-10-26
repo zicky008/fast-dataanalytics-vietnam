@@ -149,7 +149,36 @@ TRANSLATIONS = {
 | 2024-01-16 | ProductB | 2300000 | 15 |
 
 **Need help?** Contact support@dataanalytics.vn
-"""
+""",
+        
+        # Pipeline Progress Messages
+        "pipeline_step0": "🔍 **Step 0/4**: Detecting domain...",
+        "pipeline_step1": "🧹 **Step 1/4**: Data cleaning (ISO 8000)... Domain: {domain}",
+        "pipeline_step2": "🎨 **Step 2/4**: Creating Smart Blueprint... Expert: {expert}...",
+        "pipeline_step3": "🏗️ **Step 3/4**: Building Dashboard (from Blueprint)...",
+        "pipeline_step4": "💡 **Step 4/4**: Generating expert insights... Perspective: {expert}...",
+        "pipeline_complete": "✅ **Complete!** Pipeline ran in {time:.1f} seconds",
+        
+        # Validator Messages
+        "file_too_large": "❌ File too large: {size:.1f}MB (limit: {limit}MB). Please reduce file size or split data.",
+        "loading_file": "⏳ Loading {size:.1f}MB file...",
+        "encoding_detected": "⚠️ File read with encoding: {encoding}",
+        "encoding_latin1": "⚠️ File read with encoding: latin1 (Vietnamese characters may have errors)",
+        "upload_success": "✅ Upload successful: {rows:,} rows × {cols} columns",
+        "file_empty": "❌ Empty file. Please check your CSV/Excel file.",
+        "parse_error": "❌ CSV parse error. File may have format issues:\n{error}",
+        "unknown_error": "❌ Unknown error reading file:\n{error}\n\nSuggestion: Check if file is valid CSV/Excel format?",
+        "unsupported_format": "❌ Unsupported file format: {filename}. Only accept: .csv, .xlsx, .xls",
+        "dataframe_empty": "❌ DataFrame is empty. No data to analyze.",
+        "no_rows": "❌ DataFrame has no rows.",
+        "no_columns": "❌ DataFrame has no columns.",
+        "all_nan": "❌ All values in DataFrame are NaN/null.",
+        "too_large_cells": "❌ DataFrame too large: {rows:,} rows × {cols} columns = {cells:,} cells.\nLimit: 10,000,000 cells. Please reduce data size.",
+        "single_row": "⚠️ DataFrame has only 1 row. File may be missing data or header is incorrect?",
+        "dataframe_valid": "✅ DataFrame valid: {rows:,} rows × {cols} columns",
+        
+        # Dashboard Blueprint
+        "insights_expert": "💡 Expert Insights"
     },
     
     "vi": {
@@ -297,7 +326,36 @@ TRANSLATIONS = {
 | 2024-01-16    | SP_B     | 2300000       | 15       |
 
 **Cần hỗ trợ?** Liên hệ support@dataanalytics.vn
-"""
+""",
+        
+        # Pipeline Progress Messages
+        "pipeline_step0": "🔍 **Bước 0/4**: Nhận diện ngành nghề...",
+        "pipeline_step1": "🧹 **Bước 1/4**: Làm sạch dữ liệu (ISO 8000)... Domain: {domain}",
+        "pipeline_step2": "🎨 **Bước 2/4**: Tạo Dashboard Blueprint thông minh... Expert: {expert}...",
+        "pipeline_step3": "🏗️ **Bước 3/4**: Xây dựng Dashboard (theo Blueprint)...",
+        "pipeline_step4": "💡 **Bước 4/4**: Tạo Insights chuyên gia... Perspective: {expert}...",
+        "pipeline_complete": "✅ **Hoàn thành!** Pipeline chạy trong {time:.1f} giây",
+        
+        # Validator Messages
+        "file_too_large": "❌ File quá lớn: {size:.1f}MB (giới hạn: {limit}MB). Vui lòng giảm kích thước file hoặc chia nhỏ dữ liệu.",
+        "loading_file": "⏳ Đang tải file {size:.1f}MB...",
+        "encoding_detected": "⚠️ File được đọc với encoding: {encoding}",
+        "encoding_latin1": "⚠️ File được đọc với encoding: latin1 (có thể có lỗi tiếng Việt)",
+        "upload_success": "✅ Upload thành công: {rows:,} dòng × {cols} cột",
+        "file_empty": "❌ File rỗng. Vui lòng kiểm tra lại file CSV/Excel.",
+        "parse_error": "❌ Lỗi parse file CSV. File có thể bị lỗi format:\n{error}",
+        "unknown_error": "❌ Lỗi không xác định khi đọc file:\n{error}\n\nGợi ý: Kiểm tra file có đúng format CSV/Excel không?",
+        "unsupported_format": "❌ Định dạng file không hỗ trợ: {filename}. Chỉ chấp nhận: .csv, .xlsx, .xls",
+        "dataframe_empty": "❌ DataFrame rỗng. Không có dữ liệu để phân tích.",
+        "no_rows": "❌ DataFrame không có dòng dữ liệu nào.",
+        "no_columns": "❌ DataFrame không có cột nào.",
+        "all_nan": "❌ Tất cả giá trị trong DataFrame đều là NaN/null.",
+        "too_large_cells": "❌ DataFrame quá lớn: {rows:,} dòng × {cols} cột = {cells:,} cells.\nGiới hạn: 10,000,000 cells. Vui lòng giảm kích thước dữ liệu.",
+        "single_row": "⚠️ DataFrame chỉ có 1 dòng. Có thể file CSV thiếu dữ liệu hoặc header không đúng?",
+        "dataframe_valid": "✅ DataFrame hợp lệ: {rows:,} dòng × {cols} cột",
+        
+        # Dashboard Blueprint
+        "insights_expert": "💡 Insights Chuyên Gia"
     }
 }
 

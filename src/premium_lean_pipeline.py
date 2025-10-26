@@ -25,6 +25,7 @@ import google.generativeai as genai
 from utils.validators import safe_file_upload, sanitize_column_names
 from utils.error_handlers import rate_limit_handler, user_friendly_error
 from utils.performance import PerformanceMonitor, log_performance
+from utils.i18n import get_text, format_number, format_currency
 
 # Import domain detection
 from domain_detection import (
@@ -132,8 +133,9 @@ class PremiumLeanPipeline:
     Optimized for 55-second execution with premium features maintained
     """
     
-    def __init__(self, gemini_client):
+    def __init__(self, gemini_client, lang: str = 'vi'):
         self.client = gemini_client
+        self.lang = lang  # Store language for bilingual support
         self.domain_cache = {}  # Cache domain profiles
         self.pipeline_state = {
             'domain_info': None,
@@ -202,7 +204,7 @@ class PremiumLeanPipeline:
             # Step 3: Dashboard Build (7s - pure execution)
             step3_start = time.time()
             if is_streamlit_context():
-                progress_placeholder.info("🏗️ **Bước 3/4**: Xây dựng Dashboard (theo Blueprint)...")
+                progress_placeholder.info(get_text('pipeline_step3', self.lang))
             
             dashboard_result = self.step3_dashboard_build(
                 cleaning_result['df_cleaned'],
@@ -215,7 +217,7 @@ class PremiumLeanPipeline:
             # Step 4: Domain Insights (15s - expert perspective)
             step4_start = time.time()
             if is_streamlit_context():
-                progress_placeholder.info(f"💡 **Bước 4/4**: Tạo Insights chuyên gia... Perspective: {domain_info['expert_role'][:50]}...")
+                progress_placeholder.info(get_text('pipeline_step4', self.lang, expert=domain_info['expert_role'][:50]))
             
             insights_result = self.step4_domain_insights(
                 dashboard_result,
@@ -232,7 +234,7 @@ class PremiumLeanPipeline:
             
             # Success message
             if is_streamlit_context():
-                progress_placeholder.success(f"✅ **Hoàn thành!** Pipeline chạy trong {total_time:.1f} giây")
+                progress_placeholder.success(get_text('pipeline_complete', self.lang, time=total_time))
             
             # Return complete result
             return {
@@ -2420,7 +2422,51 @@ REMEMBER: Every chart MUST have x_axis and y_axis as actual column names from th
         
         kpis_text = chr(10).join(kpis_summary[:5]) if kpis_summary else "No KPIs calculated"
         
-        prompt = f"""
+        # Bilingual prompt based on language setting
+        if self.lang == 'vi':
+            prompt = f"""
+{domain_context}
+
+NHIỆM VỤ: Insights Chuyên Gia (Ngắn Gọn & Hành Động)
+
+KPIs:
+{kpis_text}
+
+Biểu đồ: {len(dashboard['charts'])} visualizations được tạo
+
+YÊU CẦU (Ngắn Gọn):
+1. Tóm tắt điều hành (2-3 câu)
+2. Top 3 insights với tác động kinh doanh
+3. Top 3 khuyến nghị hành động với ROI dự kiến
+4. Rủi ro nghiêm trọng nếu có
+
+OUTPUT JSON (Nội dung PHẢI là tiếng Việt):
+{{
+    "executive_summary": "Tóm tắt hiệu suất trong 2-3 câu bằng tiếng Việt",
+    "key_insights": [
+        {{
+            "title": "Tiêu đề insight bằng tiếng Việt",
+            "description": "Insight ngắn gọn với số liệu bằng tiếng Việt",
+            "impact": "high/medium/low"
+        }}
+    ],
+    "recommendations": [
+        {{
+            "action": "Hành động cụ thể bằng tiếng Việt",
+            "priority": "high/medium/low",
+            "expected_impact": "Lợi ích định lượng bằng tiếng Việt",
+            "timeline": "immediate/short/long"
+        }}
+    ],
+    "risk_alerts": [
+        {{"risk": "Mô tả rủi ro bằng tiếng Việt", "severity": "high/medium/low"}}
+    ]
+}}
+
+LƯU Ý: Tất cả nội dung text PHẢI viết bằng tiếng Việt!
+"""
+        else:  # English
+            prompt = f"""
 {domain_context}
 
 TASK: Expert Insights (Concise & Actionable)
@@ -2436,28 +2482,30 @@ REQUIREMENTS (Brief):
 3. Top 3 actionable recommendations with expected ROI
 4. Critical risks if any
 
-OUTPUT JSON:
+OUTPUT JSON (Content MUST be in English):
 {{
-    "executive_summary": "Performance overview in 2-3 sentences",
+    "executive_summary": "Performance overview in 2-3 sentences in English",
     "key_insights": [
         {{
-            "title": "Insight title",
-            "description": "Brief insight with numbers",
+            "title": "Insight title in English",
+            "description": "Brief insight with numbers in English",
             "impact": "high/medium/low"
         }}
     ],
     "recommendations": [
         {{
-            "action": "Specific action",
+            "action": "Specific action in English",
             "priority": "high/medium/low",
-            "expected_impact": "Quantified benefit",
+            "expected_impact": "Quantified benefit in English",
             "timeline": "immediate/short/long"
         }}
     ],
     "risk_alerts": [
-        {{"risk": "Risk description", "severity": "high/medium/low"}}
+        {{"risk": "Risk description in English", "severity": "high/medium/low"}}
     ]
 }}
+
+NOTE: All text content MUST be written in English!
 """
         
         success, result = self._generate_ai_insight(prompt, temperature=0.5, max_tokens=3000)
@@ -2881,14 +2929,14 @@ Your response must be parseable by json.loads() immediately."""
                             # Detect if percentage KPI
                             is_percentage = any(keyword in kpi_name for keyword in ['%', 'Rate', 'CTR', 'Conversion', 'Percentage'])
                             
-                            # Format with thousand separators
+                            # Format with thousand separators (use pipeline language)
                             if is_percentage:
-                                value_str = f"{format_number(kpi_value, 'vi', 1)}%"
+                                value_str = f"{format_number(kpi_value, self.lang, 1)}%"
                             elif is_currency:
-                                value_str = format_currency(kpi_value, 'VND', 'vi', 0)
+                                value_str = format_currency(kpi_value, 'VND', self.lang, 0)
                             else:
                                 decimals = 0 if kpi_value > 100 else 1
-                                value_str = format_number(kpi_value, 'vi', decimals)
+                                value_str = format_number(kpi_value, self.lang, decimals)
                         elif kpi_value is not None:
                             value_str = str(kpi_value)
                         else:
@@ -2898,7 +2946,7 @@ Your response must be parseable by json.loads() immediately."""
     
     def _display_compact_insights(self, insights: Dict, domain_info: Dict):
         """Display compact insights"""
-        with st.expander("💡 Insights Chuyên Gia", expanded=True):
+        with st.expander(get_text('insights_expert', self.lang), expanded=True):
             st.caption(f"**Expert**: {domain_info['expert_role'][:60]}...")
             
             # Executive summary

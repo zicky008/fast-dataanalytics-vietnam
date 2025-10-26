@@ -757,7 +757,7 @@ def main():
         if uploaded_file and 'analyze_button' in locals() and analyze_button:
             # Load file
             with st.spinner(get_text('loading_file', lang)):
-                success, df, message = safe_file_upload(uploaded_file, max_size_mb=200)
+                success, df, message = safe_file_upload(uploaded_file, max_size_mb=200, lang=lang)
             
             if not success:
                 st.error(message)
@@ -774,9 +774,9 @@ def main():
             st.markdown("---")
             st.markdown(f"### {get_text('processing', lang)}")
             
-            # Initialize pipeline
+            # Initialize pipeline with language support
             gemini_client = get_gemini_client()
-            pipeline = PremiumLeanPipeline(gemini_client)
+            pipeline = PremiumLeanPipeline(gemini_client, lang=lang)
             
             # Run pipeline with progress
             result = pipeline.run_pipeline(df, dataset_description)
