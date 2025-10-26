@@ -316,7 +316,8 @@ def get_theme_css(theme='light'):
             border-color: {theme_colors['primary']} !important;
         }}
         
-        /* Uploaded File Name Display - CRITICAL FIX for Issue #3 */
+        /* Uploaded File Name Display - CRITICAL FIX for Issue #4 - Dark Mode Visibility */
+        /* Target ALL text elements within file uploader including the filename */
         .uploadedFileName,
         .uploadedFile,
         [data-testid="stFileUploader"] small,
@@ -326,7 +327,12 @@ def get_theme_css(theme='light'):
         [data-testid="stFileUploader"] p,
         [data-testid="stFileUploader"] div[data-testid="stMarkdownContainer"],
         [data-testid="stFileUploadDropzone"] span,
-        [data-testid="stFileUploadDropzone"] p {{
+        [data-testid="stFileUploadDropzone"] p,
+        /* Additional selectors for the filename display line */
+        [data-testid="stFileUploader"] section span,
+        [data-testid="stFileUploader"] section small,
+        [data-testid="stFileUploader"] [class*="uploadedFile"] span,
+        [data-testid="stFileUploader"] div span {{
             color: {theme_colors['text_primary']} !important;
             font-weight: 500 !important;
         }}
