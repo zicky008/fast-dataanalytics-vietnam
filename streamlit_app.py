@@ -882,7 +882,14 @@ def main():
                         kpi_value = float(kpi_data['value'])
                     except (ValueError, TypeError):
                         kpi_value = kpi_data['value']  # Keep as-is if conversion fails
+                    
+                    # TEMPORARY DEBUG: Log what we're formatting
+                    st.write(f"🔍 DEBUG KPI: '{kpi_name}' | Value: {kpi_value} (type: {type(kpi_value).__name__})")
+                    
                     formatted_value = format_kpi_value(kpi_value, kpi_name, lang, currency)
+                    
+                    # TEMPORARY DEBUG: Log formatted result
+                    st.write(f"✅ DEBUG Result: '{formatted_value}' (type: {type(formatted_value).__name__})")
                     
                     st.metric(
                         label=kpi_name,
