@@ -113,10 +113,17 @@ def safe_file_upload(
             progress_bar.progress(100)
             st.success(f"✅ Upload thành công: {len(df):,} dòng × {len(df.columns)} cột")
         
+        # Include filename and size in success message for better UX
+        file_size_kb = uploaded_file.size / 1024
+        if file_size_kb < 1024:
+            size_str = f"{file_size_kb:.1f}KB"
+        else:
+            size_str = f"{file_size_kb / 1024:.1f}MB"
+        
         return (
             True,
             df,
-            f"✅ File đã được tải thành công: {len(df):,} dòng, {len(df.columns)} cột"
+            f"✅ **{uploaded_file.name}** ({size_str}): {len(df):,} dòng × {len(df.columns)} cột"
         )
     
     except pd.errors.EmptyDataError:

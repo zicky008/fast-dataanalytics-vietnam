@@ -318,10 +318,15 @@ def get_theme_css(theme='light'):
         
         /* Uploaded File Name Display - CRITICAL FIX for Issue #3 */
         .uploadedFileName,
+        .uploadedFile,
         [data-testid="stFileUploader"] small,
         [data-testid="stFileUploader"] .stMarkdown,
         [data-testid="stFileUploader"] span,
-        [data-testid="stFileUploader"] div[data-testid="stMarkdownContainer"] {{
+        [data-testid="stFileUploader"] label,
+        [data-testid="stFileUploader"] p,
+        [data-testid="stFileUploader"] div[data-testid="stMarkdownContainer"],
+        [data-testid="stFileUploadDropzone"] span,
+        [data-testid="stFileUploadDropzone"] p {{
             color: {theme_colors['text_primary']} !important;
             font-weight: 500 !important;
         }}
@@ -872,7 +877,12 @@ def main():
                         delta_color = "normal" if kpi_data.get('status') == 'Above' else "inverse"
                     
                     # Format value with thousand separators and currency conversion
-                    formatted_value = format_kpi_value(kpi_data['value'], kpi_name, lang, currency)
+                    # CRITICAL: Convert to float in case Gemini returns string
+                    try:
+                        kpi_value = float(kpi_data['value'])
+                    except (ValueError, TypeError):
+                        kpi_value = kpi_data['value']  # Keep as-is if conversion fails
+                    formatted_value = format_kpi_value(kpi_value, kpi_name, lang, currency)
                     
                     st.metric(
                         label=kpi_name,
