@@ -168,7 +168,7 @@ class PremiumLeanPipeline:
             # Step 0: Domain Detection (3s - cached)
             if is_streamlit_context():
                 progress_placeholder = st.empty()
-                progress_placeholder.info("🔍 **Bước 0/4**: Nhận diện ngành nghề...")
+                progress_placeholder.info(get_text('pipeline_step0', self.lang))
             
             domain_info = self.step0_domain_detection(df, dataset_description)
             self._add_audit_trail("Domain Detection", domain_info)
@@ -177,7 +177,7 @@ class PremiumLeanPipeline:
             # Step 1: Data Cleaning (15s - ISO 8000)
             step1_start = time.time()
             if is_streamlit_context():
-                progress_placeholder.info(f"🧹 **Bước 1/4**: Làm sạch dữ liệu (ISO 8000)... Domain: {domain_info['domain_name']}")
+                progress_placeholder.info(get_text('pipeline_step1', self.lang, domain=domain_info['domain_name']))
             
             cleaning_result = self.step1_data_cleaning(df, domain_info)
             if not cleaning_result['success']:
@@ -189,7 +189,7 @@ class PremiumLeanPipeline:
             # Step 2: Smart Blueprint (15s - EDA + Blueprint combined)
             step2_start = time.time()
             if is_streamlit_context():
-                progress_placeholder.info(f"🎨 **Bước 2/4**: Tạo Dashboard Blueprint thông minh... Expert: {domain_info['expert_role'][:50]}...")
+                progress_placeholder.info(get_text('pipeline_step2', self.lang, expert=domain_info['expert_role'][:50]))
             
             blueprint_result = self.step2_smart_blueprint(
                 cleaning_result['df_cleaned'],
@@ -273,14 +273,14 @@ class PremiumLeanPipeline:
         
         # Display to user (only in Streamlit context)
         if is_streamlit_context():
-            with st.expander("🔍 Nhận Diện Ngành Nghề", expanded=False):
+            with st.expander(get_text('domain_detection_title', self.lang), expanded=False):
                 col1, col2 = st.columns(2)
                 with col1:
-                    st.metric("Ngành nghề", domain_info['domain_name'])
-                    st.metric("Độ tin cậy", f"{domain_info['confidence']*100:.0f}%")
+                    st.metric(get_text('domain_label', self.lang), domain_info['domain_name'])
+                    st.metric(get_text('confidence_label', self.lang), f"{domain_info['confidence']*100:.0f}%")
                 with col2:
-                    st.caption(f"**Chuyên gia**: {domain_info['expert_role'][:60]}...")
-                    st.caption(f"**Key KPIs**: {', '.join(domain_info['key_kpis'][:3])}")
+                    st.caption(f"**{get_text('expert_label', self.lang)}**: {domain_info['expert_role'][:60]}...")
+                    st.caption(f"**{get_text('key_kpis_label', self.lang)}**: {', '.join(domain_info['key_kpis'][:3])}")
         
         return domain_info
     
@@ -2167,7 +2167,8 @@ OUTPUT JSON:
         # ⭐ NEW: Calculate KPIs from REAL DATA first
         kpis_calculated = self._calculate_real_kpis(df, domain_info)
         
-        # Combined prompt with STRICT chart requirements
+        # Combined prompt with STRICT chart requirements - BILINGUAL
+        chart_title_lang = "Clear Vietnamese title" if self.lang == 'vi' else "Clear English title"
         prompt = f"""
 {domain_context}
 
@@ -2193,7 +2194,7 @@ REQUIREMENTS:
 - "x_axis": Must be a column name from the data (REQUIRED, cannot be null)
 - "y_axis": Must be a column name from the data (REQUIRED, cannot be null)
 - "type": One of ["bar", "line", "scatter", "pie"] (REQUIRED)
-- "title": Clear Vietnamese title (REQUIRED)
+- "title": {chart_title_lang} (REQUIRED)
 - "id": Unique chart ID like "c1", "c2" (REQUIRED)
 
 ❌ INVALID CHART EXAMPLES (will be rejected):
@@ -2213,21 +2214,21 @@ REQUIREMENTS:
 ✅ VALID CHART EXAMPLES (use actual column names from data):
 {{
     "id": "c1",
-    "title": "Doanh Thu Theo Kênh",
+    "title": "{'Revenue by Channel' if self.lang == 'en' else 'Doanh Thu Theo Kênh'}",
     "type": "bar",
     "x_axis": "{all_cols[0] if len(all_cols) > 0 else 'category'}",  // Actual column from data
     "y_axis": "{numeric_cols[0] if len(numeric_cols) > 0 else 'value'}",  // Actual numeric column
     "benchmark_line": 5000000,
-    "question_answered": "Kênh nào có doanh thu cao nhất?"
+    "question_answered": "{'Which channel has highest revenue?' if self.lang == 'en' else 'Kênh nào có doanh thu cao nhất?'}"
 }}
 
 {{
     "id": "c2",
-    "title": "Xu Hướng Theo Thời Gian",
+    "title": "{'Trend Over Time' if self.lang == 'en' else 'Xu Hướng Theo Thời Gian'}",
     "type": "line",
     "x_axis": "date",  // Use actual date column if exists
     "y_axis": "{numeric_cols[1] if len(numeric_cols) > 1 else 'metric'}",
-    "question_answered": "Xu hướng thay đổi như thế nào?"
+    "question_answered": "{'How does the trend change?' if self.lang == 'en' else 'Xu hướng thay đổi như thế nào?'}"
 }}
 
 OUTPUT JSON (strictly follow this structure):
@@ -2889,22 +2890,22 @@ Your response must be parseable by json.loads() immediately."""
     
     def _display_compact_cleaning_report(self, cleaning_plan: Dict, validation: Dict):
         """Display compact cleaning report"""
-        with st.expander("📋 Báo Cáo Làm Sạch Dữ Liệu", expanded=False):
+        with st.expander(get_text('data_cleaning_report', self.lang), expanded=False):
             summary = cleaning_plan.get('cleaning_summary', {})
             
             col1, col2, col3 = st.columns(3)
             with col1:
-                st.metric("Số dòng", f"{summary.get('rows_after', 0):,}", 
+                st.metric(get_text('rows_label', self.lang), f"{summary.get('rows_after', 0):,}", 
                          delta=f"{summary.get('rows_after', 0) - summary.get('rows_before', 0)}")
             with col2:
-                st.metric("Duplicates đã xóa", summary.get('duplicates_removed', 0))
+                st.metric(get_text('duplicates_removed', self.lang), summary.get('duplicates_removed', 0))
             with col3:
-                st.metric("✅ Quality Score", f"{validation['score']:.0f}%", 
+                st.metric(get_text('quality_score', self.lang), f"{validation['score']:.0f}%", 
                          delta="ISO 8000" if validation['passed'] else "Failed")
     
     def _display_compact_blueprint(self, smart_blueprint: Dict, domain_info: Dict):
         """Display compact blueprint"""
-        with st.expander("🎨 Dashboard Blueprint", expanded=False):
+        with st.expander(get_text('dashboard_blueprint', self.lang), expanded=False):
             st.caption(f"**Domain**: {domain_info['domain_name']} | **Expert**: {domain_info['expert_role'][:40]}...")
             
             # KPIs

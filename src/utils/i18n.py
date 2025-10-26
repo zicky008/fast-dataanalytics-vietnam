@@ -178,7 +178,19 @@ TRANSLATIONS = {
         "dataframe_valid": "✅ DataFrame valid: {rows:,} rows × {cols} columns",
         
         # Dashboard Blueprint
-        "insights_expert": "💡 Expert Insights"
+        "insights_expert": "💡 Expert Insights",
+        
+        # Pipeline Display Sections
+        "domain_detection_title": "🔍 Domain Detection",
+        "domain_label": "Industry",
+        "confidence_label": "Confidence",
+        "expert_label": "Expert",
+        "key_kpis_label": "Key KPIs",
+        "data_cleaning_report": "📋 Data Cleaning Report",
+        "dashboard_blueprint": "🎨 Dashboard Blueprint",
+        "rows_label": "Rows",
+        "duplicates_removed": "Duplicates Removed",
+        "quality_score": "✅ Quality Score"
     },
     
     "vi": {
@@ -355,7 +367,19 @@ TRANSLATIONS = {
         "dataframe_valid": "✅ DataFrame hợp lệ: {rows:,} dòng × {cols} cột",
         
         # Dashboard Blueprint
-        "insights_expert": "💡 Insights Chuyên Gia"
+        "insights_expert": "💡 Insights Chuyên Gia",
+        
+        # Pipeline Display Sections
+        "domain_detection_title": "🔍 Nhận Diện Ngành Nghề",
+        "domain_label": "Ngành nghề",
+        "confidence_label": "Độ tin cậy",
+        "expert_label": "Chuyên gia",
+        "key_kpis_label": "Key KPIs",
+        "data_cleaning_report": "📋 Báo Cáo Làm Sạch Dữ Liệu",
+        "dashboard_blueprint": "🎨 Dashboard Blueprint",
+        "rows_label": "Số dòng",
+        "duplicates_removed": "Duplicates đã xóa",
+        "quality_score": "✅ Quality Score"
     }
 }
 
