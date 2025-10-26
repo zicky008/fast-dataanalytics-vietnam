@@ -42,7 +42,7 @@ def initialize_session_state():
         st.session_state['language'] = 'vi'  # Default Vietnamese
     
     if 'theme' not in st.session_state:
-        st.session_state['theme'] = 'light'  # Default light theme
+        st.session_state['theme'] = 'dark'  # Default dark theme (better for first impression)
     
     if 'currency' not in st.session_state:
         st.session_state['currency'] = 'VND'  # Default VND
@@ -57,13 +57,13 @@ def initialize_session_state():
 # THEME MANAGEMENT
 # ============================================
 def get_theme_css(theme='light'):
-    """Generate CSS for light/dark theme"""
+    """Generate CSS for light/dark theme with STRONG overrides"""
     colors = get_brand_colors()
     theme_colors = colors['light_theme'] if theme == 'light' else colors['dark_theme']
     
     return f"""
     <style>
-        /* Global Theme */
+        /* Global Theme Variables */
         :root {{
             --primary-color: {theme_colors['primary']};
             --secondary-color: {theme_colors['secondary']};
@@ -78,57 +78,114 @@ def get_theme_css(theme='light'):
             --border: {theme_colors['border']};
         }}
         
-        /* Main Container */
-        .main {{
-            background-color: var(--background);
-            color: var(--text-primary);
+        /* FORCE Global Background - Override Streamlit */
+        .stApp {{
+            background-color: {theme_colors['background']} !important;
         }}
         
-        /* Headers */
+        /* FORCE Main Container Theme */
+        .main,
+        .block-container,
+        [data-testid="stAppViewContainer"],
+        section[data-testid="stMain"] {{
+            background-color: {theme_colors['background']} !important;
+            color: {theme_colors['text_primary']} !important;
+        }}
+        
+        /* FORCE Sidebar Theme - Most Important! */
+        [data-testid="stSidebar"],
+        [data-testid="stSidebar"] > div,
+        section[data-testid="stSidebar"],
+        .css-1d391kg {{
+            background-color: {theme_colors['surface']} !important;
+            color: {theme_colors['text_primary']} !important;
+        }}
+        
+        /* FORCE Sidebar Content Text Color */
+        [data-testid="stSidebar"] *,
+        [data-testid="stSidebar"] p,
+        [data-testid="stSidebar"] span,
+        [data-testid="stSidebar"] label,
+        [data-testid="stSidebar"] .stMarkdown {{
+            color: {theme_colors['text_primary']} !important;
+        }}
+        
+        /* FORCE Sidebar Headers */
+        [data-testid="stSidebar"] h1,
+        [data-testid="stSidebar"] h2,
+        [data-testid="stSidebar"] h3,
+        [data-testid="stSidebar"] h4 {{
+            color: {theme_colors['primary']} !important;
+        }}
+        
+        /* Headers in Main Content */
         .main-header {{
             font-size: 2.5rem;
             font-weight: 700;
-            color: var(--primary-color);
+            color: {theme_colors['primary']} !important;
             margin-bottom: 0.5rem;
             font-family: 'Inter', -apple-system, sans-serif;
         }}
         
         .subtitle {{
             font-size: 1.2rem;
-            color: var(--text-secondary);
+            color: {theme_colors['text_secondary']} !important;
             margin-bottom: 2rem;
+        }}
+        
+        /* FORCE Tab Background */
+        [data-testid="stTabs"],
+        .stTabs [data-baseweb="tab-list"],
+        .stTabs [data-baseweb="tab-panel"] {{
+            background-color: {theme_colors['background']} !important;
+        }}
+        
+        /* FORCE Tab Text Color */
+        .stTabs [data-baseweb="tab"] {{
+            color: {theme_colors['text_primary']} !important;
         }}
         
         /* Cards */
         .metric-card {{
-            background: var(--surface);
+            background: {theme_colors['surface']} !important;
+            color: {theme_colors['text_primary']} !important;
             padding: 1.5rem;
             border-radius: 0.75rem;
-            border-left: 4px solid var(--accent-color);
+            border-left: 4px solid {theme_colors['accent']};
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
             margin-bottom: 1rem;
         }}
         
         .success-box {{
-            background: {theme_colors['success']}22;
+            background: {theme_colors['success']}22 !important;
+            color: {theme_colors['text_primary']} !important;
             padding: 1.5rem;
             border-radius: 0.75rem;
-            border-left: 4px solid var(--success-color);
+            border-left: 4px solid {theme_colors['success']};
             margin: 1rem 0;
         }}
         
         .info-box {{
-            background: {theme_colors['accent']}22;
+            background: {theme_colors['accent']}22 !important;
+            color: {theme_colors['text_primary']} !important;
             padding: 1rem;
             border-radius: 0.5rem;
-            border-left: 4px solid var(--accent-color);
+            border-left: 4px solid {theme_colors['accent']};
         }}
         
         .warning-box {{
-            background: {theme_colors['warning']}22;
+            background: {theme_colors['warning']}22 !important;
+            color: {theme_colors['text_primary']} !important;
             padding: 1rem;
             border-radius: 0.5rem;
-            border-left: 4px solid var(--warning-color);
+            border-left: 4px solid {theme_colors['warning']};
+        }}
+        
+        /* FORCE Streamlit Success/Info/Warning/Error Boxes */
+        .stAlert, .stSuccess, .stInfo, .stWarning, .stError {{
+            background-color: {theme_colors['surface']} !important;
+            color: {theme_colors['text_primary']} !important;
+            border-color: {theme_colors['border']} !important;
         }}
         
         /* Buttons */
@@ -136,6 +193,7 @@ def get_theme_css(theme='light'):
             border-radius: 0.5rem;
             font-weight: 500;
             transition: all 0.3s ease;
+            color: {theme_colors['text_primary']} !important;
         }}
         
         .stButton > button:hover {{
@@ -147,23 +205,42 @@ def get_theme_css(theme='light'):
         [data-testid="stMetricValue"] {{
             font-size: 2rem;
             font-weight: 700;
-            color: var(--primary-color);
+            color: {theme_colors['primary']} !important;
         }}
         
-        /* Sidebar */
-        [data-testid="stSidebar"] {{
-            background-color: var(--surface);
+        [data-testid="stMetricLabel"] {{
+            color: {theme_colors['text_secondary']} !important;
+        }}
+        
+        /* FORCE File Uploader */
+        [data-testid="stFileUploader"],
+        .uploadedFile {{
+            background-color: {theme_colors['surface']} !important;
+            color: {theme_colors['text_primary']} !important;
+            border-color: {theme_colors['border']} !important;
+        }}
+        
+        /* FORCE Text Input */
+        .stTextInput input,
+        .stTextArea textarea {{
+            background-color: {theme_colors['surface']} !important;
+            color: {theme_colors['text_primary']} !important;
+            border-color: {theme_colors['border']} !important;
         }}
         
         /* Tables */
         .dataframe {{
-            border: 1px solid var(--border);
+            background-color: {theme_colors['surface']} !important;
+            color: {theme_colors['text_primary']} !important;
+            border: 1px solid {theme_colors['border']};
             border-radius: 0.5rem;
         }}
         
-        /* Expanders */
-        .streamlit-expanderHeader {{
-            background-color: var(--surface);
+        /* FORCE Expander Headers */
+        .streamlit-expanderHeader,
+        [data-testid="stExpander"] {{
+            background-color: {theme_colors['surface']} !important;
+            color: {theme_colors['text_primary']} !important;
             border-radius: 0.5rem;
         }}
         
@@ -171,6 +248,7 @@ def get_theme_css(theme='light'):
         .formatted-number {{
             font-family: 'JetBrains Mono', 'Fira Code', monospace;
             font-weight: 600;
+            color: {theme_colors['text_primary']} !important;
         }}
         
         /* Logo container */
@@ -178,14 +256,15 @@ def get_theme_css(theme='light'):
             padding: 1rem;
             text-align: center;
             margin-bottom: 1rem;
+            background-color: {theme_colors['surface']} !important;
         }}
         
         /* Language selector */
         .language-badge {{
             display: inline-block;
             padding: 0.25rem 0.75rem;
-            background: var(--accent-color);
-            color: white;
+            background: {theme_colors['accent']};
+            color: white !important;
             border-radius: 1rem;
             font-size: 0.875rem;
             font-weight: 500;
@@ -197,6 +276,22 @@ def get_theme_css(theme='light'):
         .language-badge:hover {{
             transform: scale(1.05);
             box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }}
+        
+        /* FORCE All Markdown Text */
+        .stMarkdown, .stMarkdown p, .stMarkdown span {{
+            color: {theme_colors['text_primary']} !important;
+        }}
+        
+        /* FORCE Radio Buttons */
+        .stRadio label {{
+            color: {theme_colors['text_primary']} !important;
+        }}
+        
+        /* FORCE Selectbox */
+        .stSelectbox label,
+        .stSelectbox div {{
+            color: {theme_colors['text_primary']} !important;
         }}
     </style>
     """
