@@ -2866,10 +2866,29 @@ Your response must be parseable by json.loads() immediately."""
                 cols = st.columns(min(3, len(kpis)))
                 for i, (kpi_name, kpi_data) in enumerate(list(kpis.items())[:6]):
                     with cols[i % 3]:
-                        # ✅ Issue #3 Fix: Handle None or non-numeric KPI values
+                        # ✅ CRITICAL FIX: Format KPI values with thousand separators
                         kpi_value = kpi_data.get('value')
                         if isinstance(kpi_value, (int, float)):
-                            value_str = f"{kpi_value:.1f}"
+                            # Import formatting functions
+                            from utils.i18n import format_number, format_currency
+                            
+                            # Detect if currency KPI
+                            is_currency = any(keyword in kpi_name for keyword in [
+                                'Revenue', 'Cost', 'Sales', 'Price', 'VND', 'Spend', 'CPA', 'CPC', 'CPM',
+                                'Doanh Thu', 'Chi Phí', 'Value', 'Amount', 'Total', 'Average', 'Salary'
+                            ])
+                            
+                            # Detect if percentage KPI
+                            is_percentage = any(keyword in kpi_name for keyword in ['%', 'Rate', 'CTR', 'Conversion', 'Percentage'])
+                            
+                            # Format with thousand separators
+                            if is_percentage:
+                                value_str = f"{format_number(kpi_value, 'vi', 1)}%"
+                            elif is_currency:
+                                value_str = format_currency(kpi_value, 'VND', 'vi', 0)
+                            else:
+                                decimals = 0 if kpi_value > 100 else 1
+                                value_str = format_number(kpi_value, 'vi', decimals)
                         elif kpi_value is not None:
                             value_str = str(kpi_value)
                         else:
