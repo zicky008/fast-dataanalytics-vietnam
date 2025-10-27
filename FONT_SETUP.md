@@ -40,6 +40,37 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 ```
 
+## Chart Export Requirements
+
+**IMPORTANT**: Chart visualization export requires **Chrome or Chromium** browser to be installed (used by Kaleido library).
+
+### Installing Chrome/Chromium
+
+#### Linux (Ubuntu/Debian)
+```bash
+# Option 1: Chromium (lighter, recommended for servers)
+sudo apt-get update
+sudo apt-get install chromium-browser chromium-chromedriver
+
+# Option 2: Google Chrome
+wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+sudo sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list'
+sudo apt-get update
+sudo apt-get install google-chrome-stable
+```
+
+#### Docker/Cloud Deployment
+Add to your Dockerfile:
+
+```dockerfile
+# Install Vietnamese fonts + Chrome for chart export
+RUN apt-get update && \
+    apt-get install -y fonts-dejavu fonts-dejavu-core fonts-dejavu-extra \
+                       chromium-browser chromium-chromedriver && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+```
+
 ## Verification
 
 The application will automatically detect and use DejaVu fonts. You'll see one of these messages:
@@ -48,6 +79,15 @@ The application will automatically detect and use DejaVu fonts. You'll see one o
 ⚠️ **Warning**: "DejaVu fonts not found. Vietnamese characters may not display correctly."
 
 If you see the warning, install the fonts using the instructions above.
+
+### Chart Export Verification
+
+When exporting PDFs with charts, you'll see:
+
+✅ **Success**: "✅ Successfully exported chart 1/6"
+⚠️ **Degraded**: "ℹ️ Chart 1 degraded to message" - Charts show installation instructions instead of images
+
+**Without Chrome/Chromium**: PDFs will still generate successfully, but charts will show informative messages instead of visualizations.
 
 ## Alternative Fonts
 

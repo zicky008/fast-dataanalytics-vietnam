@@ -214,29 +214,58 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
                 # Convert Plotly chart to image using kaleido
                 fig = chart['figure']
 
-                # Try to export chart image
-                try:
-                    img_bytes = fig.to_image(format="png", width=800, height=450, engine="kaleido")
-                    img_stream = io.BytesIO(img_bytes)
-                    img = Image(img_stream, width=6.5*inch, height=3.6*inch)
-                    content.append(img)
-                    charts_exported += 1
-                    print(f"✅ Successfully exported chart {i+1}: {chart_title}")
-                except Exception as img_error:
-                    print(f"⚠️ Chart {i+1} export failed with kaleido: {str(img_error)}")
-                    # Try alternative method - save to temp file
+                # Try to export chart image - Multiple fallback methods
+                chart_exported = False
+
+                # Method 1: Try kaleido (requires Chrome/Chromium)
+                if not chart_exported:
+                    try:
+                        img_bytes = fig.to_image(format="png", width=800, height=450, engine="kaleido")
+                        img_stream = io.BytesIO(img_bytes)
+                        img = Image(img_stream, width=6.5*inch, height=3.6*inch)
+                        content.append(img)
+                        charts_exported += 1
+                        chart_exported = True
+                        print(f"✅ Successfully exported chart {i+1}: {chart_title}")
+                    except Exception as img_error:
+                        print(f"⚠️ Chart {i+1} kaleido method failed: {str(img_error)[:80]}")
+
+                # Method 2: Try write_image to temp file
+                if not chart_exported:
                     try:
                         with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmp:
                             fig.write_image(tmp.name, format='png', width=800, height=450)
                             img = Image(tmp.name, width=6.5*inch, height=3.6*inch)
                             content.append(img)
                             charts_exported += 1
+                            chart_exported = True
                             os.unlink(tmp.name)
-                            print(f"✅ Successfully exported chart {i+1} (temp file method): {chart_title}")
+                            print(f"✅ Successfully exported chart {i+1} (write_image): {chart_title}")
                     except Exception as alt_error:
-                        print(f"❌ Chart {i+1} failed both methods: {str(alt_error)}")
-                        error_msg = f"[Chart could not be exported: {str(img_error)[:100]}]"
-                        content.append(Paragraph(error_msg, normal_style))
+                        print(f"⚠️ Chart {i+1} write_image method failed: {str(alt_error)[:80]}")
+
+                # Method 3: Graceful degradation - Show informative message
+                if not chart_exported:
+                    if lang == "vi":
+                        degraded_msg = f"""<br/>
+                        <b>⚠️ Biểu đồ không thể hiển thị</b><br/>
+                        <i>Biểu đồ: {chart_title}</i><br/>
+                        Lý do: Cần cài đặt Chrome/Chromium để export charts<br/>
+                        Hướng dẫn: Xem FONT_SETUP.md hoặc chạy: apt-get install chromium-browser<br/>
+                        <br/>
+                        """
+                    else:
+                        degraded_msg = f"""<br/>
+                        <b>⚠️ Chart Could Not Be Displayed</b><br/>
+                        <i>Chart: {chart_title}</i><br/>
+                        Reason: Chrome/Chromium required for chart export<br/>
+                        Solution: See FONT_SETUP.md or run: apt-get install chromium-browser<br/>
+                        <br/>
+                        """
+
+                    degraded_para = Paragraph(degraded_msg, normal_style)
+                    content.append(degraded_para)
+                    print(f"ℹ️ Chart {i+1} degraded to message: {chart_title}")
 
                 content.append(Spacer(1, 0.3*inch))
 
