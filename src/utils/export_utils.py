@@ -244,6 +244,65 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
                     except Exception as alt_error:
                         print(f"⚠️ Chart {i+1} write_image method failed: {str(alt_error)[:80]}")
 
+                # Method 2.5: Matplotlib fallback (NO Chrome/Kaleido needed!)
+                if not chart_exported:
+                    try:
+                        import matplotlib
+                        matplotlib.use('Agg')  # Non-interactive backend
+                        import matplotlib.pyplot as plt
+                        from io import BytesIO
+
+                        # Create matplotlib figure from plotly data
+                        mpl_fig = plt.figure(figsize=(10, 5.6))
+                        ax = mpl_fig.add_subplot(111)
+
+                        # Extract data from plotly figure
+                        # This is a simplified conversion - works for basic charts
+                        for trace in fig.data:
+                            if hasattr(trace, 'x') and hasattr(trace, 'y'):
+                                trace_type = trace.type if hasattr(trace, 'type') else 'scatter'
+
+                                if trace_type in ['scatter', 'scattergl']:
+                                    mode = trace.mode if hasattr(trace, 'mode') else 'lines+markers'
+                                    if 'lines' in mode:
+                                        ax.plot(trace.x, trace.y, label=trace.name if hasattr(trace, 'name') else None)
+                                    elif 'markers' in mode:
+                                        ax.scatter(trace.x, trace.y, label=trace.name if hasattr(trace, 'name') else None)
+                                elif trace_type == 'bar':
+                                    ax.bar(trace.x, trace.y, label=trace.name if hasattr(trace, 'name') else None)
+                                elif trace_type == 'line':
+                                    ax.plot(trace.x, trace.y, label=trace.name if hasattr(trace, 'name') else None)
+
+                        # Set labels from plotly layout
+                        if fig.layout.title.text:
+                            ax.set_title(fig.layout.title.text)
+                        if fig.layout.xaxis.title.text:
+                            ax.set_xlabel(fig.layout.xaxis.title.text)
+                        if fig.layout.yaxis.title.text:
+                            ax.set_ylabel(fig.layout.yaxis.title.text)
+
+                        # Add legend if traces have names
+                        if any(hasattr(trace, 'name') and trace.name for trace in fig.data):
+                            ax.legend()
+
+                        # Save to bytes
+                        buf = BytesIO()
+                        mpl_fig.savefig(buf, format='png', dpi=100, bbox_inches='tight')
+                        buf.seek(0)
+
+                        # Add to PDF
+                        img = Image(buf, width=6.5*inch, height=3.6*inch)
+                        content.append(img)
+                        charts_exported += 1
+                        chart_exported = True
+                        plt.close(mpl_fig)
+                        print(f"✅ Successfully exported chart {i+1} (matplotlib fallback): {chart_title}")
+
+                    except ImportError:
+                        print(f"⚠️ Chart {i+1} matplotlib not available")
+                    except Exception as mpl_error:
+                        print(f"⚠️ Chart {i+1} matplotlib method failed: {str(mpl_error)[:80]}")
+
                 # Method 3: Graceful degradation - Show informative message
                 if not chart_exported:
                     if lang == "vi":
