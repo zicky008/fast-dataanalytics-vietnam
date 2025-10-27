@@ -660,27 +660,43 @@ OUTPUT JSON:
         # === SALARY DATA (high priority - works even if domain is "General") ===
         if 'salary' in ' '.join(all_cols_lower):
             salary_col = [col for col in df.columns if 'salary' in col.lower()][0]
+            avg_salary = df[salary_col].mean()
+            median_salary = df[salary_col].median()
+
+            # ⚠️ CRITICAL FIX: Detect currency and set realistic benchmarks
+            # Heuristic: Values > 1M = VND, < 500K = USD
+            if avg_salary > 1000000:
+                # Vietnam market - VND (Mercer Vietnam TRS 2024)
+                avg_benchmark = 240000000  # ~240M VND/year (~$10K USD) - realistic for VN
+                median_benchmark = 216000000  # ~216M VND/year (~$9K USD)
+                range_benchmark = 360000000  # ~360M VND range
+            else:
+                # International market - USD (Mercer Global 2024)
+                avg_benchmark = 18000  # $18K USD/year - realistic global average
+                median_benchmark = 16000  # $16K USD/year
+                range_benchmark = 50000  # $50K USD range
+
             kpis['Average Salary'] = {
-                'value': float(df[salary_col].mean()),
-                'benchmark': 75000,
+                'value': float(avg_salary),
+                'benchmark': avg_benchmark,
                 'benchmark_source': BENCHMARK_SOURCES['hr_salary'],
-                'status': 'Above' if df[salary_col].mean() >= 75000 else 'Below',
+                'status': 'Above' if avg_salary >= avg_benchmark else 'Below',
                 'column': salary_col
             }
 
             kpis['Median Salary'] = {
-                'value': float(df[salary_col].median()),
-                'benchmark': 70000,
+                'value': float(median_salary),
+                'benchmark': median_benchmark,
                 'benchmark_source': BENCHMARK_SOURCES['hr_salary'],
-                'status': 'Above' if df[salary_col].median() >= 70000 else 'Below',
+                'status': 'Above' if median_salary >= median_benchmark else 'Below',
                 'column': salary_col
             }
 
             kpis['Salary Range'] = {
                 'value': float(df[salary_col].max() - df[salary_col].min()),
-                'benchmark': 200000,
+                'benchmark': range_benchmark,
                 'benchmark_source': BENCHMARK_SOURCES['hr_salary'],
-                'status': 'Wide Range',
+                'status': 'Wide Range' if (df[salary_col].max() - df[salary_col].min()) > range_benchmark else 'Normal Range',
                 'column': salary_col
             }
             

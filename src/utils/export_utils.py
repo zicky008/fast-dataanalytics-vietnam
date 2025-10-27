@@ -10,6 +10,30 @@ from typing import Dict, List, Any
 import plotly.graph_objects as go
 import os
 import tempfile
+import re
+
+
+def remove_emoji(text: str) -> str:
+    """
+    Remove emoji characters from text for PDF compatibility.
+    DejaVuSans font doesn't support emoji, causing encoding errors.
+
+    Args:
+        text: Input string that may contain emoji
+
+    Returns:
+        String with emoji removed
+    """
+    # Emoji pattern - matches most common emoji ranges
+    emoji_pattern = re.compile("["
+        u"\U0001F600-\U0001F64F"  # emoticons
+        u"\U0001F300-\U0001F5FF"  # symbols & pictographs
+        u"\U0001F680-\U0001F6FF"  # transport & map symbols
+        u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
+        u"\U00002702-\U000027B0"
+        u"\U000024C2-\U0001F251"
+        "]+", flags=re.UNICODE)
+    return emoji_pattern.sub('', text).strip()
 
 
 def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
@@ -101,12 +125,12 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
         # Build PDF content
         content = []
         
-        # Title
+        # Title (remove emoji for PDF compatibility)
         if lang == "vi":
-            title = Paragraph("📊 BÁO CÁO PHÂN TÍCH DỮ LIỆU", title_style)
+            title = Paragraph("BÁO CÁO PHÂN TÍCH DỮ LIỆU", title_style)
             subtitle = Paragraph("DataAnalytics Vietnam - Professional Business Intelligence", normal_style)
         else:
-            title = Paragraph("📊 DATA ANALYSIS REPORT", title_style)
+            title = Paragraph("DATA ANALYSIS REPORT", title_style)
             subtitle = Paragraph("DataAnalytics Vietnam - Professional Business Intelligence", normal_style)
 
         content.append(title)
@@ -120,9 +144,23 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
         num_numeric = len(df.select_dtypes(include=['number']).columns)
         completeness = (1 - df.isnull().sum().sum() / (num_rows * num_cols)) * 100
 
+        # Detect currency from KPIs for clear declaration
+        kpis_preview = result['dashboard'].get('kpis', {})
+        currency_used = "USD"  # Default
+        if kpis_preview:
+            first_kpi = list(kpis_preview.values())[0]
+            kpi_value = first_kpi.get('value', 0)
+            # Heuristic: Values > 1M likely VND, < 10K likely USD
+            if kpi_value > 1000000:
+                currency_used = "VND"
+
+        # Exchange rate declaration
+        exchange_rate = "1 USD = 24,000 VND (approx.)" if currency_used == "VND" else "Standard: USD"
+
         metadata_data = [
             ["Report Date" if lang == "en" else "Ngày báo cáo", datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
             ["Domain" if lang == "en" else "Ngành nghề", result['domain_info']['domain_name']],
+            ["Currency / Tiền tệ", f"{currency_used} ({exchange_rate})"],
             ["Expert Perspective" if lang == "en" else "Góc nhìn chuyên gia", result['domain_info']['expert_role'][:60]],
             ["Dataset Size" if lang == "en" else "Kích thước dữ liệu", f"{num_rows:,} rows × {num_cols:,} columns ({num_numeric:,} numeric)"],
             ["Data Completeness" if lang == "en" else "Độ đầy đủ dữ liệu", f"{completeness:.1f}%"],
@@ -145,14 +183,14 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
         content.append(metadata_table)
         content.append(Spacer(1, 0.4*inch))
         
-        # Executive Summary
-        content.append(Paragraph("📋 Executive Summary" if lang == "en" else "📋 Tóm Tắt Điều Hành", heading_style))
+        # Executive Summary (remove emoji for PDF)
+        content.append(Paragraph("Executive Summary" if lang == "en" else "Tóm Tắt Điều Hành", heading_style))
         summary_text = result['insights'].get('executive_summary', 'No summary available')
         content.append(Paragraph(summary_text, normal_style))
         content.append(Spacer(1, 0.3*inch))
         
-        # Key KPIs
-        content.append(Paragraph("📈 Key Performance Indicators" if lang == "en" else "📈 Chỉ Số Hiệu Suất Chính", heading_style))
+        # Key KPIs (remove emoji for PDF)
+        content.append(Paragraph("Key Performance Indicators" if lang == "en" else "Chỉ Số Hiệu Suất Chính", heading_style))
 
         kpis = result['dashboard'].get('kpis', {})
         if kpis:
@@ -171,11 +209,32 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
                 if len(source) > 30:
                     source = source[:27] + "..."
 
+                # Format value with thousand separators
+                value = kpi_info['value']
+                if value >= 1000:
+                    formatted_value = f"{value:,.1f}"
+                else:
+                    formatted_value = f"{value:.2f}"
+
+                # Add unit if it's a salary KPI
+                if 'salary' in kpi_name.lower() or 'compensation' in kpi_name.lower():
+                    formatted_value += f" {currency_used}/year"
+
+                # Format benchmark similarly
+                benchmark = kpi_info.get('benchmark', 'N/A')
+                if benchmark != 'N/A' and isinstance(benchmark, (int, float)):
+                    if benchmark >= 1000:
+                        formatted_benchmark = f"{benchmark:,.0f}"
+                    else:
+                        formatted_benchmark = f"{benchmark:.1f}"
+                else:
+                    formatted_benchmark = str(benchmark)
+
                 kpi_data.append([
                     kpi_name,
-                    f"{kpi_info['value']:.1f}",
+                    formatted_value,
                     kpi_info.get('status', 'N/A'),
-                    str(kpi_info.get('benchmark', 'N/A')),
+                    formatted_benchmark,
                     source
                 ])
 
@@ -205,29 +264,31 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
 
         content.append(Spacer(1, 0.3*inch))
         
-        # Key Insights
-        content.append(Paragraph("🎯 Key Insights" if lang == "en" else "🎯 Insights Chính", heading_style))
+        # Key Insights (remove emoji for PDF)
+        content.append(Paragraph("Key Insights" if lang == "en" else "Insights Chính", heading_style))
 
         for i, insight in enumerate(result['insights'].get('key_insights', [])[:5], 1):
-            impact_emoji = "🔴" if insight['impact'] == 'high' else "🟡" if insight['impact'] == 'medium' else "🟢"
-            insight_text = f"{impact_emoji} <b>{insight['title']}</b><br/>{insight['description']}"
+            # Use text labels instead of emoji for PDF compatibility
+            impact_label = "[HIGH]" if insight['impact'] == 'high' else "[MEDIUM]" if insight['impact'] == 'medium' else "[LOW]"
+            insight_text = f"{impact_label} <b>{insight['title']}</b><br/>{insight['description']}"
             content.append(Paragraph(insight_text, normal_style))
             content.append(Spacer(1, 0.15*inch))
 
         content.append(PageBreak())
 
-        # Recommendations
-        content.append(Paragraph("🚀 Recommendations" if lang == "en" else "🚀 Khuyến Nghị", heading_style))
+        # Recommendations (remove emoji for PDF)
+        content.append(Paragraph("Recommendations" if lang == "en" else "Khuyến Nghị", heading_style))
 
         for i, rec in enumerate(result['insights'].get('recommendations', [])[:5], 1):
-            priority_emoji = "🔴" if rec['priority'] == 'high' else "🟡" if rec['priority'] == 'medium' else "🟢"
-            rec_text = f"{priority_emoji} <b>[{rec['priority'].upper()}] {rec['action']}</b><br/>Expected Impact: {rec['expected_impact']}<br/>Timeline: {rec['timeline']}"
+            # Use text labels instead of emoji for PDF compatibility
+            priority_label = "[HIGH]" if rec['priority'] == 'high' else "[MEDIUM]" if rec['priority'] == 'medium' else "[LOW]"
+            rec_text = f"{priority_label} <b>{rec['action']}</b><br/>Expected Impact: {rec['expected_impact']}<br/>Timeline: {rec['timeline']}"
             content.append(Paragraph(rec_text, normal_style))
             content.append(Spacer(1, 0.15*inch))
         
-        # Charts (convert to images)
+        # Charts (convert to images, remove emoji for PDF)
         content.append(PageBreak())
-        content.append(Paragraph("📊 Visual Analysis" if lang == "en" else "📊 Phân Tích Trực Quan", heading_style))
+        content.append(Paragraph("Visual Analysis" if lang == "en" else "Phân Tích Trực Quan", heading_style))
 
         charts = result['dashboard']['charts']
         charts_exported = 0
@@ -425,9 +486,9 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
         elif charts_exported == total_charts and total_charts > 0:
             print(f"✅ Success: All {total_charts} charts exported successfully!")
 
-        # ⭐ NEW: Quality Score Methodology (addresses real user feedback for transparency)
+        # ⭐ NEW: Quality Score Methodology (remove emoji for PDF)
         content.append(PageBreak())
-        content.append(Paragraph("📊 Appendix: Quality Score Methodology" if lang == "en" else "📊 Phụ lục: Phương pháp tính Quality Score", heading_style))
+        content.append(Paragraph("Appendix: Quality Score Methodology" if lang == "en" else "Phụ lục: Phương pháp tính Quality Score", heading_style))
         content.append(Spacer(1, 0.2*inch))
 
         if lang == "en":
@@ -441,11 +502,11 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
             5. <b>Data Uniqueness (15%)</b>: Duplicate detection and handling<br/>
             6. <b>Data Validity (10%)</b>: Schema compliance and type correctness<br/><br/>
             <b>Rating Scale:</b><br/>
-            • 90-100: ⭐⭐⭐⭐⭐ Excellent - Production Ready<br/>
-            • 80-89: ⭐⭐⭐⭐ Good - Minor improvements recommended<br/>
-            • 70-79: ⭐⭐⭐ Acceptable - Some issues to address<br/>
-            • 60-69: ⭐⭐ Fair - Significant improvements needed<br/>
-            • 0-59: ⭐ Poor - Major data quality issues
+            • 90-100: [5 STARS] Excellent - Production Ready<br/>
+            • 80-89: [4 STARS] Good - Minor improvements recommended<br/>
+            • 70-79: [3 STARS] Acceptable - Some issues to address<br/>
+            • 60-69: [2 STARS] Fair - Significant improvements needed<br/>
+            • 0-59: [1 STAR] Poor - Major data quality issues
             """
         else:
             methodology_text = """
@@ -458,11 +519,11 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
             5. <b>Tính duy nhất (15%)</b>: Phát hiện và xử lý trùng lặp<br/>
             6. <b>Tính hợp lệ (10%)</b>: Tuân thủ schema và đúng kiểu dữ liệu<br/><br/>
             <b>Thang đánh giá:</b><br/>
-            • 90-100: ⭐⭐⭐⭐⭐ Xuất sắc - Sẵn sàng triển khai<br/>
-            • 80-89: ⭐⭐⭐⭐ Tốt - Cần cải thiện nhỏ<br/>
-            • 70-79: ⭐⭐⭐ Chấp nhận được - Một số vấn đề cần giải quyết<br/>
-            • 60-69: ⭐⭐ Khá - Cần cải thiện đáng kể<br/>
-            • 0-59: ⭐ Kém - Vấn đề chất lượng dữ liệu nghiêm trọng
+            • 90-100: [5 SAO] Xuất sắc - Sẵn sàng triển khai<br/>
+            • 80-89: [4 SAO] Tốt - Cần cải thiện nhỏ<br/>
+            • 70-79: [3 SAO] Chấp nhận được - Một số vấn đề cần giải quyết<br/>
+            • 60-69: [2 SAO] Khá - Cần cải thiện đáng kể<br/>
+            • 0-59: [1 SAO] Kém - Vấn đề chất lượng dữ liệu nghiêm trọng
             """
 
         content.append(Paragraph(methodology_text, normal_style))
