@@ -113,11 +113,19 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
         content.append(subtitle)
         content.append(Spacer(1, 0.3*inch))
         
-        # Report metadata
+        # Report metadata (⭐ Enhanced with dataset profile)
+        # Calculate dataset metrics
+        num_rows = len(df)
+        num_cols = len(df.columns)
+        num_numeric = len(df.select_dtypes(include=['number']).columns)
+        completeness = (1 - df.isnull().sum().sum() / (num_rows * num_cols)) * 100
+
         metadata_data = [
             ["Report Date" if lang == "en" else "Ngày báo cáo", datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
             ["Domain" if lang == "en" else "Ngành nghề", result['domain_info']['domain_name']],
             ["Expert Perspective" if lang == "en" else "Góc nhìn chuyên gia", result['domain_info']['expert_role'][:60]],
+            ["Dataset Size" if lang == "en" else "Kích thước dữ liệu", f"{num_rows:,} rows × {num_cols:,} columns ({num_numeric:,} numeric)"],
+            ["Data Completeness" if lang == "en" else "Độ đầy đủ dữ liệu", f"{completeness:.1f}%"],
             ["Processing Time" if lang == "en" else "Thời gian xử lý", f"{result['performance']['total']:.1f}s"],
             ["Quality Score" if lang == "en" else "Điểm chất lượng", f"{result['quality_scores']['overall']:.0f}/100"]
         ]
@@ -145,20 +153,33 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
         
         # Key KPIs
         content.append(Paragraph("📈 Key Performance Indicators" if lang == "en" else "📈 Chỉ Số Hiệu Suất Chính", heading_style))
-        
+
         kpis = result['dashboard'].get('kpis', {})
         if kpis:
-            kpi_data = [["KPI", "Value" if lang == "en" else "Giá trị", "Status" if lang == "en" else "Trạng thái", "Benchmark" if lang == "en" else "Chuẩn"]]
-            
+            # ⭐ Updated to include benchmark source (addresses real user feedback)
+            kpi_data = [[
+                "KPI",
+                "Value" if lang == "en" else "Giá trị",
+                "Status" if lang == "en" else "Trạng thái",
+                "Benchmark" if lang == "en" else "Chuẩn",
+                "Source" if lang == "en" else "Nguồn"
+            ]]
+
             for kpi_name, kpi_info in list(kpis.items())[:10]:  # Top 10 KPIs
+                # Truncate long source names to fit in table
+                source = kpi_info.get('benchmark_source', 'Industry Standard')
+                if len(source) > 30:
+                    source = source[:27] + "..."
+
                 kpi_data.append([
                     kpi_name,
                     f"{kpi_info['value']:.1f}",
                     kpi_info.get('status', 'N/A'),
-                    str(kpi_info.get('benchmark', 'N/A'))
+                    str(kpi_info.get('benchmark', 'N/A')),
+                    source
                 ])
-            
-            kpi_table = Table(kpi_data, colWidths=[2*inch, 1.5*inch, 1.5*inch, 1.5*inch])
+
+            kpi_table = Table(kpi_data, colWidths=[1.8*inch, 1*inch, 1*inch, 1*inch, 1.7*inch])
             kpi_table.setStyle(TableStyle([
                 ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1E40AF')),
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
@@ -173,7 +194,15 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
             ]))
             
             content.append(kpi_table)
-        
+
+            # ⭐ Add KPI Status legend for clarity (addresses real user feedback)
+            content.append(Spacer(1, 0.15*inch))
+            if lang == "en":
+                status_note = "<i><font size=8>Status Guide: ✅ Above = +10% vs benchmark | ➡️ Competitive = ±10% | ⚠️ Below = -10% vs benchmark. Note: Lower is better for costs/time.</font></i>"
+            else:
+                status_note = "<i><font size=8>Hướng dẫn Trạng thái: ✅ Trên chuẩn = +10% so với benchmark | ➡️ Cạnh tranh = ±10% | ⚠️ Dưới chuẩn = -10% so với benchmark. Lưu ý: Thấp hơn tốt hơn cho chi phí/thời gian.</font></i>"
+            content.append(Paragraph(status_note, normal_style))
+
         content.append(Spacer(1, 0.3*inch))
         
         # Key Insights
@@ -395,7 +424,50 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
             print(f"⚠️  Warning: {total_charts - charts_exported} chart(s) failed to export")
         elif charts_exported == total_charts and total_charts > 0:
             print(f"✅ Success: All {total_charts} charts exported successfully!")
-        
+
+        # ⭐ NEW: Quality Score Methodology (addresses real user feedback for transparency)
+        content.append(PageBreak())
+        content.append(Paragraph("📊 Appendix: Quality Score Methodology" if lang == "en" else "📊 Phụ lục: Phương pháp tính Quality Score", heading_style))
+        content.append(Spacer(1, 0.2*inch))
+
+        if lang == "en":
+            methodology_text = """
+            <b>Based on ISO 8000 Data Quality Standards</b><br/><br/>
+            Our Quality Score (0-100) evaluates data across 6 key dimensions:<br/><br/>
+            1. <b>Data Completeness (20%)</b>: Percentage of non-null values<br/>
+            2. <b>Data Consistency (20%)</b>: Format consistency across columns<br/>
+            3. <b>Data Accuracy (20%)</b>: Valid ranges and business rules compliance<br/>
+            4. <b>Data Timeliness (15%)</b>: Recency and update frequency<br/>
+            5. <b>Data Uniqueness (15%)</b>: Duplicate detection and handling<br/>
+            6. <b>Data Validity (10%)</b>: Schema compliance and type correctness<br/><br/>
+            <b>Rating Scale:</b><br/>
+            • 90-100: ⭐⭐⭐⭐⭐ Excellent - Production Ready<br/>
+            • 80-89: ⭐⭐⭐⭐ Good - Minor improvements recommended<br/>
+            • 70-79: ⭐⭐⭐ Acceptable - Some issues to address<br/>
+            • 60-69: ⭐⭐ Fair - Significant improvements needed<br/>
+            • 0-59: ⭐ Poor - Major data quality issues
+            """
+        else:
+            methodology_text = """
+            <b>Dựa trên Tiêu chuẩn Chất lượng Dữ liệu ISO 8000</b><br/><br/>
+            Quality Score của chúng tôi (0-100) đánh giá dữ liệu qua 6 tiêu chí chính:<br/><br/>
+            1. <b>Độ đầy đủ dữ liệu (20%)</b>: Phần trăm giá trị không null<br/>
+            2. <b>Độ nhất quán dữ liệu (20%)</b>: Tính nhất quán định dạng giữa các cột<br/>
+            3. <b>Độ chính xác dữ liệu (20%)</b>: Tuân thủ phạm vi hợp lệ và quy tắc nghiệp vụ<br/>
+            4. <b>Tính kịp thời (15%)</b>: Độ mới và tần suất cập nhật<br/>
+            5. <b>Tính duy nhất (15%)</b>: Phát hiện và xử lý trùng lặp<br/>
+            6. <b>Tính hợp lệ (10%)</b>: Tuân thủ schema và đúng kiểu dữ liệu<br/><br/>
+            <b>Thang đánh giá:</b><br/>
+            • 90-100: ⭐⭐⭐⭐⭐ Xuất sắc - Sẵn sàng triển khai<br/>
+            • 80-89: ⭐⭐⭐⭐ Tốt - Cần cải thiện nhỏ<br/>
+            • 70-79: ⭐⭐⭐ Chấp nhận được - Một số vấn đề cần giải quyết<br/>
+            • 60-69: ⭐⭐ Khá - Cần cải thiện đáng kể<br/>
+            • 0-59: ⭐ Kém - Vấn đề chất lượng dữ liệu nghiêm trọng
+            """
+
+        content.append(Paragraph(methodology_text, normal_style))
+        content.append(Spacer(1, 0.3*inch))
+
         # Footer
         content.append(Spacer(1, 0.5*inch))
         footer_style = ParagraphStyle('Footer', parent=normal_style, fontSize=8, textColor=colors.grey, alignment=TA_CENTER, fontName=base_font)
