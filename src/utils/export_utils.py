@@ -202,8 +202,11 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
 
         charts = result['dashboard']['charts']
         charts_exported = 0
+        total_charts = len(charts)
 
-        for i, chart in enumerate(charts[:6]):  # First 6 charts
+        print(f"📊 Starting chart export: {total_charts} charts to process")
+
+        for i, chart in enumerate(charts):  # Export ALL charts
             try:
                 # Add chart title
                 chart_title = chart.get('title', f'Chart {i+1}')
@@ -257,21 +260,63 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
                         ax = mpl_fig.add_subplot(111)
 
                         # Extract data from plotly figure
-                        # This is a simplified conversion - works for basic charts
-                        for trace in fig.data:
-                            if hasattr(trace, 'x') and hasattr(trace, 'y'):
-                                trace_type = trace.type if hasattr(trace, 'type') else 'scatter'
+                        # Enhanced conversion - supports more chart types
+                        for trace_idx, trace in enumerate(fig.data):
+                            trace_type = trace.type if hasattr(trace, 'type') else 'scatter'
+                            trace_name = trace.name if hasattr(trace, 'name') else None
 
+                            # Scatter/Line charts
+                            if hasattr(trace, 'x') and hasattr(trace, 'y'):
                                 if trace_type in ['scatter', 'scattergl']:
                                     mode = trace.mode if hasattr(trace, 'mode') else 'lines+markers'
                                     if 'lines' in mode:
-                                        ax.plot(trace.x, trace.y, label=trace.name if hasattr(trace, 'name') else None)
+                                        ax.plot(trace.x, trace.y, label=trace_name, marker='o' if 'markers' in mode else None)
                                     elif 'markers' in mode:
-                                        ax.scatter(trace.x, trace.y, label=trace.name if hasattr(trace, 'name') else None)
+                                        ax.scatter(trace.x, trace.y, label=trace_name)
+                                    else:
+                                        ax.plot(trace.x, trace.y, label=trace_name)
+
+                                # Bar charts
                                 elif trace_type == 'bar':
-                                    ax.bar(trace.x, trace.y, label=trace.name if hasattr(trace, 'name') else None)
+                                    # Handle grouped/stacked bars
+                                    if trace_idx == 0:
+                                        ax.bar(trace.x, trace.y, label=trace_name)
+                                    else:
+                                        ax.bar(trace.x, trace.y, label=trace_name, bottom=None)  # Will stack if multiple
+
+                                # Line charts
                                 elif trace_type == 'line':
-                                    ax.plot(trace.x, trace.y, label=trace.name if hasattr(trace, 'name') else None)
+                                    ax.plot(trace.x, trace.y, label=trace_name)
+
+                                # Histogram
+                                elif trace_type == 'histogram':
+                                    if hasattr(trace, 'x'):
+                                        ax.hist(trace.x, bins=20, label=trace_name, alpha=0.7)
+                                    elif hasattr(trace, 'y'):
+                                        ax.hist(trace.y, bins=20, label=trace_name, alpha=0.7, orientation='horizontal')
+
+                                # Box plot
+                                elif trace_type == 'box':
+                                    if hasattr(trace, 'y'):
+                                        ax.boxplot([trace.y], labels=[trace_name if trace_name else ''])
+
+                            # Pie chart (special case - no x/y)
+                            elif trace_type == 'pie':
+                                if hasattr(trace, 'labels') and hasattr(trace, 'values'):
+                                    ax.pie(trace.values, labels=trace.labels, autopct='%1.1f%%')
+                                    ax.axis('equal')  # Equal aspect ratio ensures circular pie
+
+                            # Heatmap (special case - 2D data)
+                            elif trace_type == 'heatmap':
+                                if hasattr(trace, 'z'):
+                                    im = ax.imshow(trace.z, cmap='viridis', aspect='auto')
+                                    if hasattr(trace, 'x'):
+                                        ax.set_xticks(range(len(trace.x)))
+                                        ax.set_xticklabels(trace.x, rotation=45)
+                                    if hasattr(trace, 'y'):
+                                        ax.set_yticks(range(len(trace.y)))
+                                        ax.set_yticklabels(trace.y)
+                                    plt.colorbar(im, ax=ax)
 
                         # Set labels from plotly layout
                         if fig.layout.title.text:
@@ -335,7 +380,11 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
                 print(f"❌ Error processing chart {i+1}: {str(e)}")
                 content.append(Paragraph(f"[Chart {i+1}: Processing failed - {str(e)[:100]}]", normal_style))
 
-        print(f"\n📊 Charts Export Summary: {charts_exported}/{min(len(charts), 6)} charts successfully exported")
+        print(f"\n📊 Charts Export Summary: {charts_exported}/{total_charts} charts successfully exported")
+        if charts_exported < total_charts:
+            print(f"⚠️  Warning: {total_charts - charts_exported} chart(s) failed to export")
+        elif charts_exported == total_charts and total_charts > 0:
+            print(f"✅ Success: All {total_charts} charts exported successfully!")
         
         # Footer
         content.append(Spacer(1, 0.5*inch))
