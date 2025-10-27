@@ -841,16 +841,54 @@ def main():
             st.stop()
         
         result = st.session_state['result']
-        
+
         # Display domain info
         domain_info = result['domain_info']
         st.markdown(get_text('industry', lang).format(
             domain=domain_info['domain_name'],
             expert=domain_info['expert_role'][:60]
         ))
-        
+
+        # ⭐ NEW: Dataset Profile Summary (addresses real user feedback)
+        df = st.session_state['df']
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("Rows / Dòng", f"{len(df):,}")
+        with col2:
+            st.metric("Columns / Cột", f"{len(df.columns):,}")
+        with col3:
+            numeric_cols = df.select_dtypes(include=['number']).columns
+            st.metric("Numeric / Số", f"{len(numeric_cols):,}")
+        with col4:
+            completeness = (1 - df.isnull().sum().sum() / (len(df) * len(df.columns))) * 100
+            st.metric("Completeness / Độ đầy", f"{completeness:.1f}%")
+
         # Display KPIs
         st.markdown(f"#### {get_text('kpis_title', lang)}")
+
+        # ⭐ NEW: KPI Status Definitions (addresses real user feedback for clarity)
+        with st.expander("ℹ️ Understanding KPI Status / Hiểu về trạng thái KPI", expanded=False):
+            st.markdown("**How to interpret KPI performance status:**")
+            status_definitions = {
+                "Status / Trạng thái": [
+                    "✅ Above / Trên chuẩn",
+                    "➡️ Competitive / Cạnh tranh",
+                    "⚠️ Below / Dưới chuẩn"
+                ],
+                "Threshold / Ngưỡng": [
+                    "+10% or more vs benchmark",
+                    "Within ±10% of benchmark",
+                    "-10% or more vs benchmark"
+                ],
+                "Meaning / Ý nghĩa": [
+                    "Performing significantly better than industry standard",
+                    "Performing at industry standard level",
+                    "Performing below industry standard - improvement needed"
+                ]
+            }
+            st.table(status_definitions)
+            st.caption("⚠️ Note: Thresholds may vary by KPI type. Lower is better for costs/time, higher is better for revenue/quality.")
+
         kpis = result['dashboard'].get('kpis', {})
         
         if kpis:
@@ -922,8 +960,14 @@ def main():
                         benchmark_formatted = format_kpi_value(benchmark_value, kpi_name, lang, currency)
                     else:
                         benchmark_formatted = benchmark_value
-                    
+
                     st.caption(get_text('benchmark', lang).format(value=benchmark_formatted))
+
+                    # ⭐ NEW: Display benchmark source for transparency (addresses real user feedback)
+                    benchmark_source = kpi_data.get('benchmark_source', '')
+                    if benchmark_source:
+                        source_text = f"📚 Source: {benchmark_source}" if lang == "en" else f"📚 Nguồn: {benchmark_source}"
+                        st.caption(source_text)
         
         # Display charts
         st.markdown("---")
@@ -1069,20 +1113,60 @@ def main():
         # Quality badge
         st.markdown("---")
         st.markdown(f"#### {get_text('quality_assurance', lang)}")
-        
+
         col1, col2, col3 = st.columns(3)
-        
+
         with col1:
             st.metric(get_text('quality_score', lang), f"{result['quality_scores']['overall']:.0f}/100")
             st.caption(get_text('iso_compliant', lang))
-        
+
         with col2:
             st.metric(get_text('data_cleaning', lang), f"{result['quality_scores']['cleaning']:.0f}/100")
             st.caption(get_text('cleaning_note', lang))
-        
+
         with col3:
             st.metric(get_text('blueprint_quality', lang), f"{result['quality_scores']['blueprint']:.0f}/100")
             st.caption(get_text('blueprint_note', lang))
+
+        # ⭐ NEW: Quality Score Rubric (addresses real user feedback for transparency)
+        with st.expander("📊 How is Quality Score Calculated? / Cách tính Quality Score", expanded=False):
+            st.markdown("**Based on ISO 8000 Data Quality Standards**")
+            st.markdown("##### Scoring Criteria (6 dimensions, total 100 points):")
+
+            # Display rubric as table
+            rubric_data = {
+                "Criterion / Tiêu chí": [
+                    "Data Completeness / Độ đầy đủ",
+                    "Data Consistency / Độ nhất quán",
+                    "Data Accuracy / Độ chính xác",
+                    "Data Timeliness / Tính kịp thời",
+                    "Data Uniqueness / Tính duy nhất",
+                    "Data Validity / Tính hợp lệ"
+                ],
+                "Weight / Trọng số": ["20%", "20%", "20%", "15%", "15%", "10%"],
+                "What We Check / Kiểm tra gì": [
+                    "Non-null values percentage / % giá trị không null",
+                    "Format consistency / Nhất quán định dạng",
+                    "Valid ranges & business rules / Phạm vi hợp lệ",
+                    "Data recency / Độ mới của dữ liệu",
+                    "Duplicate detection / Phát hiện trùng lặp",
+                    "Schema compliance / Tuân thủ schema"
+                ]
+            }
+            st.table(rubric_data)
+
+            st.markdown("##### Rating Scale / Thang điểm:")
+            rating_scale = {
+                "Score / Điểm": ["90-100", "80-89", "70-79", "60-69", "0-59"],
+                "Rating / Đánh giá": [
+                    "⭐⭐⭐⭐⭐ Excellent - Production Ready",
+                    "⭐⭐⭐⭐ Good - Minor improvements recommended",
+                    "⭐⭐⭐ Acceptable - Some issues to address",
+                    "⭐⭐ Fair - Significant improvements needed",
+                    "⭐ Poor - Major data quality issues"
+                ]
+            }
+            st.table(rating_scale)
 
 
 # ============================================

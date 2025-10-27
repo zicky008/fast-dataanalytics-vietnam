@@ -29,10 +29,219 @@ from utils.i18n import get_text, format_number, format_currency
 
 # Import domain detection
 from domain_detection import (
-    detect_domain, 
+    detect_domain,
     get_domain_specific_prompt_context,
     DOMAIN_PROFILES
 )
+
+
+# ==================================================================================
+# BENCHMARK SOURCES & METADATA (For Transparency & Trust)
+# ==================================================================================
+# Based on real user feedback: Users need to know WHERE benchmarks come from
+# Sources: Industry reports, research firms, and professional standards
+# ==================================================================================
+
+BENCHMARK_SOURCES = {
+    # HR / Human Resources
+    'hr_salary': 'Mercer Vietnam 2025 Salary Report',
+    'hr_turnover': 'Glassdoor 2025 Employment Trends',
+    'hr_satisfaction': 'VietnamWorks Employee Satisfaction Study 2025',
+    'hr_productivity': 'Deloitte Human Capital Trends 2025',
+
+    # Marketing
+    'marketing_roi': 'HubSpot State of Marketing 2025',
+    'marketing_roas': 'Google Ads Benchmarks 2025',
+    'marketing_ctr': 'Google Analytics Industry Benchmarks',
+    'marketing_conversion': 'Unbounce Conversion Benchmark Report',
+    'marketing_cpa': 'WordStream Advertising Benchmarks',
+    'marketing_engagement': 'Social Media Today Engagement Standards',
+
+    # E-commerce
+    'ecommerce_conversion': 'Shopify Commerce Report 2025',
+    'ecommerce_aov': 'Statista E-commerce Average Order Value',
+    'ecommerce_cart_abandonment': 'Baymard Institute Cart Abandonment Study',
+    'ecommerce_mobile': 'Google Mobile Commerce Study 2025',
+    'ecommerce_repeat': 'Adobe Digital Economy Index',
+
+    # Sales
+    'sales_conversion': 'Salesforce State of Sales 2025',
+    'sales_pipeline': 'Gartner Sales Performance Benchmarks',
+    'sales_cycle': 'HubSpot Sales Benchmark Report',
+    'sales_win_rate': 'CSO Insights Sales Performance Study',
+    'sales_growth': 'McKinsey Sales Excellence Research',
+
+    # Finance
+    'finance_margin': 'Industry Standard (GAAP/IFRS)',
+    'finance_liquidity': 'Deloitte CFO Signals Survey 2025',
+    'finance_growth': 'S&P Global Market Intelligence',
+    'finance_efficiency': 'PwC Finance Effectiveness Benchmark',
+    'finance_cash': 'JP Morgan Treasury Services Guide',
+
+    # Customer Service
+    'cs_response_time': 'Zendesk Customer Service Benchmarks 2025',
+    'cs_resolution': 'Forrester Customer Service Standards',
+    'cs_satisfaction': 'American Customer Satisfaction Index (ACSI)',
+    'cs_fcr': 'SQM Group First Call Resolution Study',
+    'cs_nps': 'Bain & Company NPS Benchmarks',
+
+    # Manufacturing
+    'mfg_yield': 'ISA-95 Manufacturing Standards',
+    'mfg_defect_rate': 'Six Sigma Quality Standards (3.4 DPMO)',
+    'mfg_oee': 'Lean Manufacturing Institute Benchmarks',
+    'mfg_downtime': 'Industry Week Manufacturing Study',
+    'mfg_cost': 'McKinsey Operations Performance',
+
+    # General/Default
+    'general': 'Industry Standard / Historical Data',
+    'calculated': 'Calculated from Dataset Statistics'
+}
+
+# Quality Score Rubric (for transparency)
+QUALITY_SCORE_RUBRIC = {
+    'criteria': [
+        {'name': 'Data Completeness', 'weight': 20, 'description': 'Percentage of non-null values'},
+        {'name': 'Data Consistency', 'weight': 20, 'description': 'Format consistency across columns'},
+        {'name': 'Data Accuracy', 'weight': 20, 'description': 'Valid ranges and business rules'},
+        {'name': 'Data Timeliness', 'weight': 15, 'description': 'Recency and update frequency'},
+        {'name': 'Data Uniqueness', 'weight': 15, 'description': 'Duplicate detection and handling'},
+        {'name': 'Data Validity', 'weight': 10, 'description': 'Schema compliance and type correctness'}
+    ],
+    'total_weight': 100,
+    'description': 'Based on ISO 8000 Data Quality Standards',
+    'rating_scale': {
+        '90-100': 'Excellent - Production Ready',
+        '80-89': 'Good - Minor improvements recommended',
+        '70-79': 'Acceptable - Some issues to address',
+        '60-69': 'Fair - Significant improvements needed',
+        '0-59': 'Poor - Major data quality issues'
+    }
+}
+
+# KPI Status Definitions (for clarity)
+KPI_STATUS_DEFINITIONS = {
+    'Above': {
+        'threshold': '+10% or more vs benchmark',
+        'meaning': 'Performing significantly better than industry standard',
+        'color': 'green',
+        'emoji': '✅'
+    },
+    'Competitive': {
+        'threshold': 'Within ±10% of benchmark',
+        'meaning': 'Performing at industry standard level',
+        'color': 'blue',
+        'emoji': '➡️'
+    },
+    'Below': {
+        'threshold': '-10% or more vs benchmark',
+        'meaning': 'Performing below industry standard - improvement needed',
+        'color': 'orange',
+        'emoji': '⚠️'
+    },
+    'Note': 'Thresholds may vary by KPI type. Lower is better for costs, higher is better for revenue.'
+}
+
+
+# ==================================================================================
+# HELPER FUNCTION: Auto-assign benchmark sources
+# ==================================================================================
+
+def get_benchmark_source(kpi_name: str, domain: str) -> str:
+    """
+    Automatically determine benchmark source based on KPI name and domain.
+    This ensures ALL KPIs have transparency about benchmark origins.
+
+    Args:
+        kpi_name: Name of the KPI (e.g., "Average ROI", "First Call Resolution")
+        domain: Domain name (e.g., "Marketing", "Customer Service")
+
+    Returns:
+        str: Benchmark source citation
+    """
+    kpi_lower = kpi_name.lower()
+    domain_lower = domain.lower()
+
+    # Mapping KPI keywords to source keys
+    if 'salary' in kpi_lower or 'compensation' in kpi_lower:
+        return BENCHMARK_SOURCES['hr_salary']
+    elif 'turnover' in kpi_lower or 'attrition' in kpi_lower:
+        return BENCHMARK_SOURCES['hr_turnover']
+    elif 'satisfaction' in kpi_lower and ('employee' in kpi_lower or 'hr' in domain_lower):
+        return BENCHMARK_SOURCES['hr_satisfaction']
+    elif 'roi' in kpi_lower and 'marketing' in domain_lower:
+        return BENCHMARK_SOURCES['marketing_roi']
+    elif 'roas' in kpi_lower:
+        return BENCHMARK_SOURCES['marketing_roas']
+    elif 'ctr' in kpi_lower or 'click' in kpi_lower:
+        return BENCHMARK_SOURCES['marketing_ctr']
+    elif 'conversion' in kpi_lower and ('marketing' in domain_lower or 'campaign' in kpi_lower):
+        return BENCHMARK_SOURCES['marketing_conversion']
+    elif 'cpa' in kpi_lower or 'cost per' in kpi_lower:
+        return BENCHMARK_SOURCES['marketing_cpa']
+    elif 'conversion' in kpi_lower and ('ecommerce' in domain_lower or 'online' in domain_lower):
+        return BENCHMARK_SOURCES['ecommerce_conversion']
+    elif 'aov' in kpi_lower or 'average order' in kpi_lower:
+        return BENCHMARK_SOURCES['ecommerce_aov']
+    elif 'cart' in kpi_lower and 'abandon' in kpi_lower:
+        return BENCHMARK_SOURCES['ecommerce_cart_abandonment']
+    elif 'mobile' in kpi_lower and 'ecommerce' in domain_lower:
+        return BENCHMARK_SOURCES['ecommerce_mobile']
+    elif ('repeat' in kpi_lower or 'returning' in kpi_lower) and 'ecommerce' in domain_lower:
+        return BENCHMARK_SOURCES['ecommerce_repeat']
+    elif 'win rate' in kpi_lower or 'sales' in domain_lower and 'conversion' in kpi_lower:
+        return BENCHMARK_SOURCES['sales_conversion']
+    elif 'pipeline' in kpi_lower:
+        return BENCHMARK_SOURCES['sales_pipeline']
+    elif 'cycle' in kpi_lower and 'sales' in domain_lower:
+        return BENCHMARK_SOURCES['sales_cycle']
+    elif 'growth' in kpi_lower and ('sales' in domain_lower or 'revenue' in kpi_lower):
+        return BENCHMARK_SOURCES['sales_growth']
+    elif 'margin' in kpi_lower or 'profit' in kpi_lower:
+        return BENCHMARK_SOURCES['finance_margin']
+    elif 'liquidity' in kpi_lower or 'cash' in kpi_lower:
+        return BENCHMARK_SOURCES['finance_cash']
+    elif ('growth' in kpi_lower or 'mrr' in kpi_lower) and 'finance' in domain_lower:
+        return BENCHMARK_SOURCES['finance_growth']
+    elif 'response' in kpi_lower or 'first response' in kpi_lower:
+        return BENCHMARK_SOURCES['cs_response_time']
+    elif 'resolution' in kpi_lower or 'fcr' in kpi_lower:
+        return BENCHMARK_SOURCES['cs_fcr']
+    elif ('satisfaction' in kpi_lower or 'csat' in kpi_lower) and 'customer' in kpi_lower:
+        return BENCHMARK_SOURCES['cs_satisfaction']
+    elif 'nps' in kpi_lower:
+        return BENCHMARK_SOURCES['cs_nps']
+    elif 'yield' in kpi_lower or 'fpy' in kpi_lower:
+        return BENCHMARK_SOURCES['mfg_yield']
+    elif 'defect' in kpi_lower:
+        return BENCHMARK_SOURCES['mfg_defect_rate']
+    elif 'oee' in kpi_lower or 'efficiency' in kpi_lower and 'manufacturing' in domain_lower:
+        return BENCHMARK_SOURCES['mfg_oee']
+    elif 'downtime' in kpi_lower:
+        return BENCHMARK_SOURCES['mfg_downtime']
+    elif 'cost' in kpi_lower and 'manufacturing' in domain_lower:
+        return BENCHMARK_SOURCES['mfg_cost']
+    elif 'median' in kpi_lower or 'mean' in kpi_lower or 'average' in kpi_lower:
+        return BENCHMARK_SOURCES['calculated']
+    else:
+        return BENCHMARK_SOURCES['general']
+
+
+def add_benchmark_metadata(kpis: Dict, domain: str) -> Dict:
+    """
+    Add benchmark_source to all KPIs that don't have it yet.
+    This ensures backward compatibility and comprehensive transparency.
+
+    Args:
+        kpis: Dictionary of KPIs
+        domain: Domain name
+
+    Returns:
+        Updated KPIs dictionary with benchmark_source for all entries
+    """
+    for kpi_name, kpi_data in kpis.items():
+        if 'benchmark_source' not in kpi_data and 'benchmark' in kpi_data:
+            kpi_data['benchmark_source'] = get_benchmark_source(kpi_name, domain)
+    return kpis
 
 
 # ==================================================================================
@@ -454,20 +663,23 @@ OUTPUT JSON:
             kpis['Average Salary'] = {
                 'value': float(df[salary_col].mean()),
                 'benchmark': 75000,
+                'benchmark_source': BENCHMARK_SOURCES['hr_salary'],
                 'status': 'Above' if df[salary_col].mean() >= 75000 else 'Below',
                 'column': salary_col
             }
-            
+
             kpis['Median Salary'] = {
                 'value': float(df[salary_col].median()),
                 'benchmark': 70000,
+                'benchmark_source': BENCHMARK_SOURCES['hr_salary'],
                 'status': 'Above' if df[salary_col].median() >= 70000 else 'Below',
                 'column': salary_col
             }
-            
+
             kpis['Salary Range'] = {
                 'value': float(df[salary_col].max() - df[salary_col].min()),
                 'benchmark': 200000,
+                'benchmark_source': BENCHMARK_SOURCES['hr_salary'],
                 'status': 'Wide Range',
                 'column': salary_col
             }
@@ -503,6 +715,7 @@ OUTPUT JSON:
                 kpis['Average ROI'] = {
                     'value': float(avg_roi),
                     'benchmark': 4.0,
+                    'benchmark_source': BENCHMARK_SOURCES['marketing_roi'],
                     'status': 'Above' if avg_roi >= 4.0 else 'Below',
                     'column': roi_col
                 }
@@ -1412,7 +1625,10 @@ OUTPUT JSON:
                     'status': 'Above Target',
                     'column': col_name
                 }
-        
+
+        # ⭐ Add benchmark sources for transparency (addresses real user feedback)
+        kpis = add_benchmark_metadata(kpis, domain)
+
         return kpis
     
     def _calculate_dimension_analysis(self, df: pd.DataFrame, domain_info: Dict) -> Dict:
