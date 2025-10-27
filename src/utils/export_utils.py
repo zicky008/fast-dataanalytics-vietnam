@@ -204,12 +204,22 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
         charts_exported = 0
         total_charts = len(charts)
 
-        print(f"📊 Starting chart export: {total_charts} charts to process")
+        print(f"\n{'='*80}")
+        print(f"📊 CHART EXPORT DEBUG INFO")
+        print(f"{'='*80}")
+        print(f"Total charts in dashboard: {total_charts}")
+        print(f"Starting export process...")
+        print(f"{'='*80}\n")
 
         for i, chart in enumerate(charts):  # Export ALL charts
+            print(f"\n--- Processing Chart {i+1}/{total_charts} ---")
             try:
                 # Add chart title
                 chart_title = chart.get('title', f'Chart {i+1}')
+                chart_type = chart.get('figure', {}).data[0].type if chart.get('figure') and chart.get('figure').data else 'unknown'
+                print(f"  Title: {chart_title}")
+                print(f"  Type: {chart_type}")
+
                 title_para = Paragraph(f"<b>{chart_title}</b>", normal_style)
                 content.append(title_para)
                 content.append(Spacer(1, 0.1*inch))
