@@ -2748,10 +2748,13 @@ NOTE: All text content MUST be written in English!
         
         try:
             insights = json.loads(result)
-            
+
+            # ⭐ Add tracking KPI recommendations for HR domain (based on real user feedback)
+            insights = self._add_tracking_kpi_recommendations(insights, domain_info, self.lang)
+
             # Display insights (compact)
             self._display_compact_insights(insights, domain_info)
-            
+
             return {
                 'success': True,
                 'insights': insights
@@ -2761,7 +2764,68 @@ NOTE: All text content MUST be written in English!
             return {'success': False, 'error': f"❌ Lỗi tạo insights: {str(e)}", 'insights': {}}
     
     # Helper methods
-    
+
+    def _add_tracking_kpi_recommendations(self, insights: Dict, domain_info: Dict, lang: str) -> Dict:
+        """
+        Add tracking KPI recommendations based on domain (e.g., eNPS, turnover rate for HR).
+        This ensures critical tracking metrics are always suggested to users.
+
+        Args:
+            insights: Generated insights dictionary
+            domain_info: Domain information
+            lang: Language code ('vi' or 'en')
+
+        Returns:
+            Enhanced insights with tracking recommendations
+        """
+        domain = domain_info.get('domain', '').lower()
+
+        # Only add for HR domain and if not too many recommendations already
+        if 'hr' in domain or 'nhân sự' in domain:
+            if 'recommendations' not in insights:
+                insights['recommendations'] = []
+
+            # Check if already have many recommendations
+            if len(insights['recommendations']) >= 5:
+                return insights  # Don't overwhelm user
+
+            # eNPS recommendation
+            if lang == 'vi':
+                enps_rec = {
+                    "action": "Triển khai khảo sát eNPS (Employee Net Promoter Score) định kỳ",
+                    "priority": "high",
+                    "expected_impact": "Theo dõi mức độ hài lòng nhân viên, dự đoán turnover sớm. Target: eNPS > 30 (Good), > 50 (Excellent)",
+                    "timeline": "short"
+                }
+                turnover_rec = {
+                    "action": "Thiết lập dashboard theo dõi Turnover Rate theo tháng",
+                    "priority": "high",
+                    "expected_impact": "Phát hiện xu hướng nghỉ việc sớm, giảm chi phí tuyển dụng. Target: Voluntary turnover < 10%/year",
+                    "timeline": "immediate"
+                }
+            else:
+                enps_rec = {
+                    "action": "Implement periodic eNPS (Employee Net Promoter Score) surveys",
+                    "priority": "high",
+                    "expected_impact": "Track employee satisfaction, predict turnover early. Target: eNPS > 30 (Good), > 50 (Excellent)",
+                    "timeline": "short"
+                }
+                turnover_rec = {
+                    "action": "Set up monthly Turnover Rate tracking dashboard",
+                    "priority": "high",
+                    "expected_impact": "Detect attrition trends early, reduce recruitment costs. Target: Voluntary turnover < 10%/year",
+                    "timeline": "immediate"
+                }
+
+            # Add only if not already present (check by action keywords)
+            existing_actions = [rec.get('action', '').lower() for rec in insights['recommendations']]
+            if not any('enps' in action or 'net promoter' in action for action in existing_actions):
+                insights['recommendations'].append(enps_rec)
+            if not any('turnover' in action or 'attrition' in action for action in existing_actions):
+                insights['recommendations'].append(turnover_rec)
+
+        return insights
+
     def _generate_ai_insight(self, prompt: str, temperature: float = 0.7, max_tokens: int = 4096) -> Tuple[bool, str]:
         """
         Generate AI insight with GUARANTEED JSON output

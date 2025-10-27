@@ -372,7 +372,34 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
                                     if 'lines' in mode:
                                         ax.plot(trace.x, trace.y, label=trace_name, marker='o' if 'markers' in mode else None)
                                     elif 'markers' in mode:
-                                        ax.scatter(trace.x, trace.y, label=trace_name)
+                                        ax.scatter(trace.x, trace.y, label=trace_name, alpha=0.6)
+
+                                        # Add trendline for scatter plots
+                                        try:
+                                            import numpy as np
+                                            x_numeric = [float(xi) for xi in trace.x if xi is not None]
+                                            y_numeric = [float(yi) for yi in trace.y if yi is not None]
+
+                                            if len(x_numeric) >= 2 and len(y_numeric) >= 2:
+                                                # Calculate linear regression
+                                                z = np.polyfit(x_numeric, y_numeric, 1)
+                                                p = np.poly1d(z)
+                                                ax.plot(x_numeric, p(x_numeric), "--", alpha=0.8, linewidth=2,
+                                                       label=f'Trendline (y={z[0]:.2f}x+{z[1]:.2f})')
+
+                                                # Calculate R²
+                                                y_pred = p(x_numeric)
+                                                ss_res = np.sum((y_numeric - y_pred) ** 2)
+                                                ss_tot = np.sum((y_numeric - np.mean(y_numeric)) ** 2)
+                                                r_squared = 1 - (ss_res / ss_tot) if ss_tot > 0 else 0
+
+                                                # Add R² annotation
+                                                ax.text(0.05, 0.95, f'R² = {r_squared:.3f}',
+                                                       transform=ax.transAxes, fontsize=10,
+                                                       verticalalignment='top',
+                                                       bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
+                                        except (ValueError, TypeError, ImportError):
+                                            pass  # Skip trendline if data not suitable
                                     else:
                                         ax.plot(trace.x, trace.y, label=trace_name)
 
@@ -380,9 +407,21 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
                                 elif trace_type == 'bar':
                                     # Handle grouped/stacked bars
                                     if trace_idx == 0:
-                                        ax.bar(trace.x, trace.y, label=trace_name)
+                                        bars = ax.bar(trace.x, trace.y, label=trace_name)
+                                        # Add value labels on top of bars
+                                        for bar in bars:
+                                            height = bar.get_height()
+                                            if height > 0:  # Only show positive values
+                                                ax.text(bar.get_x() + bar.get_width()/2., height,
+                                                       f'{height:.0f}',
+                                                       ha='center', va='bottom', fontsize=8)
                                     else:
                                         ax.bar(trace.x, trace.y, label=trace_name, bottom=None)  # Will stack if multiple
+
+                                    # Rotate x-axis labels if they're long (e.g., job titles)
+                                    if hasattr(trace, 'x') and len(trace.x) > 0:
+                                        if isinstance(trace.x[0], str) and len(str(trace.x[0])) > 10:
+                                            plt.setp(ax.get_xticklabels(), rotation=45, ha='right', fontsize=9)
 
                                 # Line charts
                                 elif trace_type == 'line':
@@ -403,7 +442,19 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
                             # Pie chart (special case - no x/y)
                             elif trace_type == 'pie':
                                 if hasattr(trace, 'labels') and hasattr(trace, 'values'):
-                                    ax.pie(trace.values, labels=trace.labels, autopct='%1.1f%%')
+                                    # Extract colors from Plotly trace if available
+                                    colors_list = None
+                                    if hasattr(trace, 'marker') and hasattr(trace.marker, 'colors'):
+                                        colors_list = trace.marker.colors
+
+                                    # Use colorful palette if no colors specified
+                                    if colors_list is None:
+                                        # Professional color palette
+                                        colors_list = ['#3498db', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6',
+                                                      '#1abc9c', '#34495e', '#e67e22', '#95a5a6', '#d35400']
+
+                                    ax.pie(trace.values, labels=trace.labels, autopct='%1.1f%%',
+                                          colors=colors_list, startangle=90)
                                     ax.axis('equal')  # Equal aspect ratio ensures circular pie
 
                             # Heatmap (special case - 2D data)
