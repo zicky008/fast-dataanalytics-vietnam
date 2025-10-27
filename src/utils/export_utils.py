@@ -8,6 +8,8 @@ import base64
 from datetime import datetime
 from typing import Dict, List, Any
 import plotly.graph_objects as go
+import os
+import tempfile
 
 
 def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
@@ -30,28 +32,70 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
         from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak, Image
         from reportlab.pdfgen import canvas
         from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
-        
+        from reportlab.pdfbase import pdfmetrics
+        from reportlab.pdfbase.ttfonts import TTFont
+
+        # Register Vietnamese-compatible font (DejaVu Sans supports Vietnamese)
+        try:
+            # Try system DejaVu fonts first (Linux)
+            dejavu_paths = [
+                '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
+                '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
+            ]
+
+            if os.path.exists(dejavu_paths[0]):
+                pdfmetrics.registerFont(TTFont('DejaVuSans', dejavu_paths[0]))
+                pdfmetrics.registerFont(TTFont('DejaVuSans-Bold', dejavu_paths[1]))
+                base_font = 'DejaVuSans'
+                bold_font = 'DejaVuSans-Bold'
+                print("✅ Vietnamese fonts loaded successfully")
+            else:
+                # Try without path (might be in reportlab's fonts)
+                try:
+                    pdfmetrics.registerFont(TTFont('DejaVuSans', 'DejaVuSans.ttf'))
+                    pdfmetrics.registerFont(TTFont('DejaVuSans-Bold', 'DejaVuSans-Bold.ttf'))
+                    base_font = 'DejaVuSans'
+                    bold_font = 'DejaVuSans-Bold'
+                    print("✅ Vietnamese fonts loaded from reportlab")
+                except:
+                    raise Exception("DejaVu fonts not found")
+        except Exception as font_error:
+            # Fallback to Helvetica if DejaVu not available (will have font issues with Vietnamese)
+            print(f"⚠️ Warning: DejaVu fonts not found ({font_error}). Vietnamese characters may not display correctly.")
+            print("   To fix: Install fonts with 'apt-get install fonts-dejavu' or 'yum install dejavu-sans-fonts'")
+            base_font = 'Helvetica'
+            bold_font = 'Helvetica-Bold'
+
         # Create PDF buffer
         buffer = io.BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=A4, topMargin=0.5*inch, bottomMargin=0.5*inch)
-        
+
         # Get styles
         styles = getSampleStyleSheet()
         title_style = ParagraphStyle(
             'CustomTitle',
             parent=styles['Heading1'],
+            fontName=bold_font,
             fontSize=24,
             textColor=colors.HexColor('#1E40AF'),
             spaceAfter=12,
             alignment=TA_CENTER
         )
-        
+
         heading_style = ParagraphStyle(
             'CustomHeading',
             parent=styles['Heading2'],
+            fontName=bold_font,
             fontSize=16,
             textColor=colors.HexColor('#1E40AF'),
             spaceAfter=10
+        )
+
+        normal_style = ParagraphStyle(
+            'CustomNormal',
+            parent=styles['Normal'],
+            fontName=base_font,
+            fontSize=10
         )
         
         # Build PDF content
@@ -60,11 +104,11 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
         # Title
         if lang == "vi":
             title = Paragraph("📊 BÁO CÁO PHÂN TÍCH DỮ LIỆU", title_style)
-            subtitle = Paragraph("DataAnalytics Vietnam - Professional Business Intelligence", styles['Normal'])
+            subtitle = Paragraph("DataAnalytics Vietnam - Professional Business Intelligence", normal_style)
         else:
             title = Paragraph("📊 DATA ANALYSIS REPORT", title_style)
-            subtitle = Paragraph("DataAnalytics Vietnam - Professional Business Intelligence", styles['Normal'])
-        
+            subtitle = Paragraph("DataAnalytics Vietnam - Professional Business Intelligence", normal_style)
+
         content.append(title)
         content.append(subtitle)
         content.append(Spacer(1, 0.3*inch))
@@ -83,7 +127,8 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
             ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#F8FAFC')),
             ('TEXTCOLOR', (0, 0), (-1, -1), colors.HexColor('#1E293B')),
             ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+            ('FONTNAME', (0, 0), (0, -1), bold_font),
+            ('FONTNAME', (0, 0), (-1, -1), base_font),
             ('FONTSIZE', (0, 0), (-1, -1), 10),
             ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
             ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#E2E8F0'))
@@ -95,7 +140,7 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
         # Executive Summary
         content.append(Paragraph("📋 Executive Summary" if lang == "en" else "📋 Tóm Tắt Điều Hành", heading_style))
         summary_text = result['insights'].get('executive_summary', 'No summary available')
-        content.append(Paragraph(summary_text, styles['Normal']))
+        content.append(Paragraph(summary_text, normal_style))
         content.append(Spacer(1, 0.3*inch))
         
         # Key KPIs
@@ -118,7 +163,8 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
                 ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1E40AF')),
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
                 ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTNAME', (0, 0), (-1, 0), bold_font),
+                ('FONTNAME', (0, 1), (-1, -1), base_font),
                 ('FONTSIZE', (0, 0), (-1, -1), 9),
                 ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
                 ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
@@ -132,46 +178,82 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
         
         # Key Insights
         content.append(Paragraph("🎯 Key Insights" if lang == "en" else "🎯 Insights Chính", heading_style))
-        
+
         for i, insight in enumerate(result['insights'].get('key_insights', [])[:5], 1):
             impact_emoji = "🔴" if insight['impact'] == 'high' else "🟡" if insight['impact'] == 'medium' else "🟢"
             insight_text = f"{impact_emoji} <b>{insight['title']}</b><br/>{insight['description']}"
-            content.append(Paragraph(insight_text, styles['Normal']))
+            content.append(Paragraph(insight_text, normal_style))
             content.append(Spacer(1, 0.15*inch))
-        
+
         content.append(PageBreak())
-        
+
         # Recommendations
         content.append(Paragraph("🚀 Recommendations" if lang == "en" else "🚀 Khuyến Nghị", heading_style))
-        
+
         for i, rec in enumerate(result['insights'].get('recommendations', [])[:5], 1):
             priority_emoji = "🔴" if rec['priority'] == 'high' else "🟡" if rec['priority'] == 'medium' else "🟢"
             rec_text = f"{priority_emoji} <b>[{rec['priority'].upper()}] {rec['action']}</b><br/>Expected Impact: {rec['expected_impact']}<br/>Timeline: {rec['timeline']}"
-            content.append(Paragraph(rec_text, styles['Normal']))
+            content.append(Paragraph(rec_text, normal_style))
             content.append(Spacer(1, 0.15*inch))
         
         # Charts (convert to images)
         content.append(PageBreak())
         content.append(Paragraph("📊 Visual Analysis" if lang == "en" else "📊 Phân Tích Trực Quan", heading_style))
-        
+
         charts = result['dashboard']['charts']
+        charts_exported = 0
+
         for i, chart in enumerate(charts[:6]):  # First 6 charts
             try:
-                # Convert Plotly chart to image
-                img_bytes = chart['figure'].to_image(format="png", width=700, height=400)
-                img = Image(io.BytesIO(img_bytes), width=6*inch, height=3.5*inch)
-                content.append(img)
-                content.append(Spacer(1, 0.2*inch))
-                
+                # Add chart title
+                chart_title = chart.get('title', f'Chart {i+1}')
+                title_para = Paragraph(f"<b>{chart_title}</b>", normal_style)
+                content.append(title_para)
+                content.append(Spacer(1, 0.1*inch))
+
+                # Convert Plotly chart to image using kaleido
+                fig = chart['figure']
+
+                # Try to export chart image
+                try:
+                    img_bytes = fig.to_image(format="png", width=800, height=450, engine="kaleido")
+                    img_stream = io.BytesIO(img_bytes)
+                    img = Image(img_stream, width=6.5*inch, height=3.6*inch)
+                    content.append(img)
+                    charts_exported += 1
+                    print(f"✅ Successfully exported chart {i+1}: {chart_title}")
+                except Exception as img_error:
+                    print(f"⚠️ Chart {i+1} export failed with kaleido: {str(img_error)}")
+                    # Try alternative method - save to temp file
+                    try:
+                        with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmp:
+                            fig.write_image(tmp.name, format='png', width=800, height=450)
+                            img = Image(tmp.name, width=6.5*inch, height=3.6*inch)
+                            content.append(img)
+                            charts_exported += 1
+                            os.unlink(tmp.name)
+                            print(f"✅ Successfully exported chart {i+1} (temp file method): {chart_title}")
+                    except Exception as alt_error:
+                        print(f"❌ Chart {i+1} failed both methods: {str(alt_error)}")
+                        error_msg = f"[Chart could not be exported: {str(img_error)[:100]}]"
+                        content.append(Paragraph(error_msg, normal_style))
+
+                content.append(Spacer(1, 0.3*inch))
+
                 if (i + 1) % 2 == 0 and i < len(charts) - 1:
                     content.append(PageBreak())
+
             except Exception as e:
-                content.append(Paragraph(f"[Chart {i+1}: Image generation failed]", styles['Normal']))
+                print(f"❌ Error processing chart {i+1}: {str(e)}")
+                content.append(Paragraph(f"[Chart {i+1}: Processing failed - {str(e)[:100]}]", normal_style))
+
+        print(f"\n📊 Charts Export Summary: {charts_exported}/{min(len(charts), 6)} charts successfully exported")
         
         # Footer
         content.append(Spacer(1, 0.5*inch))
+        footer_style = ParagraphStyle('Footer', parent=normal_style, fontSize=8, textColor=colors.grey, alignment=TA_CENTER, fontName=base_font)
         footer_text = "Generated by DataAnalytics Vietnam | www.dataanalytics.vn | ISO 8000 Compliant"
-        content.append(Paragraph(footer_text, ParagraphStyle('Footer', parent=styles['Normal'], fontSize=8, textColor=colors.grey, alignment=TA_CENTER)))
+        content.append(Paragraph(footer_text, footer_style))
         
         # Build PDF
         doc.build(content)
