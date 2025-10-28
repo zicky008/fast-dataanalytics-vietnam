@@ -198,6 +198,8 @@ def get_benchmark_source(kpi_name: str, domain: str) -> str:
         return BENCHMARK_SOURCES['marketing_ctr']
     elif 'conversion' in kpi_lower and ('marketing' in domain_lower or 'campaign' in kpi_lower):
         return BENCHMARK_SOURCES['marketing_conversion']
+    elif ('cost per unit' in kpi_lower or 'cost per product' in kpi_lower) and 'manufacturing' in domain_lower:
+        return BENCHMARK_SOURCES['mfg_cost']  # ✅ FIX #2: Manufacturing cost (not marketing CPA!)
     elif 'cpa' in kpi_lower or 'cost per' in kpi_lower:
         return BENCHMARK_SOURCES['marketing_cpa']
     elif 'conversion' in kpi_lower and ('ecommerce' in domain_lower or 'online' in domain_lower):
