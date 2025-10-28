@@ -36,6 +36,28 @@ from domain_detection import (
 
 
 # ==================================================================================
+# PROFESSIONAL COLOR PALETTES (ColorBrewer Standard)
+# ==================================================================================
+# Research-validated color palette for professional, accessible data visualization
+# Source: Tableau Research (derivative of ColorBrewer by Cynthia Brewer, Penn State)
+# Benefits: Colorblind-safe, print-friendly, perceptually balanced
+# Compliance: WCAG AA accessibility standards
+# ==================================================================================
+
+TABLEAU_10_COLORS = [
+    '#4E79A7',  # Blue (primary)
+    '#F28E2B',  # Orange
+    '#E15759',  # Red
+    '#76B7B2',  # Teal
+    '#59A14F',  # Green
+    '#EDC948',  # Yellow
+    '#B07AA1',  # Purple
+    '#FF9DA7',  # Pink
+    '#9C755F',  # Brown
+    '#BAB0AC'   # Gray
+]
+
+# ==================================================================================
 # BENCHMARK SOURCES & METADATA (For Transparency & Trust)
 # ==================================================================================
 # Based on real user feedback: Users need to know WHERE benchmarks come from
@@ -2606,31 +2628,104 @@ REMEMBER: Every chart MUST have x_axis and y_axis as actual column names from th
                     continue
                 
                 if chart_type == 'bar' and x_axis and y_axis:
-                    fig = px.bar(df_clean, x=x_axis, y=y_axis, title=chart_title)
-                    
+                    # ✅ ColorBrewer palette for professional, accessible charts
+                    fig = px.bar(
+                        df_clean,
+                        x=x_axis,
+                        y=y_axis,
+                        title=chart_title,
+                        color_discrete_sequence=TABLEAU_10_COLORS
+                    )
+
                     # Add benchmark line
                     if 'benchmark_line' in chart_spec:
                         fig.add_hline(
                             y=chart_spec['benchmark_line'],
                             line_dash="dash",
-                            line_color="red",
-                            annotation_text="Benchmark"
+                            line_color="#E15759",  # ColorBrewer red
+                            annotation_text="Benchmark",
+                            line_width=2
                         )
-                
+
                 elif chart_type == 'line' and x_axis and y_axis:
-                    fig = px.line(df_clean, x=x_axis, y=y_axis, title=chart_title)
-                
+                    # ✅ ColorBrewer palette
+                    fig = px.line(
+                        df_clean,
+                        x=x_axis,
+                        y=y_axis,
+                        title=chart_title,
+                        color_discrete_sequence=TABLEAU_10_COLORS
+                    )
+
                 elif chart_type == 'scatter' and x_axis and y_axis:
-                    fig = px.scatter(df_clean, x=x_axis, y=y_axis, title=chart_title)
-                
+                    # ✅ ColorBrewer palette
+                    fig = px.scatter(
+                        df_clean,
+                        x=x_axis,
+                        y=y_axis,
+                        title=chart_title,
+                        color_discrete_sequence=TABLEAU_10_COLORS
+                    )
+
                 elif chart_type == 'pie' and x_axis and y_axis:
-                    fig = px.pie(df_clean, names=x_axis, values=y_axis, title=chart_title)
-                
+                    # ✅ ColorBrewer palette for pie charts
+                    fig = px.pie(
+                        df_clean,
+                        names=x_axis,
+                        values=y_axis,
+                        title=chart_title,
+                        color_discrete_sequence=TABLEAU_10_COLORS
+                    )
+
                 if fig:
+                    # ✅ Professional styling (Edward Tufte principles + WCAG AA compliance)
                     fig.update_layout(
-                        font=dict(size=12),
-                        title_font_size=16,
-                        showlegend=True
+                        # Typography: Clean, readable, high contrast
+                        font=dict(
+                            family='DejaVu Sans, Arial, sans-serif',
+                            size=11,
+                            color='#000000'  # WCAG AA: 4.5:1 contrast on white
+                        ),
+                        title_font=dict(
+                            size=14,
+                            color='#000000',
+                            family='DejaVu Sans, Arial, sans-serif'
+                        ),
+
+                        # Layout: Clean, minimal (Tufte: maximize data-ink ratio)
+                        plot_bgcolor='#FFFFFF',  # White background for print
+                        paper_bgcolor='#FFFFFF',
+                        showlegend=True,
+
+                        # Legend: Professional positioning
+                        legend=dict(
+                            font=dict(size=10),
+                            bgcolor='rgba(255, 255, 255, 0.9)',
+                            bordercolor='#CCCCCC',
+                            borderwidth=1
+                        ),
+
+                        # Margins: Balanced spacing
+                        margin=dict(l=60, r=40, t=60, b=60)
+                    )
+
+                    # ✅ Clean axes (Stephen Few: remove chartjunk)
+                    fig.update_xaxes(
+                        showgrid=False,  # Remove vertical gridlines (Tufte)
+                        showline=True,
+                        linewidth=1,
+                        linecolor='#CCCCCC',
+                        tickfont=dict(size=9, color='#333333')
+                    )
+
+                    fig.update_yaxes(
+                        showgrid=True,  # Horizontal gridlines help reading
+                        gridwidth=0.5,
+                        gridcolor='rgba(128, 128, 128, 0.2)',  # Subtle grid
+                        showline=True,
+                        linewidth=1,
+                        linecolor='#CCCCCC',
+                        tickfont=dict(size=9, color='#333333')
                     )
                     
                     charts.append({
