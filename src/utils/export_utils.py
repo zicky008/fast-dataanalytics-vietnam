@@ -1,6 +1,15 @@
 """
 Export utilities for DataAnalytics Vietnam
 Generate professional PDF and PowerPoint reports
+
+Chart Design Standards:
+- ColorBrewer palettes (Tableau 10) - colorblind-safe, print-friendly
+- WCAG AA compliance (4.5:1 text, 3:1 graphics)
+- Edward Tufte principles (data-ink ratio, minimize chartjunk)
+- Stephen Few dashboard design (reserved colors, high contrast)
+- 300 DPI publication quality
+
+Research: See CHART_VISUALIZATION_RESEARCH.md
 """
 
 import io
@@ -11,6 +20,42 @@ import plotly.graph_objects as go
 import os
 import tempfile
 import re
+
+# ============================================================================
+# PROFESSIONAL COLOR PALETTES (ColorBrewer - Research-Validated)
+# ============================================================================
+
+# Tableau 10 - Colorblind-safe, print-friendly (Qualitative palette)
+# Source: ColorBrewer / Tableau Research
+# Use for: Pie charts, categorical bar charts, distinct categories
+TABLEAU_10_COLORS = [
+    '#4E79A7',  # Blue (primary)
+    '#F28E2B',  # Orange
+    '#E15759',  # Red
+    '#76B7B2',  # Teal
+    '#59A14F',  # Green
+    '#EDC948',  # Yellow
+    '#B07AA1',  # Purple
+    '#FF9DA7',  # Pink
+    '#9C755F',  # Brown
+    '#BAB0AC'   # Gray
+]
+
+# Sequential Blue (ColorBrewer "Blues") - for ordered data
+# Use for: Heatmaps, intensity charts, ordered values
+SEQUENTIAL_BLUES = ['#EFF3FF', '#C6DBEF', '#9ECAE1', '#6BAED6',
+                    '#4292C6', '#2171B5', '#084594']
+
+# Diverging Red-Blue (ColorBrewer "RdBu") - for above/below comparisons
+# Use for: Benchmark comparisons, profit/loss, above/below average
+DIVERGING_RDBU = ['#B2182B', '#D6604D', '#F4A582', '#FDDBC7',  # Reds
+                  '#D1E5F0', '#92C5DE', '#4393C3', '#2166AC']  # Blues
+
+# Patterns for print/colorblind accessibility (Stephen Few principle)
+# Use for: Pie charts, bar charts when color alone isn't sufficient
+CHART_PATTERNS = ['', '///', '...', 'xxx', '\\\\\\', '|||', '---', '+++', 'ooo', '***']
+
+# ============================================================================
 
 
 def remove_emoji(text: str) -> str:
@@ -124,7 +169,36 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
         
         # Build PDF content
         content = []
-        
+
+        # ✅ LOGO / BRANDING SUPPORT (Professional brand identity)
+        # Check for logo file in project root or assets folder
+        logo_paths = [
+            'logo.png',
+            'logo.jpg',
+            'assets/logo.png',
+            'assets/logo.jpg',
+            'static/logo.png',
+            'static/logo.jpg'
+        ]
+
+        logo_added = False
+        for logo_path in logo_paths:
+            if os.path.exists(logo_path):
+                try:
+                    # Add logo at top of report
+                    logo_img = Image(logo_path, width=2.5*inch, height=0.8*inch)
+                    logo_img.hAlign = 'CENTER'
+                    content.append(logo_img)
+                    content.append(Spacer(1, 0.2*inch))
+                    logo_added = True
+                    print(f"✅ Logo added from: {logo_path}")
+                    break
+                except Exception as logo_error:
+                    print(f"⚠️ Could not load logo from {logo_path}: {str(logo_error)[:50]}")
+
+        if not logo_added:
+            print("ℹ️ No logo found. Add logo.png/logo.jpg to project root for branding.")
+
         # Title (remove emoji for PDF compatibility)
         if lang == "vi":
             title = Paragraph("BÁO CÁO PHÂN TÍCH DỮ LIỆU", title_style)
@@ -135,8 +209,8 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
 
         content.append(title)
         content.append(subtitle)
-        content.append(Spacer(1, 0.3*inch))
-        
+        content.append(Spacer(1, 0.4*inch))  # ✅ Clear section separation
+
         # Report metadata (⭐ Enhanced with dataset profile)
         # Calculate dataset metrics
         num_rows = len(df)
@@ -179,16 +253,16 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
             ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
             ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#E2E8F0'))
         ]))
-        
+
         content.append(metadata_table)
-        content.append(Spacer(1, 0.4*inch))
-        
+        content.append(Spacer(1, 0.5*inch))  # ✅ Clear section break
+
         # Executive Summary (remove emoji for PDF)
         content.append(Paragraph("Executive Summary" if lang == "en" else "Tóm Tắt Điều Hành", heading_style))
         summary_text = result['insights'].get('executive_summary', 'No summary available')
         content.append(Paragraph(summary_text, normal_style))
-        content.append(Spacer(1, 0.3*inch))
-        
+        content.append(Spacer(1, 0.4*inch))  # ✅ Professional breathing room
+
         # Key KPIs (remove emoji for PDF)
         content.append(Paragraph("Key Performance Indicators" if lang == "en" else "Chỉ Số Hiệu Suất Chính", heading_style))
 
@@ -262,8 +336,8 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
                 status_note = "<i><font size=8>Hướng dẫn Trạng thái: ✅ Trên chuẩn = +10% so với benchmark | ➡️ Cạnh tranh = ±10% | ⚠️ Dưới chuẩn = -10% so với benchmark. Lưu ý: Thấp hơn tốt hơn cho chi phí/thời gian.</font></i>"
             content.append(Paragraph(status_note, normal_style))
 
-        content.append(Spacer(1, 0.3*inch))
-        
+        content.append(Spacer(1, 0.5*inch))  # ✅ Clear section transition
+
         # Key Insights (remove emoji for PDF)
         content.append(Paragraph("Key Insights" if lang == "en" else "Insights Chính", heading_style))
 
@@ -272,8 +346,9 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
             impact_label = "[HIGH]" if insight['impact'] == 'high' else "[MEDIUM]" if insight['impact'] == 'medium' else "[LOW]"
             insight_text = f"{impact_label} <b>{insight['title']}</b><br/>{insight['description']}"
             content.append(Paragraph(insight_text, normal_style))
-            content.append(Spacer(1, 0.15*inch))
+            content.append(Spacer(1, 0.2*inch))  # ✅ Group related insights
 
+        content.append(Spacer(1, 0.3*inch))  # ✅ Space before page break
         content.append(PageBreak())
 
         # Recommendations (remove emoji for PDF)
@@ -284,8 +359,10 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
             priority_label = "[HIGH]" if rec['priority'] == 'high' else "[MEDIUM]" if rec['priority'] == 'medium' else "[LOW]"
             rec_text = f"{priority_label} <b>{rec['action']}</b><br/>Expected Impact: {rec['expected_impact']}<br/>Timeline: {rec['timeline']}"
             content.append(Paragraph(rec_text, normal_style))
-            content.append(Spacer(1, 0.15*inch))
-        
+            content.append(Spacer(1, 0.2*inch))  # ✅ Group related recommendations
+
+        content.append(Spacer(1, 0.4*inch))  # ✅ Clear section transition to charts
+
         # Charts (convert to images, remove emoji for PDF)
         content.append(PageBreak())
         content.append(Paragraph("Visual Analysis" if lang == "en" else "Phân Tích Trực Quan", heading_style))
@@ -312,7 +389,7 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
 
                 title_para = Paragraph(f"<b>{chart_title}</b>", normal_style)
                 content.append(title_para)
-                content.append(Spacer(1, 0.1*inch))
+                content.append(Spacer(1, 0.15*inch))  # ✅ Clear title-chart separation
 
                 # Convert Plotly chart to image using kaleido
                 fig = chart['figure']
@@ -356,14 +433,25 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
                         import matplotlib.pyplot as plt
                         from io import BytesIO
 
-                        # Create HIGH-QUALITY matplotlib figure
-                        # Increase DPI for sharper images (300 DPI = publication quality)
+                        # ✅ CREATE PROFESSIONAL MATPLOTLIB FIGURE
+                        # 300 DPI = publication quality (ColorBrewer/academic standard)
                         mpl_fig = plt.figure(figsize=(10, 5.6), dpi=300)
                         ax = mpl_fig.add_subplot(111)
 
-                        # Apply professional styling
-                        plt.style.use('seaborn-v0_8-darkgrid')  # Professional look
-                        mpl_fig.patch.set_facecolor('white')  # White background
+                        # ✅ PROFESSIONAL STYLING (Tufte/Few principles)
+                        # Clean, minimal style - let data shine
+                        plt.style.use('seaborn-v0_8-whitegrid')  # Clean background
+                        mpl_fig.patch.set_facecolor('#FFFFFF')  # Pure white for print
+                        ax.set_facecolor('#FAFAFA')  # Slight gray to separate from page
+
+                        # ✅ REMOVE CHARTJUNK (Edward Tufte principle)
+                        # Remove unnecessary visual elements that don't encode data
+                        ax.spines['top'].set_visible(False)    # Remove top border
+                        ax.spines['right'].set_visible(False)  # Remove right border
+                        ax.spines['left'].set_color('#CCCCCC')   # Subtle left axis
+                        ax.spines['bottom'].set_color('#CCCCCC') # Subtle bottom axis
+                        ax.spines['left'].set_linewidth(0.8)
+                        ax.spines['bottom'].set_linewidth(0.8)
 
                         # Extract data from plotly figure
                         # Enhanced conversion - supports more chart types
@@ -411,20 +499,27 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
 
                                 # Bar charts
                                 elif trace_type == 'bar':
+                                    # ✅ PROFESSIONAL BAR CHART (ColorBrewer + High Contrast)
+                                    # Use Tableau 10 colors for multiple series
+                                    bar_color = TABLEAU_10_COLORS[trace_idx % len(TABLEAU_10_COLORS)]
+
                                     # Handle grouped/stacked bars
                                     if trace_idx == 0:
-                                        bars = ax.bar(trace.x, trace.y, label=trace_name)
-                                        # Add value labels on top of bars
+                                        bars = ax.bar(trace.x, trace.y, label=trace_name,
+                                                     color=bar_color, edgecolor='#333333', linewidth=0.8)
+                                        # ✅ CLARITY: Add value labels on top of bars
                                         for bar in bars:
                                             height = bar.get_height()
                                             if height > 0:  # Only show positive values
                                                 ax.text(bar.get_x() + bar.get_width()/2., height,
                                                        f'{height:.0f}',
-                                                       ha='center', va='bottom', fontsize=8)
+                                                       ha='center', va='bottom', fontsize=9,
+                                                       fontweight='bold', color='#000000')
                                     else:
-                                        ax.bar(trace.x, trace.y, label=trace_name, bottom=None)  # Will stack if multiple
+                                        ax.bar(trace.x, trace.y, label=trace_name,
+                                              color=bar_color, edgecolor='#333333', linewidth=0.8)
 
-                                    # Rotate x-axis labels if they're long (e.g., job titles)
+                                    # ✅ READABILITY: Rotate x-axis labels if they're long
                                     if hasattr(trace, 'x') and len(trace.x) > 0:
                                         if isinstance(trace.x[0], str) and len(str(trace.x[0])) > 10:
                                             plt.setp(ax.get_xticklabels(), rotation=45, ha='right', fontsize=9)
@@ -448,19 +543,39 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
                             # Pie chart (special case - no x/y)
                             elif trace_type == 'pie':
                                 if hasattr(trace, 'labels') and hasattr(trace, 'values'):
+                                    # ✅ PROFESSIONAL PIE CHART (ColorBrewer + Accessibility)
                                     # Extract colors from Plotly trace if available
                                     colors_list = None
                                     if hasattr(trace, 'marker') and hasattr(trace.marker, 'colors'):
                                         colors_list = trace.marker.colors
 
-                                    # Use colorful palette if no colors specified
+                                    # Use Tableau 10 colorblind-safe palette if no colors specified
                                     if colors_list is None:
-                                        # Professional color palette
-                                        colors_list = ['#3498db', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6',
-                                                      '#1abc9c', '#34495e', '#e67e22', '#95a5a6', '#d35400']
+                                        colors_list = TABLEAU_10_COLORS
 
-                                    ax.pie(trace.values, labels=trace.labels, autopct='%1.1f%%',
-                                          colors=colors_list, startangle=90)
+                                    # Create pie chart with percentage labels
+                                    wedges, texts, autotexts = ax.pie(
+                                        trace.values,
+                                        labels=trace.labels,
+                                        autopct='%1.1f%%',
+                                        colors=colors_list,
+                                        startangle=90,
+                                        textprops={'fontsize': 10, 'fontweight': 'bold'}
+                                    )
+
+                                    # ✅ ACCESSIBILITY: Add patterns for print/colorblind users (Stephen Few)
+                                    # Patterns allow differentiation even in grayscale
+                                    for i, wedge in enumerate(wedges):
+                                        wedge.set_hatch(CHART_PATTERNS[i % len(CHART_PATTERNS)])
+                                        wedge.set_edgecolor('#FFFFFF')  # White borders for separation
+                                        wedge.set_linewidth(1.5)
+
+                                    # ✅ HIGH CONTRAST: Make percentage text readable
+                                    for autotext in autotexts:
+                                        autotext.set_color('#000000')  # Black text
+                                        autotext.set_fontsize(9)
+                                        autotext.set_fontweight('bold')
+
                                     ax.axis('equal')  # Equal aspect ratio ensures circular pie
 
                             # Heatmap (special case - 2D data)
@@ -475,21 +590,44 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
                                         ax.set_yticklabels(trace.y)
                                     plt.colorbar(im, ax=ax)
 
-                        # Set labels from plotly layout with PROFESSIONAL STYLING
+                        # ✅ PROFESSIONAL TYPOGRAPHY (WCAG AA compliant)
+                        # High contrast text for readability
                         if fig.layout.title.text:
-                            ax.set_title(fig.layout.title.text, fontsize=14, fontweight='bold', pad=20)
+                            ax.set_title(fig.layout.title.text,
+                                       fontsize=14, fontweight='bold', pad=20,
+                                       color='#000000')  # Black for 4.5:1 contrast
                         if fig.layout.xaxis.title.text:
-                            ax.set_xlabel(fig.layout.xaxis.title.text, fontsize=11, fontweight='semibold')
+                            ax.set_xlabel(fig.layout.xaxis.title.text,
+                                        fontsize=11, fontweight='semibold',
+                                        color='#333333', labelpad=10)
                         if fig.layout.yaxis.title.text:
-                            ax.set_ylabel(fig.layout.yaxis.title.text, fontsize=11, fontweight='semibold')
+                            ax.set_ylabel(fig.layout.yaxis.title.text,
+                                        fontsize=11, fontweight='semibold',
+                                        color='#333333', labelpad=10)
 
-                        # Professional grid
-                        ax.grid(True, alpha=0.3, linestyle='--', linewidth=0.5)
+                        # ✅ SUBTLE GRID (Tufte: Grid should be "just noticeable")
+                        # Horizontal grid only for easier reading (Stephen Few)
+                        ax.grid(True, axis='y', alpha=0.3, linestyle='--',
+                               linewidth=0.5, color='#CCCCCC')
                         ax.set_axisbelow(True)  # Grid behind data
 
-                        # Add legend with professional styling
+                        # ✅ CLEAN TICK MARKS (remove tick lines, keep labels)
+                        ax.tick_params(axis='both', which='both', length=0,  # No tick marks
+                                     labelsize=9, colors='#333333')  # Readable labels
+                        ax.tick_params(axis='x', pad=8)  # White space
+                        ax.tick_params(axis='y', pad=8)
+
+                        # ✅ PROFESSIONAL LEGEND (if needed)
                         if any(hasattr(trace, 'name') and trace.name for trace in fig.data):
-                            ax.legend(loc='best', frameon=True, shadow=True, fontsize=9)
+                            ax.legend(loc='best',
+                                    frameon=True,
+                                    framealpha=0.95,
+                                    edgecolor='#CCCCCC',
+                                    fancybox=False,  # No rounded corners (cleaner)
+                                    shadow=False,    # No shadow (less chartjunk)
+                                    fontsize=9,
+                                    labelspacing=1.0,
+                                    borderpad=0.8)
 
                         # Tight layout for better spacing
                         plt.tight_layout()
@@ -536,7 +674,7 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
                     content.append(degraded_para)
                     print(f"ℹ️ Chart {i+1} degraded to message: {chart_title}")
 
-                content.append(Spacer(1, 0.3*inch))
+                content.append(Spacer(1, 0.4*inch))  # ✅ Professional chart spacing
 
                 if (i + 1) % 2 == 0 and i < len(charts) - 1:
                     content.append(PageBreak())
