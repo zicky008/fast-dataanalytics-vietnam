@@ -1085,6 +1085,71 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
         content.append(Paragraph(methodology_text, normal_style))
         content.append(Spacer(1, 0.3*inch))
 
+        # ✅ FIX #13: Limitations and Disclaimers section (transparency & legal protection)
+        if lang == "en":
+            limitations_title = "Limitations and Disclaimers"
+            limitations_text = """
+            <b>Data Assumptions and Limitations:</b><br/><br/>
+            
+            1. <b>Data Quality Dependence</b>: Analysis quality directly depends on input data accuracy. 
+            Ensure source data is validated before using insights for critical decisions.<br/><br/>
+            
+            2. <b>Benchmark Approximations</b>: Industry benchmarks are estimates based on public research 
+            (McKinsey, Deloitte, WordStream, etc.) and may not reflect your specific market conditions. 
+            Local market variations should be considered.<br/><br/>
+            
+            3. <b>AI-Generated Insights</b>: Recommendations are AI-assisted and should be reviewed by 
+            domain experts before implementation. Human judgment remains essential for strategic decisions.<br/><br/>
+            
+            4. <b>Currency Assumptions</b>: Currency detection uses heuristic algorithms. Verify currency 
+            matches your data (VND vs USD) in the report header. Exchange rates are approximate.<br/><br/>
+            
+            5. <b>Temporal Scope</b>: Analysis reflects data from the specified date range only. 
+            Business conditions may have changed since data collection. Check 'Data Period' in metadata.<br/><br/>
+            
+            6. <b>Statistical Limitations</b>: Small sample sizes (< 30 rows) may produce unreliable 
+            insights. Quality score incorporates sample size considerations but use caution with limited data.<br/><br/>
+            
+            <b>Disclaimer:</b> This report is for informational purposes only. DataAnalytics Vietnam 
+            is not liable for business decisions made based on this analysis. Always validate findings 
+            with your team and industry experts before major investments or strategic changes.
+            """
+        else:
+            limitations_title = "Giới Hạn và Miễn Trừ Trách Nhiệm"
+            limitations_text = """
+            <b>Các Giả Định và Giới Hạn về Dữ Liệu:</b><br/><br/>
+            
+            1. <b>Phụ thuộc Chất lượng Dữ liệu</b>: Chất lượng phân tích phụ thuộc trực tiếp vào độ 
+            chính xác dữ liệu đầu vào. Đảm bảo dữ liệu nguồn được xác thực trước khi sử dụng insights 
+            cho quyết định quan trọng.<br/><br/>
+            
+            2. <b>Benchmark Ước lượng</b>: Các benchmark ngành là ước tính dựa trên nghiên cứu công khai 
+            (McKinsey, Deloitte, WordStream, v.v.) và có thể không phản ánh điều kiện thị trường cụ thể 
+            của bạn. Cần xem xét biến động thị trường địa phương.<br/><br/>
+            
+            3. <b>Insights do AI tạo</b>: Khuyến nghị được hỗ trợ bởi AI và nên được xem xét bởi chuyên 
+            gia lĩnh vực trước khi triển khai. Phán đoán của con người vẫn thiết yếu cho quyết định chiến lược.<br/><br/>
+            
+            4. <b>Giả định Tiền tệ</b>: Phát hiện tiền tệ sử dụng thuật toán heuristic. Xác minh tiền tệ 
+            khớp với dữ liệu của bạn (VND vs USD) trong header báo cáo. Tỷ giá là ước lượng.<br/><br/>
+            
+            5. <b>Phạm vi Thời gian</b>: Phân tích chỉ phản ánh dữ liệu từ khoảng thời gian được chỉ định. 
+            Điều kiện kinh doanh có thể đã thay đổi kể từ khi thu thập dữ liệu. Kiểm tra 'Chu kỳ dữ liệu' 
+            trong metadata.<br/><br/>
+            
+            6. <b>Giới hạn Thống kê</b>: Kích thước mẫu nhỏ (< 30 hàng) có thể tạo insights không đáng tin cậy. 
+            Quality score đã tính đến kích thước mẫu nhưng hãy thận trọng với dữ liệu hạn chế.<br/><br/>
+            
+            <b>Miễn trừ:</b> Báo cáo này chỉ mang tính chất thông tin. DataAnalytics Vietnam không chịu 
+            trách nhiệm cho các quyết định kinh doanh dựa trên phân tích này. Luôn xác thực các phát hiện 
+            với đội ngũ và chuyên gia ngành của bạn trước khi đầu tư lớn hoặc thay đổi chiến lược.
+            """
+        
+        content.append(Paragraph(limitations_title, heading_style))
+        content.append(Spacer(1, 0.15*inch))
+        content.append(Paragraph(limitations_text, normal_style))
+        content.append(Spacer(1, 0.3*inch))
+
         # ✅ FIX #12: Enhanced footer with version control metadata
         content.append(Spacer(1, 0.5*inch))
         footer_style = ParagraphStyle('Footer', parent=normal_style, fontSize=8, textColor=colors.grey, alignment=TA_CENTER, fontName=base_font)
