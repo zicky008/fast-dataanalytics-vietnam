@@ -469,6 +469,22 @@ class PremiumLeanPipeline:
             if is_streamlit_context():
                 progress_placeholder.success(get_text('pipeline_complete', self.lang, time=total_time))
             
+            # ✅ FIX #4: Comprehensive quality scoring with metadata validation
+            # Calculate base score (cleaning + blueprint) BEFORE creating return dict
+            base_cleaning_score = cleaning_result['quality_score']
+            base_blueprint_score = blueprint_result['quality_score']
+            base_overall = (base_cleaning_score + base_blueprint_score) / 2
+            
+            # Apply deductions for metadata/consistency issues (ISO 8000 compliance)
+            deductions = self._calculate_quality_deductions(
+                df=df,
+                kpis=dashboard_result.get('kpis', {}),
+                domain=self.pipeline_state['domain_info']['domain']
+            )
+            
+            # Final scores (capped at 0-100 range)
+            final_overall = max(0, min(100, base_overall - deductions['total']))
+            
             # Return complete result
             return {
                 'success': True,
@@ -478,22 +494,6 @@ class PremiumLeanPipeline:
                 'dashboard': dashboard_result,
                 'insights': insights_result['insights'],
                 'audit_trail': self.pipeline_state['audit_trail'],
-                # ✅ FIX #4: Comprehensive quality scoring with metadata validation
-                # Calculate base score (cleaning + blueprint)
-                base_cleaning_score = cleaning_result['quality_score']
-                base_blueprint_score = blueprint_result['quality_score']
-                base_overall = (base_cleaning_score + base_blueprint_score) / 2
-                
-                # Apply deductions for metadata/consistency issues (ISO 8000 compliance)
-                deductions = self._calculate_quality_deductions(
-                    df=df,
-                    kpis=dashboard_result.get('kpis', {}),
-                    domain=self.pipeline_state['domain_info']['domain']
-                )
-                
-                # Final scores (capped at 0-100 range)
-                final_overall = max(0, min(100, base_overall - deductions['total']))
-                
                 'quality_scores': {
                     'cleaning': base_cleaning_score,
                     'blueprint': base_blueprint_score,
