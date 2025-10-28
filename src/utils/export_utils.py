@@ -629,7 +629,46 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
         for i, rec in enumerate(result['insights'].get('recommendations', [])[:5], 1):
             # Use text labels instead of emoji for PDF compatibility
             priority_label = "[HIGH]" if rec['priority'] == 'high' else "[MEDIUM]" if rec['priority'] == 'medium' else "[LOW]"
-            rec_text = f"{priority_label} <b>{rec['action']}</b><br/>Expected Impact: {rec['expected_impact']}<br/>Timeline: {rec['timeline']}"
+            
+            # ✅ FIX #11: Determine responsible role based on action keywords and domain
+            responsible_role = rec.get('responsible', None)  # Check if already provided
+            if not responsible_role:
+                # Infer from action content and domain
+                action_lower = rec['action'].lower()
+                domain_lower = result['domain_info']['domain'].lower()
+                
+                if any(keyword in action_lower for keyword in ['budget', 'cost', 'financial', 'investment', 'roi', 'pricing']):
+                    responsible_role = "CFO / Finance Director"
+                elif any(keyword in action_lower for keyword in ['marketing', 'campaign', 'advertising', 'social media', 'brand', 'customer acquisition']):
+                    responsible_role = "CMO / Marketing Manager"
+                elif any(keyword in action_lower for keyword in ['hire', 'training', 'employee', 'hr', 'talent', 'compensation', 'culture']):
+                    responsible_role = "CHRO / HR Manager"
+                elif any(keyword in action_lower for keyword in ['production', 'manufacturing', 'quality', 'oee', 'process', 'equipment', 'downtime']):
+                    responsible_role = "COO / Operations Manager"
+                elif any(keyword in action_lower for keyword in ['technology', 'system', 'software', 'automation', 'digital', 'integration']):
+                    responsible_role = "CTO / IT Manager"
+                elif any(keyword in action_lower for keyword in ['sales', 'pipeline', 'lead', 'conversion', 'deal', 'revenue']):
+                    responsible_role = "VP Sales / Sales Manager"
+                elif any(keyword in action_lower for keyword in ['customer service', 'support', 'satisfaction', 'resolution', 'ticket']):
+                    responsible_role = "Customer Service Manager"
+                elif any(keyword in action_lower for keyword in ['data', 'analytics', 'dashboard', 'metric', 'tracking', 'reporting']):
+                    responsible_role = "Data Analyst / Business Intelligence"
+                else:
+                    # Default based on domain
+                    if 'manufacturing' in domain_lower:
+                        responsible_role = "Operations Manager"
+                    elif 'marketing' in domain_lower or 'advertising' in domain_lower:
+                        responsible_role = "Marketing Manager"
+                    elif 'hr' in domain_lower or 'human' in domain_lower:
+                        responsible_role = "HR Manager"
+                    elif 'finance' in domain_lower:
+                        responsible_role = "Finance Manager"
+                    elif 'sales' in domain_lower:
+                        responsible_role = "Sales Manager"
+                    else:
+                        responsible_role = "Department Head"
+            
+            rec_text = f"{priority_label} <b>{rec['action']}</b><br/>Expected Impact: {rec['expected_impact']}<br/>Timeline: {rec['timeline']}<br/><b>Responsible:</b> {responsible_role}"
             content.append(Paragraph(rec_text, normal_style))
             content.append(Spacer(1, 0.18*inch))  # ✅ Tight, professional spacing
 
