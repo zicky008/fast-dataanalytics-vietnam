@@ -81,6 +81,33 @@ def remove_emoji(text: str) -> str:
     return emoji_pattern.sub('', text).strip()
 
 
+def sanitize_text_for_pdf(text: str) -> str:
+    """
+    ✅ FIX #9: Sanitize text for PDF display - clean formatting issues
+    Removes emoji, fixes spacing, normalizes paths to forward slashes
+    
+    Args:
+        text: Input string that may have formatting issues
+    
+    Returns:
+        Clean string suitable for PDF display
+    """
+    if not isinstance(text, str):
+        text = str(text)
+    
+    # Remove emoji
+    text = remove_emoji(text)
+    
+    # ✅ FIX #9: Replace backslashes with forward slashes (for paths/filenames)
+    text = text.replace('\\', '/')
+    
+    # ✅ FIX #9: Fix spacing after special characters
+    text = text.replace('%)', '%) ')  # "OEE%)83" → "OEE%) 83"
+    text = text.replace('  ', ' ')  # Remove double spaces
+    
+    return text.strip()
+
+
 def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
     """
     Export analysis results to professional PDF report
@@ -380,6 +407,8 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
         # Executive Summary (remove emoji for PDF)
         content.append(Paragraph("Executive Summary" if lang == "en" else "Tóm Tắt Điều Hành", heading_style))
         summary_text = result['insights'].get('executive_summary', 'No summary available')
+        # ✅ FIX #9: Sanitize text for proper formatting
+        summary_text = sanitize_text_for_pdf(summary_text)
         content.append(Paragraph(summary_text, normal_style))
         content.append(Spacer(1, 0.4*inch))  # ✅ Professional breathing room
 
@@ -398,8 +427,10 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
             ]]
 
             for kpi_name, kpi_info in list(kpis.items())[:10]:  # Top 10 KPIs
-                # ✅ FIX #6: Clean KPI name - remove markdown symbols (##, ###, etc.)
+                # ✅ FIX #6 & #9: Clean KPI name - remove markdown and fix spacing
                 clean_kpi_name = kpi_name.replace('##', '').replace('###', '').replace('**', '').strip()
+                # ✅ FIX #9: Ensure proper spacing after percentage symbols
+                clean_kpi_name = clean_kpi_name.replace('%)', '%) ').replace('  ', ' ').strip()
                 
                 # ✅ FIX #3: NO truncation - show full source names for transparency & credibility
                 source = kpi_info.get('benchmark_source', 'Industry Standard')
@@ -582,7 +613,10 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
         for i, insight in enumerate(result['insights'].get('key_insights', [])[:5], 1):
             # Use text labels instead of emoji for PDF compatibility
             impact_label = "[HIGH]" if insight['impact'] == 'high' else "[MEDIUM]" if insight['impact'] == 'medium' else "[LOW]"
-            insight_text = f"{impact_label} <b>{insight['title']}</b><br/>{insight['description']}"
+            # ✅ FIX #9: Sanitize insight text
+            title_clean = sanitize_text_for_pdf(insight['title'])
+            desc_clean = sanitize_text_for_pdf(insight['description'])
+            insight_text = f"{impact_label} <b>{title_clean}</b><br/>{desc_clean}"
             content.append(Paragraph(insight_text, normal_style))
             content.append(Spacer(1, 0.18*inch))  # ✅ Tight, professional spacing
 
