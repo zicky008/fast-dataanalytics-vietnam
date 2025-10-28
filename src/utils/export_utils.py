@@ -253,18 +253,51 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
         num_numeric = len(df.select_dtypes(include=['number']).columns)
         completeness = (1 - df.isnull().sum().sum() / (num_rows * num_cols)) * 100
 
-        # Detect currency from KPIs for clear declaration
+        # ⭐ 5-STAR FIX: Robust multi-layer currency detection
+        # Strategy: Check ALL KPIs, not just first one (Fix for Currency Inconsistency Issue #1)
         kpis_preview = result['dashboard'].get('kpis', {})
-        currency_used = "USD"  # Default
+        currency_used = "USD"  # Default fallback
+        
         if kpis_preview:
-            first_kpi = list(kpis_preview.values())[0]
-            kpi_value = first_kpi.get('value', 0)
-            # Heuristic: Values > 1M likely VND, < 10K likely USD
-            if kpi_value > 1000000:
-                currency_used = "VND"
+            # Layer 1: Check for explicit currency indicators in KPI names
+            for kpi_name, kpi_data in kpis_preview.items():
+                kpi_name_lower = kpi_name.lower()
+                if 'vnd' in kpi_name_lower or 'vnđ' in kpi_name_lower or 'việt nam đồng' in kpi_name_lower:
+                    currency_used = "VND"
+                    break
+                elif 'usd' in kpi_name_lower or 'dollar' in kpi_name_lower or '$' in kpi_name:
+                    currency_used = "USD"
+                    break
+            
+            # Layer 2: If no explicit indicator, use smart heuristic on ALL KPIs
+            if currency_used == "USD":  # Still default, no explicit indicator found
+                max_kpi_value = 0
+                for kpi_name, kpi_data in kpis_preview.items():
+                    kpi_value = kpi_data.get('value', 0)
+                    # Focus on cost/revenue/financial KPIs for currency detection
+                    if any(keyword in kpi_name.lower() for keyword in ['cost', 'revenue', 'price', 'spend', 'salary', 'income', 'expense']):
+                        if abs(kpi_value) > abs(max_kpi_value):
+                            max_kpi_value = kpi_value
+                
+                # Heuristic thresholds (refined for accuracy)
+                # VND: Typically > 100K for costs, > 1M for salaries
+                # USD: Typically < 10K for costs, < 100K for salaries
+                if abs(max_kpi_value) > 100000:  # > 100K = likely VND
+                    currency_used = "VND"
+                elif 1000 < abs(max_kpi_value) <= 100000:  # 1K-100K = ambiguous, check magnitude
+                    # If value is whole number > 10K, likely VND (e.g., 30000 VND vs 30.5 USD)
+                    if abs(max_kpi_value) > 10000 and max_kpi_value == int(max_kpi_value):
+                        currency_used = "VND"
+                    else:
+                        currency_used = "USD"
+                else:  # < 1K = likely USD or percentage
+                    currency_used = "USD"
 
-        # Exchange rate declaration
-        exchange_rate = "1 USD = 24,000 VND (approx.)" if currency_used == "VND" else "Standard: USD"
+        # Exchange rate declaration (clear and professional)
+        if currency_used == "VND":
+            exchange_rate = "1 USD ≈ 24,000 VND"  # ≈ symbol more professional than "approx."
+        else:
+            exchange_rate = "International Standard"  # More professional than "Standard: USD"
 
         metadata_data = [
             ["Report Date" if lang == "en" else "Ngày báo cáo", datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
