@@ -398,6 +398,9 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
             ]]
 
             for kpi_name, kpi_info in list(kpis.items())[:10]:  # Top 10 KPIs
+                # ✅ FIX #6: Clean KPI name - remove markdown symbols (##, ###, etc.)
+                clean_kpi_name = kpi_name.replace('##', '').replace('###', '').replace('**', '').strip()
+                
                 # ✅ FIX #3: NO truncation - show full source names for transparency & credibility
                 source = kpi_info.get('benchmark_source', 'Industry Standard')
                 # Source will wrap in table cell (WORDWRAP enabled below)
@@ -413,13 +416,30 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
                 if 'salary' in kpi_name.lower() or 'compensation' in kpi_name.lower():
                     formatted_value += f" {currency_used}/year"
 
-                # Format benchmark similarly
+                # ✅ FIX #6: Enhanced benchmark formatting with context
                 benchmark = kpi_info.get('benchmark', 'N/A')
                 if benchmark != 'N/A' and isinstance(benchmark, (int, float)):
+                    # Add target indicator for clarity
+                    status = kpi_info.get('status', 'N/A')
+                    target_symbol = ""
+                    
+                    # Determine if higher or lower is better based on KPI context
+                    kpi_lower = clean_kpi_name.lower()
+                    if any(keyword in kpi_lower for keyword in ['cost', 'expense', 'defect', 'downtime', 'error', 'reject']):
+                        # Lower is better
+                        target_symbol = "≤" if status in ['Below', 'Good'] else ">"
+                    elif any(keyword in kpi_lower for keyword in ['revenue', 'profit', 'efficiency', 'yield', 'quality', 'conversion', 'roi', 'roas']):
+                        # Higher is better
+                        target_symbol = "≥" if status in ['Above', 'Good'] else "<"
+                    
+                    # Format number with thousands separator
                     if benchmark >= 1000:
-                        formatted_benchmark = f"{benchmark:,.0f}"
+                        formatted_benchmark = f"{target_symbol} {benchmark:,.0f}".strip()
                     else:
-                        formatted_benchmark = f"{benchmark:.1f}"
+                        formatted_benchmark = f"{target_symbol} {benchmark:.1f}".strip()
+                    
+                    # Clean up if no symbol determined
+                    formatted_benchmark = formatted_benchmark.strip()
                 else:
                     formatted_benchmark = str(benchmark)
 
@@ -428,10 +448,10 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
                 source_paragraph = Paragraph(source, normal_style) if len(source) > 25 else source
                 
                 kpi_data.append([
-                    kpi_name,
+                    clean_kpi_name,  # ✅ FIX #6: Clean name without markdown
                     formatted_value,
                     kpi_info.get('status', 'N/A'),
-                    formatted_benchmark,
+                    formatted_benchmark,  # ✅ FIX #6: Enhanced with target indicators
                     source_paragraph  # ✅ Full source with word wrap
                 ])
 
