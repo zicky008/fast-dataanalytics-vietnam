@@ -346,10 +346,9 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
             ]]
 
             for kpi_name, kpi_info in list(kpis.items())[:10]:  # Top 10 KPIs
-                # Truncate long source names to fit in table
+                # ✅ FIX #3: NO truncation - show full source names for transparency & credibility
                 source = kpi_info.get('benchmark_source', 'Industry Standard')
-                if len(source) > 30:
-                    source = source[:27] + "..."
+                # Source will wrap in table cell (WORDWRAP enabled below)
 
                 # Format value with thousand separators
                 value = kpi_info['value']
@@ -372,15 +371,22 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
                 else:
                     formatted_benchmark = str(benchmark)
 
+                # ✅ FIX #3: Wrap source in Paragraph for automatic word wrapping
+                from reportlab.platypus import Paragraph
+                source_paragraph = Paragraph(source, normal_style) if len(source) > 25 else source
+                
                 kpi_data.append([
                     kpi_name,
                     formatted_value,
                     kpi_info.get('status', 'N/A'),
                     formatted_benchmark,
-                    source
+                    source_paragraph  # ✅ Full source with word wrap
                 ])
 
-            kpi_table = Table(kpi_data, colWidths=[1.8*inch, 1*inch, 1*inch, 1*inch, 1.7*inch])
+            # ✅ FIX #3: Optimized column widths for full source names
+            # KPI: 1.6" (reduced), Value: 0.9", Status: 0.9", Benchmark: 0.9", Source: 2.2" (increased)
+            # Total: 6.5" (fits standard page width with margins)
+            kpi_table = Table(kpi_data, colWidths=[1.6*inch, 0.9*inch, 0.9*inch, 0.9*inch, 2.2*inch])
             kpi_table.setStyle(TableStyle([
                 ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1E40AF')),
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
@@ -391,7 +397,11 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
                 ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
                 ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
                 ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#E2E8F0')),
-                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#F8FAFC')])
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#F8FAFC')]),
+                # ✅ FIX #3: Enable word wrap and top alignment for Source column (column 4)
+                ('VALIGN', (4, 0), (4, -1), 'TOP'),  # Top-align for readability
+                ('LEFTPADDING', (4, 1), (4, -1), 6),  # Left padding for long text
+                ('RIGHTPADDING', (4, 1), (4, -1), 6),
             ]))
             
             content.append(kpi_table)
