@@ -478,10 +478,28 @@ class PremiumLeanPipeline:
                 'dashboard': dashboard_result,
                 'insights': insights_result['insights'],
                 'audit_trail': self.pipeline_state['audit_trail'],
+                # ✅ FIX #4: Comprehensive quality scoring with metadata validation
+                # Calculate base score (cleaning + blueprint)
+                base_cleaning_score = cleaning_result['quality_score']
+                base_blueprint_score = blueprint_result['quality_score']
+                base_overall = (base_cleaning_score + base_blueprint_score) / 2
+                
+                # Apply deductions for metadata/consistency issues (ISO 8000 compliance)
+                deductions = self._calculate_quality_deductions(
+                    df=df,
+                    kpis=dashboard_result.get('kpis', {}),
+                    domain=self.pipeline_state['domain_info']['domain']
+                )
+                
+                # Final scores (capped at 0-100 range)
+                final_overall = max(0, min(100, base_overall - deductions['total']))
+                
                 'quality_scores': {
-                    'cleaning': cleaning_result['quality_score'],
-                    'blueprint': blueprint_result['quality_score'],
-                    'overall': (cleaning_result['quality_score'] + blueprint_result['quality_score']) / 2
+                    'cleaning': base_cleaning_score,
+                    'blueprint': base_blueprint_score,
+                    'base_overall': base_overall,  # Before deductions
+                    'deductions': deductions,  # Transparency about penalties
+                    'overall': round(final_overall, 1)  # After deductions
                 },
                 'performance': self.pipeline_state['performance_metrics']
             }
@@ -3343,6 +3361,123 @@ Your response must be parseable by json.loads() immediately."""
         logger.info(f"✅ Chart validation complete: {len(valid_charts)}/{len(charts)} valid charts")
         
         return smart_blueprint
+    
+    def _calculate_quality_deductions(self, df: pd.DataFrame, kpis: Dict, domain: str) -> Dict:
+        """
+        ✅ FIX #4: Calculate quality score deductions based on ISO 8000 consistency checks
+        
+        ISO 8000-61: Data Quality Management - Consistency dimension
+        Checks metadata consistency, benchmark accuracy, reproducibility
+        
+        Returns:
+            Dict with deduction details and total deduction points
+        """
+        deductions = {
+            'currency_inconsistency': 0,
+            'wrong_benchmark_source': 0,
+            'numeric_inconsistency': 0,
+            'missing_metadata': 0,
+            'non_reproducible': 0,
+            'total': 0,
+            'details': []
+        }
+        
+        # ===== CHECK 1: Currency Consistency (ISO 8000-61: Consistency) =====
+        # Deduction: -10 points for currency mismatch
+        if kpis:
+            # Detect currency from KPIs
+            detected_currencies = set()
+            for kpi_name, kpi_data in kpis.items():
+                if any(keyword in kpi_name.lower() for keyword in ['cost', 'salary', 'price', 'revenue', 'income']):
+                    value = kpi_data.get('value', 0)
+                    # VND typically > 100K, USD typically < 10K
+                    if abs(value) > 100000:
+                        detected_currencies.add('VND')
+                    elif 1000 < abs(value) <= 100000 and value == int(value):
+                        detected_currencies.add('VND')  # Whole numbers in this range likely VND
+                    elif abs(value) > 0:
+                        detected_currencies.add('USD')
+            
+            # If multiple currencies detected = inconsistency
+            if len(detected_currencies) > 1:
+                deductions['currency_inconsistency'] = 10
+                deductions['details'].append("Mixed currencies detected (VND/USD) in financial KPIs")
+        
+        # ===== CHECK 2: Benchmark Source Accuracy (ISO 8000-150: Benchmark quality) =====
+        # Deduction: -5 points per wrong source, max -15
+        wrong_sources = 0
+        for kpi_name, kpi_data in kpis.items():
+            source = kpi_data.get('benchmark_source', '')
+            # Check for obviously wrong sources
+            if 'WordStream' in source and 'manufacturing' in domain.lower() and 'cost per unit' in kpi_name.lower():
+                wrong_sources += 1
+                deductions['details'].append(f"Wrong benchmark source for '{kpi_name}': Marketing benchmark used for manufacturing")
+            elif 'PPC' in source and 'marketing' not in domain.lower():
+                wrong_sources += 1
+                deductions['details'].append(f"Wrong benchmark source for '{kpi_name}': PPC benchmark used for non-marketing domain")
+        
+        if wrong_sources > 0:
+            deductions['wrong_benchmark_source'] = min(15, wrong_sources * 5)
+        
+        # ===== CHECK 3: Numeric Consistency (ISO 8000-61: Accuracy) =====
+        # Deduction: -3 points per inconsistency, max -9
+        numeric_issues = 0
+        kpi_values = {}
+        for kpi_name, kpi_data in kpis.items():
+            value = kpi_data.get('value', 0)
+            # Store values for cross-checking
+            if 'first pass yield' in kpi_name.lower():
+                kpi_values['fpy'] = value
+            elif 'defect rate' in kpi_name.lower():
+                kpi_values['defect'] = value
+            elif 'oee' in kpi_name.lower():
+                kpi_values['oee'] = value
+        
+        # Check complementary metrics (FPY + Defect Rate should = 100%)
+        if 'fpy' in kpi_values and 'defect' in kpi_values:
+            total = kpi_values['fpy'] + kpi_values['defect']
+            if abs(total - 100) > 0.1:  # Allow 0.1% tolerance
+                numeric_issues += 1
+                deductions['details'].append(f"First Pass Yield + Defect Rate ≠ 100% ({total:.2f}%)")
+        
+        if numeric_issues > 0:
+            deductions['numeric_inconsistency'] = min(9, numeric_issues * 3)
+        
+        # ===== CHECK 4: Missing Critical Metadata (ISO 8000-8: Provenance) =====
+        # Deduction: -5 points for missing date range
+        # Note: This requires adding date_range to df metadata - placeholder for now
+        # Future enhancement: Track data date range in pipeline
+        if not hasattr(df, 'date_range_start') and not hasattr(df, 'date_range_end'):
+            # Check if df has any date columns that could indicate range
+            date_cols = df.select_dtypes(include=['datetime64']).columns
+            if len(date_cols) > 0:
+                # Date columns exist but range not documented
+                deductions['missing_metadata'] = 5
+                deductions['details'].append("Data date range not documented (ISO 8000-8 provenance)")
+        
+        # ===== CHECK 5: Non-Reproducible Calculations (ISO 8000-61: Traceability) =====
+        # Deduction: -5 points if OEE present but calculation not shown
+        # Note: OEE should show Availability × Performance × Quality
+        if 'oee' in kpi_values:
+            # Check if OEE components are also present as separate KPIs
+            has_availability = any('availability' in k.lower() for k in kpis.keys())
+            has_performance = any('performance' in k.lower() for k in kpis.keys())
+            has_quality_factor = any('quality' in k.lower() and 'oee' not in k.lower() for k in kpis.keys())
+            
+            if not (has_availability or has_performance or has_quality_factor):
+                deductions['non_reproducible'] = 5
+                deductions['details'].append("OEE calculation not reproducible (components not shown)")
+        
+        # ===== TOTAL DEDUCTIONS =====
+        deductions['total'] = (
+            deductions['currency_inconsistency'] +
+            deductions['wrong_benchmark_source'] +
+            deductions['numeric_inconsistency'] +
+            deductions['missing_metadata'] +
+            deductions['non_reproducible']
+        )
+        
+        return deductions
     
     def _validate_blueprint_quality(self, smart_blueprint: Dict) -> Dict:
         """Validate blueprint quality"""
