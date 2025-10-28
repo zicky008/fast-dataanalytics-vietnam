@@ -2678,55 +2678,120 @@ REMEMBER: Every chart MUST have x_axis and y_axis as actual column names from th
                     )
 
                 if fig:
-                    # ✅ Professional styling (Edward Tufte principles + WCAG AA compliance)
+                    # ✅ ENHANCED Professional styling (Edward Tufte + WCAG AA + Maximum Visual Impact)
                     fig.update_layout(
-                        # Typography: Clean, readable, high contrast
+                        # Typography: Larger, bolder, maximum readability for PDF export
                         font=dict(
                             family='DejaVu Sans, Arial, sans-serif',
-                            size=11,
-                            color='#000000'  # WCAG AA: 4.5:1 contrast on white
+                            size=13,  # Increased from 11 for better PDF visibility
+                            color='#1a1a1a'  # Deep black for maximum contrast
                         ),
-                        title_font=dict(
-                            size=14,
-                            color='#000000',
-                            family='DejaVu Sans, Arial, sans-serif'
+                        title=dict(
+                            text=chart_title,
+                            font=dict(
+                                size=18,  # Increased from 14 - bold, clear titles
+                                color='#1E40AF',  # Professional blue brand color
+                                family='DejaVu Sans, Arial, sans-serif'
+                            ),
+                            x=0.5,  # Center-aligned title
+                            xanchor='center',
+                            pad=dict(b=20)  # More breathing room below title
                         ),
 
-                        # Layout: Clean, minimal (Tufte: maximize data-ink ratio)
-                        plot_bgcolor='#FFFFFF',  # White background for print
+                        # Layout: Clean, high-impact (Tufte: maximize data-ink ratio)
+                        plot_bgcolor='#FFFFFF',  # Pure white for print/PDF
                         paper_bgcolor='#FFFFFF',
                         showlegend=True,
 
-                        # Legend: Professional positioning
+                        # Legend: Enhanced visibility and professionalism
                         legend=dict(
-                            font=dict(size=10),
-                            bgcolor='rgba(255, 255, 255, 0.9)',
-                            bordercolor='#CCCCCC',
-                            borderwidth=1
+                            font=dict(size=12, color='#1a1a1a'),  # Larger, more visible
+                            bgcolor='rgba(248, 250, 252, 0.95)',  # Subtle off-white
+                            bordercolor='#94A3B8',  # Professional gray border
+                            borderwidth=1.5,
+                            orientation='v',
+                            yanchor='top',
+                            y=0.98,
+                            xanchor='right',
+                            x=0.98,
+                            itemsizing='constant'  # Consistent symbol sizes
                         ),
 
-                        # Margins: Balanced spacing
-                        margin=dict(l=60, r=40, t=60, b=60)
+                        # Margins: Optimized for PDF export with labels
+                        margin=dict(l=80, r=60, t=90, b=80),  # More space for all labels
+
+                        # Hover: Cleaner, more professional tooltips
+                        hoverlabel=dict(
+                            bgcolor='#1E40AF',
+                            font_size=12,
+                            font_family='DejaVu Sans, Arial, sans-serif',
+                            font_color='white',
+                            bordercolor='white'
+                        ),
+
+                        # Height: Larger charts for better visibility in PDF
+                        height=500  # Increased from default 450
                     )
 
-                    # ✅ Clean axes (Stephen Few: remove chartjunk)
+                    # ✅ Enhanced axes (Stephen Few: clean, high contrast, professional)
                     fig.update_xaxes(
-                        showgrid=False,  # Remove vertical gridlines (Tufte)
+                        showgrid=False,  # Remove vertical gridlines (Tufte principle)
                         showline=True,
-                        linewidth=1,
-                        linecolor='#CCCCCC',
-                        tickfont=dict(size=9, color='#333333')
+                        linewidth=2.5,  # Thicker, more visible axis
+                        linecolor='#334155',  # Darker slate for visibility
+                        tickfont=dict(size=11, color='#1a1a1a', family='DejaVu Sans'),
+                        ticks='outside',
+                        ticklen=6,
+                        tickwidth=2,
+                        tickcolor='#64748B',
+                        title_font=dict(size=13, color='#1E40AF')  # Blue axis titles
                     )
 
                     fig.update_yaxes(
-                        showgrid=True,  # Horizontal gridlines help reading
-                        gridwidth=0.5,
-                        gridcolor='rgba(128, 128, 128, 0.2)',  # Subtle grid
+                        showgrid=True,  # Horizontal gridlines aid data reading
+                        gridwidth=1,  # More visible gridlines
+                        gridcolor='rgba(148, 163, 184, 0.25)',  # Subtle but clear
                         showline=True,
-                        linewidth=1,
-                        linecolor='#CCCCCC',
-                        tickfont=dict(size=9, color='#333333')
+                        linewidth=2.5,  # Thicker, more visible axis
+                        linecolor='#334155',  # Darker slate for visibility
+                        tickfont=dict(size=11, color='#1a1a1a', family='DejaVu Sans'),
+                        ticks='outside',
+                        ticklen=6,
+                        tickwidth=2,
+                        tickcolor='#64748B',
+                        zeroline=True,
+                        zerolinewidth=2.5,
+                        zerolinecolor='#94A3B8',
+                        title_font=dict(size=13, color='#1E40AF')  # Blue axis titles
                     )
+
+                    # ✅ Chart-type specific enhancements for maximum visual impact
+                    if chart_type == 'bar':
+                        fig.update_traces(
+                            marker=dict(
+                                line=dict(color='#FFFFFF', width=2),  # Strong white borders
+                                opacity=0.92  # Slight transparency for depth
+                            ),
+                            textposition='outside',
+                            textfont=dict(size=11, color='#1a1a1a', family='DejaVu Sans')
+                        )
+                    elif chart_type == 'pie':
+                        fig.update_traces(
+                            textposition='outside',
+                            textinfo='label+percent',
+                            textfont=dict(size=12, color='#1a1a1a', family='DejaVu Sans'),
+                            marker=dict(
+                                line=dict(color='#FFFFFF', width=3)  # Strong borders for clarity
+                            ),
+                            pull=[0.04] * 10,  # Slight explode for all slices
+                            opacity=0.92,
+                            rotation=90  # Start from top
+                        )
+                    elif chart_type in ['line', 'scatter']:
+                        fig.update_traces(
+                            line=dict(width=3.5),  # Thicker lines for PDF visibility
+                            marker=dict(size=9, line=dict(width=2, color='#FFFFFF'))
+                        )
                     
                     charts.append({
                         'id': chart_id,

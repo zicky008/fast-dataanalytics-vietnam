@@ -197,19 +197,54 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
                     print(f"⚠️ Could not load logo from {logo_path}: {str(logo_error)[:50]}")
 
         if not logo_added:
-            print("ℹ️ No logo found. Add logo.png/logo.jpg to project root for branding.")
+            # ✅ LEAN SOLUTION: Professional text-based branding (no logo image needed)
+            # Create elegant header box with brand identity
+            brand_style = ParagraphStyle(
+                'BrandHeader',
+                parent=styles['Normal'],
+                fontName=bold_font,
+                fontSize=10,
+                textColor=colors.HexColor('#FFFFFF'),
+                alignment=TA_CENTER,
+                leading=14
+            )
+
+            if lang == "vi":
+                brand_text = "DataAnalytics Vietnam | Phân Tích Dữ Liệu Chuyên Nghiệp"
+            else:
+                brand_text = "DataAnalytics Vietnam | Professional Business Intelligence"
+
+            brand_header = Paragraph(brand_text, brand_style)
+
+            # Create colored background box for brand header
+            brand_table = Table([[brand_header]], colWidths=[7*inch])
+            brand_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#1E40AF')),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('TOPPADDING', (0, 0), (-1, -1), 10),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+                ('LEFTPADDING', (0, 0), (-1, -1), 20),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 20),
+            ]))
+
+            content.append(brand_table)
+            content.append(Spacer(1, 0.3*inch))
+            print("✅ Professional text-based branding header added (lean solution - no logo file needed)")
 
         # Title (remove emoji for PDF compatibility)
         if lang == "vi":
             title = Paragraph("BÁO CÁO PHÂN TÍCH DỮ LIỆU", title_style)
-            subtitle = Paragraph("DataAnalytics Vietnam - Professional Business Intelligence", normal_style)
+            subtitle_style = ParagraphStyle('Subtitle', parent=normal_style, fontSize=9, textColor=colors.HexColor('#64748B'), alignment=TA_CENTER, fontName=base_font)
+            subtitle = Paragraph("Powered by AI-Driven Analytics & ISO 8000 Standards", subtitle_style)
         else:
             title = Paragraph("DATA ANALYSIS REPORT", title_style)
-            subtitle = Paragraph("DataAnalytics Vietnam - Professional Business Intelligence", normal_style)
+            subtitle_style = ParagraphStyle('Subtitle', parent=normal_style, fontSize=9, textColor=colors.HexColor('#64748B'), alignment=TA_CENTER, fontName=base_font)
+            subtitle = Paragraph("Powered by AI-Driven Analytics & ISO 8000 Standards", subtitle_style)
 
         content.append(title)
         content.append(subtitle)
-        content.append(Spacer(1, 0.4*inch))  # ✅ Clear section separation
+        content.append(Spacer(1, 0.35*inch))  # ✅ Professional section separation
 
         # Report metadata (⭐ Enhanced with dataset profile)
         # Calculate dataset metrics
@@ -340,32 +375,35 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
 
         # Key Insights (remove emoji for PDF)
         content.append(Paragraph("Key Insights" if lang == "en" else "Insights Chính", heading_style))
+        content.append(Spacer(1, 0.15*inch))
 
         for i, insight in enumerate(result['insights'].get('key_insights', [])[:5], 1):
             # Use text labels instead of emoji for PDF compatibility
             impact_label = "[HIGH]" if insight['impact'] == 'high' else "[MEDIUM]" if insight['impact'] == 'medium' else "[LOW]"
             insight_text = f"{impact_label} <b>{insight['title']}</b><br/>{insight['description']}"
             content.append(Paragraph(insight_text, normal_style))
-            content.append(Spacer(1, 0.2*inch))  # ✅ Group related insights
+            content.append(Spacer(1, 0.18*inch))  # ✅ Tight, professional spacing
 
-        content.append(Spacer(1, 0.3*inch))  # ✅ Space before page break
-        content.append(PageBreak())
+        content.append(Spacer(1, 0.35*inch))  # ✅ Clear but connected section transition
 
         # Recommendations (remove emoji for PDF)
         content.append(Paragraph("Recommendations" if lang == "en" else "Khuyến Nghị", heading_style))
+        content.append(Spacer(1, 0.15*inch))
 
         for i, rec in enumerate(result['insights'].get('recommendations', [])[:5], 1):
             # Use text labels instead of emoji for PDF compatibility
             priority_label = "[HIGH]" if rec['priority'] == 'high' else "[MEDIUM]" if rec['priority'] == 'medium' else "[LOW]"
             rec_text = f"{priority_label} <b>{rec['action']}</b><br/>Expected Impact: {rec['expected_impact']}<br/>Timeline: {rec['timeline']}"
             content.append(Paragraph(rec_text, normal_style))
-            content.append(Spacer(1, 0.2*inch))  # ✅ Group related recommendations
+            content.append(Spacer(1, 0.18*inch))  # ✅ Tight, professional spacing
 
-        content.append(Spacer(1, 0.4*inch))  # ✅ Clear section transition to charts
+        # ✅ IMPROVED: Clean page break for visual section (charts are heavy, deserve own pages)
+        content.append(Spacer(1, 0.5*inch))  # Professional breathing room before page break
+        content.append(PageBreak())
 
         # Charts (convert to images, remove emoji for PDF)
-        content.append(PageBreak())
         content.append(Paragraph("Visual Analysis" if lang == "en" else "Phân Tích Trực Quan", heading_style))
+        content.append(Spacer(1, 0.25*inch))
 
         charts = result['dashboard']['charts']
         charts_exported = 0
@@ -387,9 +425,18 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
                 print(f"  Title: {chart_title}")
                 print(f"  Type: {chart_type}")
 
-                title_para = Paragraph(f"<b>{chart_title}</b>", normal_style)
+                # ✅ Professional chart title with clear visual hierarchy
+                chart_title_style = ParagraphStyle(
+                    'ChartTitle',
+                    parent=normal_style,
+                    fontSize=12,
+                    textColor=colors.HexColor('#1E40AF'),
+                    spaceAfter=6,
+                    fontName=bold_font
+                )
+                title_para = Paragraph(f"<b>{chart_title}</b>", chart_title_style)
                 content.append(title_para)
-                content.append(Spacer(1, 0.15*inch))  # ✅ Clear title-chart separation
+                content.append(Spacer(1, 0.12*inch))  # ✅ Tight title-chart connection
 
                 # Convert Plotly chart to image using kaleido
                 fig = chart['figure']
