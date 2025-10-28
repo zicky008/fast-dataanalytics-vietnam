@@ -1,0 +1,5 @@
+fonts-dejavu
+fonts-dejavu-core
+fonts-dejavu-extra
+chromium
+chromium-driver
