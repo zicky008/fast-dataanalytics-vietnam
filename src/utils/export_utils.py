@@ -508,6 +508,63 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
             
             content.append(kpi_table)
 
+            # ✅ FIX #8: Show calculation breakdowns for complex/composite KPIs (reproducibility)
+            # ISO 8000 Principle: Calculations must be transparent and reproducible
+            complex_kpis = {}
+            for kpi_name, kpi_info in kpis.items():
+                if 'components' in kpi_info:
+                    complex_kpis[kpi_name] = kpi_info
+            
+            if complex_kpis:
+                content.append(Spacer(1, 0.2*inch))
+                
+                # Add calculation breakdown section
+                calc_title = Paragraph(
+                    "<b>Calculation Breakdowns</b>" if lang == "en" else "<b>Chi Tiết Tính Toán</b>",
+                    ParagraphStyle('CalcTitle', parent=normal_style, fontSize=11, fontName=bold_font, textColor=colors.HexColor('#1E40AF'))
+                )
+                content.append(calc_title)
+                content.append(Spacer(1, 0.1*inch))
+                
+                # Display each complex KPI's formula and components
+                for kpi_name, kpi_info in list(complex_kpis.items())[:3]:  # Top 3 complex KPIs
+                    clean_name = kpi_name.replace('##', '').replace('###', '').replace('**', '').strip()
+                    components = kpi_info['components']
+                    
+                    # Build formula display
+                    if 'OEE' in kpi_name or 'Equipment Effectiveness' in kpi_name:
+                        formula = "OEE = Availability × Performance × Quality"
+                        component_lines = [
+                            f"  • Availability: {components.get('Availability', 0):.1f}%",
+                            f"  • Performance: {components.get('Performance', 0):.1f}%",
+                            f"  • Quality: {components.get('Quality', 0):.1f}%"
+                        ]
+                    elif 'ROI' in kpi_name:
+                        formula = "ROI = (Net Profit / Cost of Investment) × 100"
+                        component_lines = [
+                            f"  • Net Profit: {components.get('Net Profit', 0):,.0f}",
+                            f"  • Investment Cost: {components.get('Investment Cost', 0):,.0f}"
+                        ]
+                    elif 'ROAS' in kpi_name:
+                        formula = "ROAS = Revenue from Ads / Ad Spend"
+                        component_lines = [
+                            f"  • Revenue: {components.get('Revenue', 0):,.0f}",
+                            f"  • Ad Spend: {components.get('Ad Spend', 0):,.0f}"
+                        ]
+                    else:
+                        # Generic display
+                        formula = f"{clean_name} = f(components)"
+                        component_lines = [f"  • {k}: {v:.2f}" for k, v in components.items()]
+                    
+                    # Assemble the breakdown text
+                    breakdown_text = f"<b>{clean_name}</b>: {kpi_info['value']:.2f}<br/>"
+                    breakdown_text += f"<i>{formula}</i><br/>"
+                    breakdown_text += "<br/>".join(component_lines)
+                    
+                    calc_para = Paragraph(breakdown_text, normal_style)
+                    content.append(calc_para)
+                    content.append(Spacer(1, 0.15*inch))
+
             # ⭐ Add KPI Status legend for clarity (addresses real user feedback)
             content.append(Spacer(1, 0.15*inch))
             if lang == "en":
