@@ -51,10 +51,10 @@ BENCHMARK_SOURCES = {
 
     # Marketing
     'marketing_roi': 'HubSpot State of Marketing 2025',
-    'marketing_roas': 'Google Ads Benchmarks 2025',
-    'marketing_ctr': 'Google Analytics Industry Benchmarks',
-    'marketing_conversion': 'Unbounce Conversion Benchmark Report',
-    'marketing_cpa': 'WordStream Advertising Benchmarks',
+    'marketing_roas': 'WordStream 2025 PPC Benchmarks (16K+ campaigns)',
+    'marketing_ctr': 'WordStream 2025 PPC Benchmarks (16K+ campaigns)',
+    'marketing_conversion': 'Unbounce 2025 Conversion Report (464M visits, 41K pages)',
+    'marketing_cpa': 'WordStream 2025 PPC Benchmarks (16K+ campaigns)',
     'marketing_engagement': 'Social Media Today Engagement Standards',
 
     # E-commerce
@@ -725,15 +725,17 @@ OUTPUT JSON:
             revenue_cols = [col for col in df.columns if 'revenue' in col.lower()]
             
             # 1. ROI (Return on Investment)
+            # ⚠️ NOTE: ROI definition varies widely - use with caution or prefer ROAS
             if roi_cols and len(roi_cols) > 0:
                 roi_col = roi_cols[0]
                 avg_roi = df[roi_col].mean()
-                kpis['Average ROI'] = {
+                kpis['Marketing ROI (Revenue/Spend)'] = {
                     'value': float(avg_roi),
-                    'benchmark': 4.0,
+                    'benchmark': 3.0,  # Conservative estimate based on ROAS data (no standard exists)
                     'benchmark_source': BENCHMARK_SOURCES['marketing_roi'],
-                    'status': 'Above' if avg_roi >= 4.0 else 'Below',
-                    'column': roi_col
+                    'status': 'Above' if avg_roi >= 3.0 else 'Below',
+                    'column': roi_col,
+                    'insight': '⚠️ ROI varies by business model and attribution window'
                 }
             
             # 2. ROAS (Return on Ad Spend) - calculated from revenue/cost
@@ -746,8 +748,9 @@ OUTPUT JSON:
                     roas = total_revenue / total_cost
                     kpis['ROAS'] = {
                         'value': float(roas),
-                        'benchmark': 4.0,
-                        'status': 'Above' if roas >= 4.0 else 'Below',
+                        'benchmark': 2.5,  # ✅ WordStream 2025: avg 2.26, median 3.08 - use conservative 2.5
+                        'benchmark_source': BENCHMARK_SOURCES['marketing_roas'],
+                        'status': 'Above' if roas >= 2.5 else 'Below',
                         'column': f"{rev_col}/{cost_col}"
                     }
             
@@ -759,11 +762,24 @@ OUTPUT JSON:
                 total_impressions = df[impression_col].sum()
                 if total_impressions > 0:
                     ctr = (total_clicks / total_impressions) * 100
+
+                    # ✅ Smart benchmark based on channel type (WordStream 2025)
+                    # Check if social media or search ads
+                    col_lower = (click_col + impression_col).lower()
+                    if 'social' in col_lower or 'facebook' in col_lower or 'instagram' in col_lower:
+                        benchmark_ctr = 1.7  # Social media traffic campaigns
+                        channel_type = 'Social'
+                    else:
+                        benchmark_ctr = 6.7  # Search ads average
+                        channel_type = 'Search'
+
                     kpis['CTR (%)'] = {
                         'value': float(ctr),
-                        'benchmark': 2.0,  # Industry avg ~2%
-                        'status': 'Above' if ctr >= 2.0 else 'Below',
-                        'column': f"{click_col}/{impression_col}"
+                        'benchmark': benchmark_ctr,  # ✅ WordStream 2025: 6.66% search, 1.71% social
+                        'benchmark_source': BENCHMARK_SOURCES['marketing_ctr'],
+                        'status': 'Above' if ctr >= benchmark_ctr else 'Below',
+                        'column': f"{click_col}/{impression_col}",
+                        'insight': f'{channel_type} ads benchmark'
                     }
             
             # 4. CPC (Cost Per Click)
@@ -791,8 +807,9 @@ OUTPUT JSON:
                     conv_rate = (total_conversions / total_clicks) * 100
                     kpis['Conversion Rate (%)'] = {
                         'value': float(conv_rate),
-                        'benchmark': 2.5,  # Industry avg ~2.5%
-                        'status': 'Above' if conv_rate >= 2.5 else 'Below',
+                        'benchmark': 6.6,  # ✅ Unbounce 2025: 6.6% overall average (WordStream: 7.52% search)
+                        'benchmark_source': BENCHMARK_SOURCES['marketing_conversion'],
+                        'status': 'Above' if conv_rate >= 6.6 else 'Below',
                         'column': f"{conversion_col}/{click_col}"
                     }
             
@@ -804,18 +821,19 @@ OUTPUT JSON:
                 total_conversions = df[conversion_col].sum()
                 if total_conversions > 0:
                     cpa = total_cost / total_conversions
-                    # Smart benchmark based on currency
+                    # ✅ Smart benchmark based on currency (WordStream 2025: $70.11 USD average)
                     sample_spend = df[cost_col].dropna().head(10).mean()
                     if sample_spend > 100000:  # Likely VND
-                        benchmark_cpa = 200000  # 200K VND
+                        benchmark_cpa = 1680000  # 1.68M VND (~$70 USD * 24,000)
                         currency = 'VND'
                     else:
-                        benchmark_cpa = 50  # $50 USD
+                        benchmark_cpa = 70  # ✅ $70 USD - WordStream 2025 average
                         currency = 'USD'
-                    
+
                     kpis['Cost Per Acquisition (CPA)'] = {
                         'value': float(cpa),
                         'benchmark': benchmark_cpa,
+                        'benchmark_source': BENCHMARK_SOURCES['marketing_cpa'],
                         'status': 'Below' if cpa <= benchmark_cpa else 'Above',  # Lower is better!
                         'column': f"{cost_col}/{conversion_col}",
                         'insight': f"{'✅ Efficient' if cpa <= benchmark_cpa else '⚠️ High CPA'} - Lower is better. Benchmark: {benchmark_cpa:,.0f} {currency}"
@@ -2078,13 +2096,13 @@ OUTPUT JSON:
                         'action': f"Optimize {most_expensive['channel']} targeting or shift budget to {cheapest['channel']}"
                     })
         
-        # Insight 5: Conversion rate gaps (below 2.5% benchmark)
-        low_cr_channels = [c for c in channel_breakdown if c['conversion_rate'] < 2.5]
+        # Insight 5: Conversion rate gaps (below 6.6% benchmark - Unbounce 2025)
+        low_cr_channels = [c for c in channel_breakdown if c['conversion_rate'] < 6.6]
         if low_cr_channels:
             channel_names = ', '.join([f"{c['channel']} ({c['conversion_rate']:.2f}%)" for c in low_cr_channels[:3]])
             insights.append({
                 'type': 'low_conversion',
-                'message': f"⚠️ {len(low_cr_channels)} channels below 2.5% CR benchmark: {channel_names}",
+                'message': f"⚠️ {len(low_cr_channels)} channels below 6.6% CR benchmark: {channel_names}",
                 'action': "Review landing pages, targeting, and messaging for these channels"
             })
         
@@ -2097,10 +2115,10 @@ OUTPUT JSON:
         if not campaign_breakdown:
             return insights
         
-        # Categorize campaigns by performance
-        profitable = [c for c in campaign_breakdown if c['roas'] >= 2.0]  # Strong ROI
-        breakeven = [c for c in campaign_breakdown if 0.8 <= c['roas'] < 2.0]  # Marginal
-        unprofitable = [c for c in campaign_breakdown if c['roas'] < 0.8]  # Losing money
+        # Categorize campaigns by performance (based on WordStream 2025 benchmark: 2.5 ROAS)
+        profitable = [c for c in campaign_breakdown if c['roas'] >= 2.5]  # Above benchmark
+        breakeven = [c for c in campaign_breakdown if 1.5 <= c['roas'] < 2.5]  # Marginal
+        unprofitable = [c for c in campaign_breakdown if c['roas'] < 1.5]  # Below profitable threshold
         
         best = campaign_breakdown[0]  # Highest ROAS
         worst = campaign_breakdown[-1]  # Lowest ROAS
@@ -2161,7 +2179,7 @@ OUTPUT JSON:
             insights.append({
                 'type': 'optimize',
                 'message': f"⚠️ {len(breakeven)} campaigns near break-even: {campaign_names}",
-                'action': f"OPTIMIZE targeting, creative, or landing pages → push ROAS > 2.0x"
+                'action': f"OPTIMIZE targeting, creative, or landing pages → push ROAS > 2.5x"
             })
         
         # Insight 5: CPA efficiency gap (if CPA available)

@@ -348,6 +348,7 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
                         print(f"⚠️ Chart {i+1} write_image method failed: {str(alt_error)[:80]}")
 
                 # Method 2.5: Matplotlib fallback (NO Chrome/Kaleido needed!)
+                # ⚠️ Enhanced for HIGHER QUALITY (300 DPI, better styling)
                 if not chart_exported:
                     try:
                         import matplotlib
@@ -355,9 +356,14 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
                         import matplotlib.pyplot as plt
                         from io import BytesIO
 
-                        # Create matplotlib figure from plotly data
-                        mpl_fig = plt.figure(figsize=(10, 5.6))
+                        # Create HIGH-QUALITY matplotlib figure
+                        # Increase DPI for sharper images (300 DPI = publication quality)
+                        mpl_fig = plt.figure(figsize=(10, 5.6), dpi=300)
                         ax = mpl_fig.add_subplot(111)
+
+                        # Apply professional styling
+                        plt.style.use('seaborn-v0_8-darkgrid')  # Professional look
+                        mpl_fig.patch.set_facecolor('white')  # White background
 
                         # Extract data from plotly figure
                         # Enhanced conversion - supports more chart types
@@ -469,21 +475,29 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
                                         ax.set_yticklabels(trace.y)
                                     plt.colorbar(im, ax=ax)
 
-                        # Set labels from plotly layout
+                        # Set labels from plotly layout with PROFESSIONAL STYLING
                         if fig.layout.title.text:
-                            ax.set_title(fig.layout.title.text)
+                            ax.set_title(fig.layout.title.text, fontsize=14, fontweight='bold', pad=20)
                         if fig.layout.xaxis.title.text:
-                            ax.set_xlabel(fig.layout.xaxis.title.text)
+                            ax.set_xlabel(fig.layout.xaxis.title.text, fontsize=11, fontweight='semibold')
                         if fig.layout.yaxis.title.text:
-                            ax.set_ylabel(fig.layout.yaxis.title.text)
+                            ax.set_ylabel(fig.layout.yaxis.title.text, fontsize=11, fontweight='semibold')
 
-                        # Add legend if traces have names
+                        # Professional grid
+                        ax.grid(True, alpha=0.3, linestyle='--', linewidth=0.5)
+                        ax.set_axisbelow(True)  # Grid behind data
+
+                        # Add legend with professional styling
                         if any(hasattr(trace, 'name') and trace.name for trace in fig.data):
-                            ax.legend()
+                            ax.legend(loc='best', frameon=True, shadow=True, fontsize=9)
 
-                        # Save to bytes
+                        # Tight layout for better spacing
+                        plt.tight_layout()
+
+                        # Save to bytes with HIGH DPI (300 = publication quality)
                         buf = BytesIO()
-                        mpl_fig.savefig(buf, format='png', dpi=100, bbox_inches='tight')
+                        mpl_fig.savefig(buf, format='png', dpi=300, bbox_inches='tight',
+                                       facecolor='white', edgecolor='none')
                         buf.seek(0)
 
                         # Add to PDF
