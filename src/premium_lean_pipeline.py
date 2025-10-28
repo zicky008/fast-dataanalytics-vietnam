@@ -479,7 +479,7 @@ class PremiumLeanPipeline:
             deductions = self._calculate_quality_deductions(
                 df=df,
                 kpis=dashboard_result.get('kpis', {}),
-                domain=self.pipeline_state['domain_info']['domain']
+                domain=domain_info['domain']  # 🐛 HOTFIX: Use local variable, not pipeline_state
             )
             
             # Final scores (capped at 0-100 range)
