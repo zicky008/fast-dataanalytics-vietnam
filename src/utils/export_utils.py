@@ -428,7 +428,8 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
 
             for kpi_name, kpi_info in list(kpis.items())[:10]:  # Top 10 KPIs
                 # ✅ FIX #6 & #9: Clean KPI name - remove markdown and fix spacing
-                clean_kpi_name = kpi_name.replace('##', '').replace('###', '').replace('**', '').strip()
+                # CRITICAL: Replace longest patterns FIRST (### before ##)
+                clean_kpi_name = kpi_name.replace('###', '').replace('##', '').replace('**', '').replace('#', '').strip()
                 # ✅ FIX #9: Ensure proper spacing after percentage symbols
                 clean_kpi_name = clean_kpi_name.replace('%)', '%) ').replace('  ', ' ').strip()
                 
