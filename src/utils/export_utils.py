@@ -299,10 +299,62 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
         else:
             exchange_rate = "International Standard"  # More professional than "Standard: USD"
 
+        # ✅ FIX #5: Detect and display data period (date range) for transparency
+        # ISO 8000-8: Provenance - documenting data origin and temporal scope
+        data_period = "Not Available"
+        try:
+            # Detect datetime columns
+            date_cols = df.select_dtypes(include=['datetime64']).columns.tolist()
+            if not date_cols:
+                # Try detecting date-like string columns
+                date_cols = [col for col in df.columns if any(keyword in col.lower() 
+                    for keyword in ['date', 'time', 'day', 'month', 'year', 'period'])]
+                if date_cols:
+                    # Try converting first date column to datetime
+                    import pandas as pd
+                    df_temp = df.copy()
+                    df_temp[date_cols[0]] = pd.to_datetime(df_temp[date_cols[0]], errors='coerce')
+                    if df_temp[date_cols[0]].notna().sum() > 0:
+                        date_cols = [date_cols[0]]
+                        df = df_temp  # Use converted version
+                    else:
+                        date_cols = []
+            
+            # If date column found, calculate range
+            if date_cols:
+                date_col = date_cols[0]
+                min_date = df[date_col].min()
+                max_date = df[date_col].max()
+                
+                # Format dates (handle both datetime and string types)
+                if hasattr(min_date, 'strftime'):
+                    min_str = min_date.strftime("%Y-%m-%d")
+                    max_str = max_date.strftime("%Y-%m-%d")
+                else:
+                    min_str = str(min_date)[:10]
+                    max_str = str(max_date)[:10]
+                
+                data_period = f"{min_str} to {max_str}"
+                
+                # Calculate duration for additional context
+                if hasattr(min_date, 'date') and hasattr(max_date, 'date'):
+                    duration_days = (max_date - min_date).days
+                    if duration_days > 365:
+                        data_period += f" ({duration_days // 365} years, {duration_days % 365} days)"
+                    elif duration_days > 30:
+                        data_period += f" ({duration_days // 30} months, {duration_days % 30} days)"
+                    else:
+                        data_period += f" ({duration_days} days)"
+        except Exception as date_error:
+            # Graceful fallback if date detection fails
+            print(f"⚠️ Date range detection failed: {str(date_error)[:100]}")
+            data_period = "Not Available"
+
         metadata_data = [
             ["Report Date" if lang == "en" else "Ngày báo cáo", datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
             ["Domain" if lang == "en" else "Ngành nghề", result['domain_info']['domain_name']],
             ["Currency / Tiền tệ", f"{currency_used} ({exchange_rate})"],
+            ["Data Period" if lang == "en" else "Chu kỳ dữ liệu", data_period],  # ✅ FIX #5: Added date range
             ["Expert Perspective" if lang == "en" else "Góc nhìn chuyên gia", result['domain_info']['expert_role'][:60]],
             ["Dataset Size" if lang == "en" else "Kích thước dữ liệu", f"{num_rows:,} rows × {num_cols:,} columns ({num_numeric:,} numeric)"],
             ["Data Completeness" if lang == "en" else "Độ đầy đủ dữ liệu", f"{completeness:.1f}%"],
