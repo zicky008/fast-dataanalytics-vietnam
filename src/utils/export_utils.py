@@ -447,10 +447,40 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
                 from reportlab.platypus import Paragraph
                 source_paragraph = Paragraph(source, normal_style) if len(source) > 25 else source
                 
+                # ✅ FIX #7: Add directional arrows to status for clarity
+                status_raw = kpi_info.get('status', 'N/A')
+                status_display = status_raw
+                
+                if status_raw not in ['N/A', 'Unknown']:
+                    # Determine if current status is good or bad based on KPI type
+                    kpi_lower = clean_kpi_name.lower()
+                    is_cost_type = any(keyword in kpi_lower for keyword in ['cost', 'expense', 'defect', 'downtime', 'error', 'reject', 'waste'])
+                    is_revenue_type = any(keyword in kpi_lower for keyword in ['revenue', 'profit', 'efficiency', 'yield', 'quality', 'conversion', 'roi', 'roas', 'satisfaction'])
+                    
+                    # Add arrows: ⬆️ = good, ⬇️ = bad
+                    if status_raw in ['Above', 'High', 'Over']:
+                        if is_cost_type:
+                            status_display = f"Above ⬇️"  # Above cost = bad
+                        elif is_revenue_type:
+                            status_display = f"Above ⬆️"  # Above revenue = good
+                        else:
+                            status_display = status_raw  # Ambiguous, leave as-is
+                    elif status_raw in ['Below', 'Low', 'Under']:
+                        if is_cost_type:
+                            status_display = f"Below ⬆️"  # Below cost = good
+                        elif is_revenue_type:
+                            status_display = f"Below ⬇️"  # Below revenue = bad
+                        else:
+                            status_display = status_raw  # Ambiguous, leave as-is
+                    elif status_raw in ['Good', 'Excellent', 'On Target']:
+                        status_display = f"{status_raw} ⬆️"
+                    elif status_raw in ['Poor', 'Critical', 'Alert']:
+                        status_display = f"{status_raw} ⬇️"
+                
                 kpi_data.append([
                     clean_kpi_name,  # ✅ FIX #6: Clean name without markdown
                     formatted_value,
-                    kpi_info.get('status', 'N/A'),
+                    status_display,  # ✅ FIX #7: Status with directional arrows
                     formatted_benchmark,  # ✅ FIX #6: Enhanced with target indicators
                     source_paragraph  # ✅ Full source with word wrap
                 ])
