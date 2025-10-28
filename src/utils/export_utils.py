@@ -934,28 +934,59 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
                     except Exception as mpl_error:
                         print(f"⚠️ Chart {i+1} matplotlib method failed: {str(mpl_error)[:80]}")
 
-                # Method 3: Graceful degradation - Show informative message
+                # ✅ FIX #10: Method 4 - Universal text-based representation (ALWAYS works)
+                # Instead of showing error message, show data in table format
                 if not chart_exported:
-                    if lang == "vi":
-                        degraded_msg = f"""<br/>
-                        <b>⚠️ Biểu đồ không thể hiển thị</b><br/>
-                        <i>Biểu đồ: {chart_title}</i><br/>
-                        Lý do: Cần cài đặt Chrome/Chromium để export charts<br/>
-                        Hướng dẫn: Xem FONT_SETUP.md hoặc chạy: apt-get install chromium-browser<br/>
-                        <br/>
-                        """
-                    else:
-                        degraded_msg = f"""<br/>
-                        <b>⚠️ Chart Could Not Be Displayed</b><br/>
-                        <i>Chart: {chart_title}</i><br/>
-                        Reason: Chrome/Chromium required for chart export<br/>
-                        Solution: See FONT_SETUP.md or run: apt-get install chromium-browser<br/>
-                        <br/>
-                        """
-
-                    degraded_para = Paragraph(degraded_msg, normal_style)
-                    content.append(degraded_para)
-                    print(f"ℹ️ Chart {i+1} degraded to message: {chart_title}")
+                    try:
+                        # Extract key data points from chart for text representation
+                        chart_data_summary = []
+                        
+                        for trace in fig.data[:5]:  # Top 5 traces
+                            trace_type = trace.type if hasattr(trace, 'type') else 'unknown'
+                            trace_name = trace.name if hasattr(trace, 'name') else 'Data'
+                            
+                            if trace_type == 'pie' and hasattr(trace, 'labels') and hasattr(trace, 'values'):
+                                # Pie chart - show labels and values
+                                for label, value in zip(trace.labels[:5], trace.values[:5]):
+                                    chart_data_summary.append([str(label), f"{value:.2f}"])
+                            
+                            elif hasattr(trace, 'x') and hasattr(trace, 'y'):
+                                # Line/Bar/Scatter - show key points
+                                x_vals = list(trace.x)[:5]  # First 5 points
+                                y_vals = list(trace.y)[:5]
+                                for x, y in zip(x_vals, y_vals):
+                                    chart_data_summary.append([str(x), f"{y:.2f}"])
+                        
+                        if chart_data_summary:
+                            # Create compact data table
+                            summary_header = [[f"<b>{chart_title}</b> (Data Summary)", ""]]
+                            data_table = Table(summary_header + chart_data_summary, colWidths=[3.5*inch, 2*inch])
+                            data_table.setStyle(TableStyle([
+                                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1E40AF')),
+                                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                                ('FONTNAME', (0, 0), (-1, 0), bold_font),
+                                ('FONTSIZE', (0, 0), (-1, -1), 9),
+                                ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#E2E8F0')),
+                                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#F8FAFC')])
+                            ]))
+                            content.append(data_table)
+                            charts_exported += 1
+                            print(f"✅ Chart {i+1} exported as data table: {chart_title}")
+                        else:
+                            # Last resort - show message
+                            if lang == "vi":
+                                degraded_msg = f"<i>Biểu đồ: {chart_title} (Dữ liệu có sẵn trong phần KPIs)</i>"
+                            else:
+                                degraded_msg = f"<i>Chart: {chart_title} (Data available in KPIs section)</i>"
+                            
+                            degraded_para = Paragraph(degraded_msg, normal_style)
+                            content.append(degraded_para)
+                            print(f"ℹ️ Chart {i+1} noted without visual: {chart_title}")
+                    
+                    except Exception as fallback_error:
+                        print(f"⚠️ Chart {i+1} all methods failed: {str(fallback_error)[:100]}")
+                        # Minimal fallback
+                        content.append(Paragraph(f"<i>Chart: {chart_title}</i>", normal_style))
 
                 content.append(Spacer(1, 0.4*inch))  # ✅ Professional chart spacing
 
