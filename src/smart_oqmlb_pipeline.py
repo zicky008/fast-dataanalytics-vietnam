@@ -32,6 +32,256 @@ from domain_detection import (
 )
 
 
+# ==================================================================================
+# CRITICAL FIELD PROTECTION (NEVER AUTO-IMPUTE)
+# ==================================================================================
+# Updated: 2025-10-29 - SAFETY-FIRST approach to prevent fake data generation
+# These fields are TOO IMPORTANT to fill with fake/imputed data
+# Missing = KEEP AS NULL and FLAG to user in dashboard with warning
+# Rationale: Wrong revenue/salary data → Wrong decisions → Legal liability
+# ==================================================================================
+
+NEVER_IMPUTE_FIELDS = {
+    # Financial fields (legal liability + wrong strategic decisions)
+    'revenue', 'sales', 'income', 'cost', 'expense', 'profit', 'margin',
+    'price', 'amount', 'payment', 'fee', 'charge', 'budget', 'spending',
+    'doanh_thu', 'doanh_so', 'chi_phi', 'loi_nhuan', 'gia', 'tien', 'thanh_toan',
+    
+    # HR fields (compliance/privacy + labor law)
+    'salary', 'wage', 'compensation', 'bonus', 'commission', 'payroll',
+    'employee_id', 'staff_id', 'luong', 'thu_nhap', 'tien_luong',
+    
+    # Customer PII (privacy law GDPR/PDPA compliance)
+    'email', 'phone', 'address', 'ssn', 'passport', 'id_number', 'cccd', 'cmnd',
+    'credit_card', 'bank_account', 'tax_id', 'so_dien_thoai', 'dia_chi',
+    
+    # Business-critical IDs (data integrity)
+    'order_id', 'transaction_id', 'invoice_id', 'customer_id', 'user_id',
+    'ma_don_hang', 'ma_khach_hang', 'ma_giao_dich', 'ma_hoa_don'
+}
+
+# ==================================================================================
+# VIETNAM VALIDATION RANGES (Sanity Checks for Realistic Data)
+# ==================================================================================
+# Updated: 2025-10-29 - Vietnam market-specific validation ranges
+# Purpose: Flag outliers that don't make sense in Vietnam context
+# Source: Vietnam market research, industry standards, common sense
+# ==================================================================================
+
+VIETNAM_VALIDATION_RANGES = {
+    # HR (Vietnam market)
+    'salary': {
+        'min': 5_000_000,       # 5M VND/month (~$200) - minimum wage tier
+        'max': 200_000_000,     # 200M VND/month (~$8K) - C-level executives
+        'unit': 'VND/month',
+        'warning': 'Salary outside typical Vietnam range (5M-200M VND/month)'
+    },
+    'luong': {
+        'min': 5_000_000,
+        'max': 200_000_000,
+        'unit': 'VND/month',
+        'warning': 'Lương nằm ngoài khoảng phổ biến (5-200 triệu VND/tháng)'
+    },
+    'age': {
+        'min': 18,              # Legal working age
+        'max': 65,              # Typical retirement age
+        'unit': 'years',
+        'warning': 'Age outside working population range (18-65 years)'
+    },
+    'tuoi': {
+        'min': 18,
+        'max': 65,
+        'unit': 'năm',
+        'warning': 'Tuổi nằm ngoài độ tuổi lao động (18-65 tuổi)'
+    },
+    'experience': {
+        'min': 0,
+        'max': 40,              # Max career length
+        'unit': 'years',
+        'warning': 'Experience years unrealistic (0-40 years expected)'
+    },
+    
+    # E-commerce (Vietnam market)
+    'order_value': {
+        'min': 10_000,          # 10K VND (~$0.40) - minimum viable order
+        'max': 100_000_000,     # 100M VND (~$4K) - very high-value purchase
+        'unit': 'VND',
+        'warning': 'Order value outside typical range (10K-100M VND)'
+    },
+    'gia_tri_don_hang': {
+        'min': 10_000,
+        'max': 100_000_000,
+        'unit': 'VND',
+        'warning': 'Giá trị đơn hàng nằm ngoài khoảng thông thường (10K-100M VND)'
+    },
+    'shipping_fee': {
+        'min': 0,               # Free shipping exists
+        'max': 500_000,         # 500K VND (~$20) - even remote areas
+        'unit': 'VND',
+        'warning': 'Shipping fee unusually high (>500K VND)'
+    },
+    'phi_ship': {
+        'min': 0,
+        'max': 500_000,
+        'unit': 'VND',
+        'warning': 'Phí ship cao bất thường (>500K VND)'
+    },
+    'discount_percent': {
+        'min': 0,
+        'max': 100,             # Cannot discount more than 100%
+        'unit': '%',
+        'warning': 'Discount percentage invalid (must be 0-100%)'
+    },
+    'giam_gia': {
+        'min': 0,
+        'max': 100,
+        'unit': '%',
+        'warning': 'Phần trăm giảm giá không hợp lệ (phải 0-100%)'
+    },
+    
+    # Marketing (adjusted for Vietnam)
+    'ctr': {
+        'min': 0,
+        'max': 100,
+        'unit': '%',
+        'warning': 'CTR percentage invalid (must be 0-100%)'
+    },
+    'cpc': {
+        'min': 1_000,           # 1K VND (~$0.04) - very cheap click
+        'max': 100_000,         # 100K VND (~$4) - premium keyword
+        'unit': 'VND',
+        'warning': 'CPC outside Vietnam typical range (1K-100K VND)'
+    },
+    'conversion_rate': {
+        'min': 0,
+        'max': 100,
+        'unit': '%',
+        'warning': 'Conversion rate invalid (must be 0-100%)'
+    },
+    'ty_le_chuyen_doi': {
+        'min': 0,
+        'max': 100,
+        'unit': '%',
+        'warning': 'Tỷ lệ chuyển đổi không hợp lệ (phải 0-100%)'
+    },
+    
+    # Finance (general business rules)
+    'profit_margin': {
+        'min': -100,            # Can have losses
+        'max': 100,             # Cannot exceed 100% margin
+        'unit': '%',
+        'warning': 'Profit margin outside feasible range (-100% to 100%)'
+    },
+    'bien_loi_nhuan': {
+        'min': -100,
+        'max': 100,
+        'unit': '%',
+        'warning': 'Biên lợi nhuận nằm ngoài khoảng khả thi (-100% đến 100%)'
+    },
+    'revenue_growth': {
+        'min': -100,            # Can shrink completely
+        'max': 500,             # 5x growth is rare but possible for startups
+        'unit': '%',
+        'warning': 'Revenue growth rate extreme (check for data entry error)'
+    },
+    'tang_truong_doanh_thu': {
+        'min': -100,
+        'max': 500,
+        'unit': '%',
+        'warning': 'Tốc độ tăng trưởng doanh thu cực đoan (kiểm tra lỗi nhập liệu)'
+    }
+}
+
+def is_critical_field(column_name: str) -> bool:
+    """
+    Check if a column name matches any field in NEVER_IMPUTE list.
+    Uses case-insensitive partial matching to catch variations.
+    
+    Args:
+        column_name: Name of the column to check
+    
+    Returns:
+        bool: True if field is critical and should NEVER be imputed
+    
+    Example:
+        >>> is_critical_field('Monthly_Salary')
+        True
+        >>> is_critical_field('customer_age')
+        False
+    """
+    col_lower = column_name.lower()
+    return any(critical in col_lower for critical in NEVER_IMPUTE_FIELDS)
+
+def validate_vietnam_range(column_name: str, value: float) -> dict:
+    """
+    Validate if a numeric value is within Vietnam realistic range.
+    Returns detailed validation result with suggested actions.
+    
+    Args:
+        column_name: Name of the column being validated
+        value: Numeric value to check
+    
+    Returns:
+        dict: {
+            'valid': bool,                    # True if within range
+            'message': str,                   # Explanation if invalid
+            'suggested_action': str or None,  # What to do about it
+            'range_info': dict or None        # Min/max/unit for reference
+        }
+    
+    Example:
+        >>> validate_vietnam_range('salary', 300_000_000)
+        {
+            'valid': False,
+            'message': 'Value 300,000,000 > maximum 200,000,000 VND/month',
+            'suggested_action': 'Cap at 200,000,000 or verify data entry',
+            'range_info': {'min': 5000000, 'max': 200000000, 'unit': 'VND/month'}
+        }
+    """
+    col_lower = column_name.lower()
+    
+    # Find matching validation range
+    for field, range_def in VIETNAM_VALIDATION_RANGES.items():
+        if field in col_lower:
+            # Check minimum
+            if value < range_def['min']:
+                return {
+                    'valid': False,
+                    'message': f"Value {value:,.0f} < minimum {range_def['min']:,.0f} {range_def['unit']}",
+                    'suggested_action': f"Remove row or verify data entry (minimum: {range_def['min']:,.0f})",
+                    'range_info': range_def,
+                    'severity': 'high'
+                }
+            
+            # Check maximum
+            if value > range_def['max']:
+                return {
+                    'valid': False,
+                    'message': f"Value {value:,.0f} > maximum {range_def['max']:,.0f} {range_def['unit']}",
+                    'suggested_action': f"Cap at {range_def['max']:,.0f} or verify data entry",
+                    'range_info': range_def,
+                    'severity': 'high'
+                }
+            
+            # Within range
+            return {
+                'valid': True,
+                'message': f'Within Vietnam realistic range ({range_def["min"]:,.0f}-{range_def["max"]:,.0f} {range_def["unit"]})',
+                'suggested_action': None,
+                'range_info': range_def,
+                'severity': 'none'
+            }
+    
+    # No validation range defined for this field
+    return {
+        'valid': True,
+        'message': 'No Vietnam-specific validation range defined',
+        'suggested_action': None,
+        'range_info': None,
+        'severity': 'none'
+    }
+
+
 class SmartOQMLBPipeline:
     """
     Smart OQMLB Pipeline with domain expertise and quality validation.
@@ -206,7 +456,25 @@ COMPREHENSIVE CLEANING REQUIREMENTS:
    - Text: Trim whitespace, normalize case, remove special chars
    - Categories: Unify synonyms (e.g., "US" = "USA" = "United States")
 
-2. MISSING VALUE HANDLING (Domain-Aware):
+2. MISSING VALUE HANDLING (Domain-Aware + SAFETY-FIRST):
+   
+   **🔴 CRITICAL RULE #1: NEVER IMPUTE THESE FIELDS (NEVER_IMPUTE_FIELDS)**
+   Financial: revenue, sales, cost, expense, profit, price, salary, doanh_thu, chi_phi
+   PII: email, phone, address, ID numbers, cccd, cmnd, so_dien_thoai
+   Business IDs: order_id, transaction_id, customer_id, ma_don_hang, ma_khach_hang
+   
+   → If critical field is missing: KEEP AS NULL + FLAG to user + Show warning in dashboard
+   → REASON: Fake revenue/salary data → Wrong decisions → Legal liability
+   → EXAMPLE: Missing salary for 15% rows → DO NOT impute median → FLAG "15% salary data missing"
+   
+   **🔴 CRITICAL RULE #2: Validate Vietnam Ranges (VIETNAM_VALIDATION_RANGES)**
+   After ANY transformation, check values against Vietnam realistic ranges:
+   - Salary: 5M-200M VND/month (flag if outside)
+   - Order value: 10K-100M VND (flag if outside)
+   - Age: 18-65 years (flag if outside)
+   - Discount: 0-100% (flag if invalid)
+   
+   For NON-critical fields only (if not in NEVER_IMPUTE list):
    Numerical columns:
    - <5% missing: Impute median (robust to outliers)
    - 5-20% missing: Use KNN imputation or regression
@@ -221,8 +489,7 @@ COMPREHENSIVE CLEANING REQUIREMENTS:
    - Transactional data: Forward fill
    - Time-series: Interpolation
    
-   **Business Rule**: NEVER impute critical domain fields without validation
-   - {domain_info['domain']}: Critical fields likely include {', '.join(domain_info['profile']['keywords'][:3])}
+   **Domain-specific critical fields for {domain_info['domain']}**: {', '.join(domain_info['profile']['keywords'][:3])}
 
 3. OUTLIER DETECTION & TREATMENT:
    Detection methods:
