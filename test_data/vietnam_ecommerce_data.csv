@@ -1,0 +1,30 @@
+order_id,order_date,customer_id,customer_name,product_category,product_name,quantity,unit_price,subtotal,shipping_fee,discount,total_amount,payment_method,order_status,province,delivery_days,customer_rating
+ORD20241001,2024-10-01,CUST0156,Nguyen Van A,Electronics,Tai nghe Bluetooth AirPods Pro,1,4500000,4500000,30000,450000,4080000,COD,Delivered,Ho Chi Minh,3,5
+ORD20241002,2024-10-02,CUST0247,Tran Thi B,Fashion,Áo thun nữ cotton,2,250000,500000,25000,50000,475000,Bank Transfer,Delivered,Hanoi,2,4
+ORD20241003,2024-10-03,CUST0389,Le Van C,Home & Living,Bộ chăn ga gối đệm,1,850000,850000,40000,85000,805000,E-wallet,Delivered,Da Nang,4,5
+ORD20241004,2024-10-04,CUST0412,Pham Thi D,Beauty,Kem dưỡng da Innisfree,3,320000,960000,0,96000,864000,COD,Delivered,Binh Duong,2,4
+ORD20241005,2024-10-05,CUST0523,Hoang Van E,Electronics,Chuột gaming Logitech G502,1,1200000,1200000,30000,,1230000,Bank Transfer,Cancelled,Can Tho,0,
+ORD20241006,2024-10-06,CUST0634,Vo Thi F,Fashion,Giày sneaker nữ,1,650000,650000,35000,65000,620000,E-wallet,Delivered,Hai Phong,3,5
+ORD20241007,2024-10-07,CUST0745,Nguyen Van G,Food & Beverage,Cà phê hạt Arabica 500g,2,180000,360000,30000,36000,354000,COD,Delivered,Ho Chi Minh,1,4
+ORD20241008,2024-10-08,CUST0856,Tran Van H,Electronics,,1,8500000,8500000,0,850000,7650000,Bank Transfer,Delivered,Hanoi,3,5
+ORD20241009,2024-10-09,CUST0967,Le Thi I,Beauty,Son môi MAC Ruby Woo,2,550000,1100000,25000,110000,1015000,E-wallet,Delivered,Da Nang,4,4
+ORD20241010,2024-10-10,CUST1078,Pham Van K,Home & Living,Đèn ngủ LED thông minh,1,380000,380000,30000,38000,372000,COD,Delivered,Dong Nai,2,5
+ORD20241011,2024-10-11,CUST1189,Nguyen Thi L,Fashion,Quần jeans nam slim fit,1,450000,450000,30000,45000,435000,Bank Transfer,Returned,Ho Chi Minh,0,2
+ORD20241012,2024-10-12,CUST1290,Tran Van M,Electronics,Bàn phím cơ Keychron K2,1,2100000,2100000,40000,210000,1930000,E-wallet,Delivered,Hanoi,3,5
+ORD20241013,2024-10-13,CUST1401,Le Van N,Sports,Giày chạy bộ Nike Pegasus,1,2800000,2800000,0,280000,2520000,COD,Delivered,Vung Tau,4,4
+ORD20241014,2024-10-14,CUST1512,Vo Van O,Beauty,Serum Vitamin C The Ordinary,1,420000,420000,25000,,445000,Bank Transfer,Cancelled,Can Tho,0,
+ORD20241015,2024-10-15,CUST1623,Hoang Thi P,Home & Living,Nồi cơm điện Philips 1.8L,1,1650000,1650000,40000,165000,1525000,E-wallet,Delivered,Ho Chi Minh,2,5
+ORD20241016,2024-10-16,,Fashion,Áo khoác gió nữ,2,380000,760000,30000,76000,714000,COD,Delivered,Hanoi,3,4
+ORD20241017,2024-10-17,CUST1845,Nguyen Van R,Electronics,Loa Bluetooth JBL Flip 6,1,3200000,3200000,0,320000,2880000,Bank Transfer,Delivered,Da Nang,3,5
+ORD20241018,2024-10-18,CUST1956,Tran Thi S,Food & Beverage,Trà xanh matcha Nhật 100g,3,280000,840000,30000,84000,786000,E-wallet,Delivered,Hai Phong,4,4
+ORD20241019,2024-10-19,CUST2067,Le Van T,Beauty,Mặt nạ giấy Innisfree 10 miếng,2,150000,300000,25000,30000,295000,COD,Delivered,Ho Chi Minh,2,4
+ORD20241020,2024-10-20,CUST2178,Pham Thi U,Fashion,,1,1200000,1200000,35000,120000,1115000,Bank Transfer,Delivered,Hanoi,3,5
+ORD20241021,2024-10-21,CUST2289,Vo Van V,Electronics,Webcam Logitech C920,1,1850000,1850000,30000,185000,1695000,E-wallet,Delivered,Binh Duong,2,5
+ORD20241022,2024-10-22,CUST2390,Nguyen Thi W,Home & Living,Máy hút bụi Xiaomi,1,2400000,2400000,40000,240000,2200000,COD,Delivered,Dong Nai,3,4
+ORD20241023,2024-10-23,CUST2401,Tran Van X,Sports,Thảm yoga TPE 6mm,1,320000,320000,30000,32000,318000,Bank Transfer,Delivered,Can Tho,5,4
+ORD20241024,2024-10-24,CUST2512,Le Thi Y,Beauty,Kem chống nắng Anessa 60ml,2,480000,960000,0,96000,864000,E-wallet,Delivered,Ho Chi Minh,2,5
+ORD20241025,2024-10-25,CUST2623,Pham Van Z,Fashion,Túi xách nữ da PU,1,580000,580000,30000,,610000,COD,Cancelled,Hanoi,0,
+ORD20241026,2024-10-26,CUST2734,Hoang Van AA,Electronics,Tai nghe gaming HyperX Cloud,1,1650000,1650000,30000,165000,1515000,Bank Transfer,Delivered,Da Nang,3,5
+ORD20241027,2024-10-27,CUST2845,Nguyen Thi BB,Food & Beverage,Mật ong rừng nguyên chất 500ml,2,220000,440000,35000,44000,431000,E-wallet,Delivered,Hai Phong,4,4
+ORD20241028,2024-10-28,CUST2956,Tran Van CC,Home & Living,Quạt điều hòa mini,1,980000,980000,40000,98000,922000,COD,Delivered,Ho Chi Minh,2,4
+ORD20241029,2024-10-29,,Beauty,Bộ dưỡng da SK-II 3 món,1,5500000,5500000,0,550000,4950000,Bank Transfer,Processing,,0,

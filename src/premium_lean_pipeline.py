@@ -226,7 +226,7 @@ BENCHMARK_SOURCES = {
         'credibility': '⭐⭐⭐⭐',
         'vietnam_specific': False,
         'cost': 'FREE',
-        'sample_size': ''Global e-commerce data'
+        'sample_size': 'Global e-commerce data'
     },
     
     # ========================
