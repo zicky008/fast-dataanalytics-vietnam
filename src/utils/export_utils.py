@@ -38,16 +38,6 @@ PDF_COLORS = {
     'text': '#1E293B',         # Main text color
 }
 
-# ⭐ PROFESSIONAL STATUS INDICATORS (Unicode symbols, not emoji)
-STATUS_INDICATORS = {
-    'above': {'symbol': '▲', 'color': PDF_COLORS['success'], 'label': 'Above Target'},
-    'below': {'symbol': '▼', 'color': PDF_COLORS['danger'], 'label': 'Below Target'},
-    'on_target': {'symbol': '●', 'color': PDF_COLORS['secondary'], 'label': 'On Target'},
-    'good': {'symbol': '✓', 'color': PDF_COLORS['success'], 'label': 'Good'},
-    'alert': {'symbol': '!', 'color': PDF_COLORS['danger'], 'label': 'Needs Attention'},
-    'watch': {'symbol': '◐', 'color': PDF_COLORS['warning'], 'label': 'Monitor'},
-}
-
 # ⭐⭐ PROFESSIONAL SECTION MARKERS (NO EMOJI! 100% Safe Unicode)
 # Tested: Renders correctly in all PDF readers (Adobe, Chrome, mobile)
 SECTION_MARKERS = {
@@ -58,6 +48,16 @@ SECTION_MARKERS = {
     'charts': '▪ ',                 # Small square (U+25AA) - clean, minimal
     'appendix': '§ ',               # Section sign (U+00A7) - academic, formal
     'limitations': '⚠ ',            # Warning sign (U+26A0) - highly visible
+}
+
+# ⭐ PROFESSIONAL STATUS INDICATORS (Unicode symbols, not emoji)
+STATUS_INDICATORS = {
+    'above': {'symbol': '▲', 'color': PDF_COLORS['success'], 'label': 'Above Target'},
+    'below': {'symbol': '▼', 'color': PDF_COLORS['danger'], 'label': 'Below Target'},
+    'on_target': {'symbol': '●', 'color': PDF_COLORS['secondary'], 'label': 'On Target'},
+    'good': {'symbol': '✓', 'color': PDF_COLORS['success'], 'label': 'Good'},
+    'alert': {'symbol': '!', 'color': PDF_COLORS['danger'], 'label': 'Needs Attention'},
+    'watch': {'symbol': '◐', 'color': PDF_COLORS['warning'], 'label': 'Monitor'},
 }
 
 # ⭐ CONSISTENT SPACING STANDARDS (Professional reports)
@@ -125,200 +125,117 @@ def remove_emoji(text: str) -> str:
     return emoji_pattern.sub('', text).strip()
 
 
-def find_source_url(source_text: str) -> tuple:
+def find_source_url(source_text: str) -> str:
     """
-    ⭐⭐ DEMANDING USER FIX: Find SPECIFIC benchmark URL with credible data
-    Links to ACTUAL benchmark reports, NOT generic pages
-    Returns tuple: (url, year, metrics_preview)
+    ⭐ 5-STAR FIX: Find clickable URL for benchmark source using fuzzy matching
+    Enhanced with 20+ professional sources (McKinsey, BCG, Deloitte, Gartner, etc.)
     
     Args:
         source_text: Benchmark source name
     
     Returns:
-        Tuple (url, year, metrics) or (None, None, None) if not found
-    
-    Example:
-        url, year, metrics = find_source_url("McKinsey Manufacturing")
-        # → ('https://...specific-report', '2024', 'OEE: 85%, Downtime: <5%')
+        URL string or None if not found
     """
-    # ⭐⭐ SPECIFIC BENCHMARK SOURCES (Credible, Up-to-date, Transparent)
-    # Each entry links to ACTUAL data page, not generic landing page
+    # Comprehensive source URL mapping (⭐ 20+ sources)
     source_urls = {
-        # Big 4 Consulting (SPECIFIC reports with data)
-        'McKinsey Manufacturing Report': {
-            'url': 'https://www.mckinsey.com/capabilities/operations/our-insights/manufacturing-productivity',
-            'year': '2024',
-            'metrics': 'OEE: 85%, Downtime: <5%, Quality: 99%+'
-        },
-        'McKinsey': {
-            'url': 'https://www.mckinsey.com/capabilities/operations/our-insights/manufacturing-productivity',
-            'year': '2024',
-            'metrics': 'Industry averages & best practices'
-        },
-        'BCG Operations Excellence': {
-            'url': 'https://www.bcg.com/publications/2024/manufacturing-operations-transformation',
-            'year': '2024',
-            'metrics': 'Cost reduction: 20-30%, Lead time: -40%'
-        },
-        'BCG': {
-            'url': 'https://www.bcg.com/publications/collections/most-innovative-companies-methodology',
-            'year': '2024',
-            'metrics': 'Innovation benchmarks & methodology'
-        },
-        'Deloitte': {
-            'url': 'https://www2.deloitte.com/global/en/pages/about-deloitte/articles/global-report-benchmarking.html',
-            'year': '2024',
-            'metrics': 'Cross-industry performance benchmarks'
-        },
-        'PwC': {
-            'url': 'https://www.pwc.com/gx/en/ceo-survey/2024.html',
-            'year': '2024',
-            'metrics': 'CEO insights & business priorities'
-        },
+        # Big 4 Consulting
+        'McKinsey Manufacturing Report': 'https://www.mckinsey.com/capabilities/operations/our-insights',
+        'McKinsey': 'https://www.mckinsey.com/capabilities/operations/our-insights',
+        'BCG Operations Excellence': 'https://www.bcg.com/capabilities/operations/overview',
+        'BCG': 'https://www.bcg.com/publications',
+        'Bain Supply Chain': 'https://www.bain.com/consulting-services/operations/',
+        'Bain': 'https://www.bain.com/insights/',
+        'Deloitte Financial Services': 'https://www2.deloitte.com/us/en/pages/financial-services/topics/center-for-financial-services.html',
+        'Deloitte': 'https://www2.deloitte.com/global/en/insights.html',
+        'PwC HR Metrics': 'https://www.pwc.com/gx/en/services/people-organisation.html',
+        'PwC': 'https://www.pwc.com/gx/en/research-insights.html',
+        'EY Performance Management': 'https://www.ey.com/en_us/performance-improvement',
+        'EY': 'https://www.ey.com/en_us/insights',
+        'Accenture Technology': 'https://www.accenture.com/us-en/services/technology-index',
+        'Accenture': 'https://www.accenture.com/us-en/insights',
         
-        # Market Research (PUBLIC data pages)
-        'Gartner IT Benchmarks': {
-            'url': 'https://www.gartner.com/en/information-technology/insights/it-spending',
-            'year': '2024',
-            'metrics': 'IT Budget: 3.2% revenue, Cloud: 51%'
-        },
-        'Gartner': {
-            'url': 'https://www.gartner.com/en/information-technology/insights',
-            'year': '2024',
-            'metrics': 'IT trends & forecasts'
-        },
-        'Forrester': {
-            'url': 'https://www.forrester.com/research/technology/',
-            'year': '2024',
-            'metrics': 'Tech adoption & ROI data'
-        },
+        # Market Research
+        'Gartner IT Benchmarks': 'https://www.gartner.com/en/research/benchmarking',
+        'Gartner': 'https://www.gartner.com/en/research/benchmarking',
+        'Forrester Research': 'https://www.forrester.com/research/',
+        'Forrester': 'https://www.forrester.com/research/',
+        'IDC Industry Benchmarks': 'https://www.idc.com/research',
+        'IDC': 'https://www.idc.com/research',
         
-        # Marketing & Advertising (UP-TO-DATE data)
-        'WordStream PPC Benchmarks': {
-            'url': 'https://www.wordstream.com/blog/google-ads-industry-benchmarks',
-            'year': '2024',
-            'metrics': 'CTR: 3.17%, CPC: $2.69, CVR: 3.75%'
-        },
-        'WordStream': {
-            'url': 'https://www.wordstream.com/blog/google-ads-industry-benchmarks',
-            'year': '2024',
-            'metrics': 'Avg CTR: 3.17%, Avg CPC: $2.69'
-        },
-        'HubSpot Marketing Benchmarks': {
-            'url': 'https://www.hubspot.com/marketing-statistics',
-            'year': '2024',
-            'metrics': 'Lead gen, email, social media stats'
-        },
-        'HubSpot': {
-            'url': 'https://www.hubspot.com/marketing-statistics',
-            'year': '2024',
-            'metrics': 'Marketing performance data'
-        },
+        # Marketing & Advertising
+        'WordStream PPC Benchmarks': 'https://www.wordstream.com/blog/ws/2019/11/12/google-ads-benchmarks',
+        'WordStream': 'https://www.wordstream.com/blog/ws/2019/11/12/google-ads-benchmarks',
+        'HubSpot Marketing Benchmarks': 'https://www.hubspot.com/marketing-statistics',
+        'HubSpot': 'https://www.hubspot.com/marketing-statistics',
+        'Nielsen Consumer Insights': 'https://www.nielsen.com/insights/',
+        'Nielsen': 'https://www.nielsen.com/insights/',
         
-        # Sales & CRM (Specific reports)
-        'Salesforce Sales Benchmarks': {
-            'url': 'https://www.salesforce.com/resources/research-reports/state-of-sales/',
-            'year': '2024',
-            'metrics': 'Win rate: 47%, Sales cycle: 84 days'
-        },
-        'Salesforce': {
-            'url': 'https://www.salesforce.com/resources/research-reports/state-of-sales/',
-            'year': '2024',
-            'metrics': 'Sales performance insights'
-        },
+        # Sales & CRM
+        'Salesforce Sales Benchmarks': 'https://www.salesforce.com/resources/research-reports/',
+        'Salesforce': 'https://www.salesforce.com/resources/research-reports/',
         
-        # Customer Support (Benchmark data)
-        'Zendesk Support Benchmarks': {
-            'url': 'https://www.zendesk.com/benchmark/',
-            'year': '2024',
-            'metrics': 'First reply: 11h, Resolution: 24h, CSAT: 95%'
-        },
-        'Zendesk': {
-            'url': 'https://www.zendesk.com/benchmark/',
-            'year': '2024',
-            'metrics': 'Support performance metrics'
-        },
+        # Customer Support
+        'Zendesk Support Benchmarks': 'https://www.zendesk.com/benchmark/',
+        'Zendesk': 'https://www.zendesk.com/benchmark/',
         
-        # Data & Statistics (Public databases)
-        'Statista': {
-            'url': 'https://www.statista.com/markets/',
-            'year': '2024',
-            'metrics': 'Market size, trends, forecasts'
-        },
-        'APQC Process Benchmarks': {
-            'url': 'https://www.apqc.org/open-standards-benchmarking',
-            'year': '2024',
-            'metrics': 'Process efficiency & cost data'
-        },
+        # Data & Statistics
+        'Statista Market Data': 'https://www.statista.com/',
+        'Statista': 'https://www.statista.com/',
+        'APQC Process Benchmarks': 'https://www.apqc.org/expertise/benchmarking',
+        'APQC': 'https://www.apqc.org/expertise/benchmarking',
         
-        # Standards & Government Data
-        'ISO Standards': {
-            'url': 'https://www.iso.org/standard/53798.html',
-            'year': '2024',
-            'metrics': 'ISO 8000 Data Quality standards'
-        },
-        'Industry Standard': {
-            'url': 'https://www.bls.gov/data/',
-            'year': '2024',
-            'metrics': 'US Bureau of Labor Statistics'
-        },
-        'Market Average': {
-            'url': 'https://www.bls.gov/productivity/',
-            'year': '2024',
-            'metrics': 'Productivity & efficiency data'
-        },
-        'Global Benchmark': {
-            'url': 'https://data.worldbank.org/indicator',
-            'year': '2024',
-            'metrics': 'World Bank economic indicators'
-        },
+        # Standards
+        'ISO Standards': 'https://www.iso.org/standards.html',
+        'ISO': 'https://www.iso.org/standards.html',
+        
+        # Generic benchmarks
+        'Industry Standard': 'https://www.bls.gov/data/',  # US Bureau of Labor Statistics
+        'Market Average': 'https://www.bls.gov/data/',
+        'Global Benchmark': 'https://data.worldbank.org/',
     }
     
     if not source_text:
-        return (None, None, None)
+        return None
     
     source_lower = source_text.lower()
     
     # Exact match first
-    for known_source, data in source_urls.items():
+    for known_source, url in source_urls.items():
         if known_source.lower() == source_lower:
-            return (data['url'], data['year'], data['metrics'])
+            return url
     
     # Partial match (contains)
-    for known_source, data in source_urls.items():
+    for known_source, url in source_urls.items():
         if known_source.lower() in source_lower:
-            return (data['url'], data['year'], data['metrics'])
+            return url
     
-    # Keyword fuzzy matching with structured data
-    keyword_mapping = {
-        'mckinsey': 'McKinsey',
-        'gartner': 'Gartner',
-        'deloitte': 'Deloitte',
-        'pwc': 'PwC',
-        'pricewaterhouse': 'PwC',
-        'bcg': 'BCG',
-        'boston consulting': 'BCG',
-        'wordstream': 'WordStream',
-        'hubspot': 'HubSpot',
-        'salesforce': 'Salesforce',
-        'zendesk': 'Zendesk',
-        'forrester': 'Forrester',
-        'statista': 'Statista',
-        'apqc': 'APQC Process Benchmarks',
+    # Keyword fuzzy matching
+    keywords = {
+        'mckinsey': 'https://www.mckinsey.com/capabilities/operations/our-insights',
+        'gartner': 'https://www.gartner.com/en/research/benchmarking',
+        'deloitte': 'https://www2.deloitte.com/global/en/insights.html',
+        'pwc': 'https://www.pwc.com/gx/en/research-insights.html',
+        'pricewaterhouse': 'https://www.pwc.com/gx/en/research-insights.html',
+        'bcg': 'https://www.bcg.com/publications',
+        'boston consulting': 'https://www.bcg.com/publications',
+        'bain': 'https://www.bain.com/insights/',
+        'accenture': 'https://www.accenture.com/us-en/insights',
+        'forrester': 'https://www.forrester.com/research/',
+        'wordstream': 'https://www.wordstream.com/blog/ws/2019/11/12/google-ads-benchmarks',
+        'hubspot': 'https://www.hubspot.com/marketing-statistics',
+        'salesforce': 'https://www.salesforce.com/resources/research-reports/',
+        'zendesk': 'https://www.zendesk.com/benchmark/',
     }
     
-    for keyword, mapped_source in keyword_mapping.items():
+    for keyword, url in keywords.items():
         if keyword in source_lower:
-            if mapped_source in source_urls:
-                data = source_urls[mapped_source]
-                return (data['url'], data['year'], data['metrics'])
+            return url
     
     # Default for generic terms
     if any(term in source_lower for term in ['industry', 'market', 'average', 'standard', 'benchmark']):
-        data = source_urls['Industry Standard']
-        return (data['url'], data['year'], data['metrics'])
+        return 'https://www.bls.gov/data/'
     
-    return (None, None, None)  # No URL found
+    return None  # No URL found
 
 
 def create_callout_box(text: str, style: str = 'info', lang: str = 'vi', 
@@ -344,36 +261,36 @@ def create_callout_box(text: str, style: str = 'info', lang: str = 'vi',
     from reportlab.platypus import Table, TableStyle, Paragraph
     from reportlab.lib.styles import ParagraphStyle
     
-    # Define box styles (McKinsey/BCG standard)
+    # Define box styles (McKinsey/BCG standard) - Unicode symbols only (NO emoji)
     box_styles = {
         'info': {
             'bg': colors.HexColor('#EFF6FF'),      # Light blue
             'border': colors.HexColor('#2563EB'),  # Blue
-            'icon': 'ℹ',
+            'icon': '◆',  # Unicode diamond (NOT emoji ℹ)
             'label': 'KEY INSIGHT' if lang == 'en' else 'INSIGHT CHÍNH'
         },
         'success': {
             'bg': colors.HexColor('#F0FDF4'),      # Light green
             'border': colors.HexColor('#16A34A'),  # Green
-            'icon': '✓',
+            'icon': '✓',  # Unicode checkmark
             'label': 'SUCCESS' if lang == 'en' else 'THÀNH CÔNG'
         },
         'warning': {
             'bg': colors.HexColor('#FFF7ED'),      # Light orange
             'border': colors.HexColor('#EA580C'),  # Orange
-            'icon': '⚠',
+            'icon': '▲',  # Unicode triangle (NOT emoji ⚠)
             'label': 'WARNING' if lang == 'en' else 'CẢNH BÁO'
         },
         'danger': {
             'bg': colors.HexColor('#FEF2F2'),      # Light red
             'border': colors.HexColor('#DC2626'),  # Red
-            'icon': '⚠',
+            'icon': '!',  # Exclamation mark
             'label': 'CRITICAL' if lang == 'en' else 'QUAN TRỌNG'
         },
         'executive': {
             'bg': colors.HexColor('#F7F9FB'),      # Light gray-blue
             'border': colors.HexColor('#1E40AF'),  # Dark blue
-            'icon': '📋',
+            'icon': '»',  # Unicode guillemet (NOT emoji 📋)
             'label': 'EXECUTIVE SUMMARY' if lang == 'en' else 'TÓM TẮT ĐIỀU HÀNH'
         }
     }
@@ -1084,19 +1001,34 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
         content.append(Spacer(1, SPACING['after_title']*inch))  # ⭐ Consistent spacing
 
         for i, insight in enumerate(result['insights'].get('key_insights', [])[:5], 1):
-            # ✅ FIX #23: Bold impact labels and enhanced formatting like production app
+            # ⭐ ENHANCED: Scannable format with bold key metrics
             if insight['impact'] == 'high':
-                impact_label = "<b><font color='red'>[HIGH IMPACT]</font></b>"
+                impact_label = "<font color='#DC2626'><b>[HIGH IMPACT]</b></font>"  # Red
+                box_style = 'danger'
             elif insight['impact'] == 'medium':
-                impact_label = "<b><font color='orange'>[MEDIUM IMPACT]</font></b>"
+                impact_label = "<font color='#EA580C'><b>[MEDIUM IMPACT]</b></font>"  # Orange
+                box_style = 'warning'
             else:
                 impact_label = "<b>[LOW IMPACT]</b>"
-            
+                box_style = 'info'
+
             # ✅ FIX #9: Sanitize insight text
             title_clean = sanitize_text_for_pdf(insight['title'])
             desc_clean = sanitize_text_for_pdf(insight['description'])
-            # ✅ FIX #23: Enhanced formatting with bold title and colored impact
-            insight_text = f"{impact_label} <b>{title_clean}</b><br/><i>{desc_clean}</i>"
+
+            # ⭐ SCANNABLE ENHANCEMENT: Auto-bold key metrics (numbers, percentages, currency)
+            import re
+            # Pattern matches: numbers with commas, currency symbols, percentages
+            metric_pattern = r'(₫[\d,]+\.?\d*|[\d,]+\.?\d*[%₫]?|[\d,]+\.?\d*\s*(?:đơn|sao|stars?)|[\d,]+\.?\d*/[\d,]+)'
+            desc_with_bold_metrics = re.sub(metric_pattern, r'<b>\1</b>', desc_clean)
+
+            # Professional formatting with clear visual hierarchy
+            insight_text = f"""
+            {impact_label} <b>{title_clean}</b>
+            <br/>
+            {desc_with_bold_metrics}
+            """
+
             content.append(Paragraph(insight_text, normal_style))
             content.append(Spacer(1, 0.15*inch))  # ✅ FIX #17: Consistent spacing
 
@@ -1112,21 +1044,24 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
         content.append(Spacer(1, SPACING['after_title']*inch))  # ⭐ Consistent spacing
 
         for i, rec in enumerate(result['insights'].get('recommendations', [])[:5], 1):
-            # ✅ FIX #23: Bold priority labels with colors like production app
+            # ⭐ ENHANCED: Professional priority labels with color coding
             if rec['priority'] == 'high':
-                priority_label = "<b><font color='red'>[HIGH PRIORITY]</font></b>"
+                priority_label = "<font color='#DC2626'><b>[HIGH]</b></font>"  # Red
+                priority_symbol = "▲"
             elif rec['priority'] == 'medium':
-                priority_label = "<b><font color='orange'>[MEDIUM PRIORITY]</font></b>"
+                priority_label = "<font color='#EA580C'><b>[MEDIUM]</b></font>"  # Orange
+                priority_symbol = "●"
             else:
-                priority_label = "<b>[LOW PRIORITY]</b>"
-            
+                priority_label = "<b>[LOW]</b>"
+                priority_symbol = "▼"
+
             # ✅ FIX #11: Determine responsible role based on action keywords and domain
             responsible_role = rec.get('responsible', None)  # Check if already provided
             if not responsible_role:
                 # Infer from action content and domain
                 action_lower = rec['action'].lower()
                 domain_lower = result['domain_info']['domain'].lower()
-                
+
                 if any(keyword in action_lower for keyword in ['budget', 'cost', 'financial', 'investment', 'roi', 'pricing']):
                     responsible_role = "CFO / Finance Director"
                 elif any(keyword in action_lower for keyword in ['marketing', 'campaign', 'advertising', 'social media', 'brand', 'customer acquisition']):
@@ -1157,11 +1092,19 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
                         responsible_role = "Sales Manager"
                     else:
                         responsible_role = "Department Head"
-            
-            # ✅ FIX #23: Enhanced formatting with bold action and italic details
-            rec_text = f"{priority_label} <b>{rec['action']}</b><br/><i>Expected Impact: {rec['expected_impact']}</i><br/><i>Timeline: {rec['timeline']}</i><br/><b>Responsible:</b> {responsible_role}"
+
+            # ⭐ SCANNABLE ENHANCEMENT: Clear structure with icons and bold labels
+            rec_text = f"""
+            {priority_symbol} {priority_label} <b>{rec['action']}</b>
+            <br/><br/>
+            <b>Expected Impact:</b> {rec['expected_impact']}
+            <br/>
+            <b>Timeline:</b> {rec['timeline']}
+            <br/>
+            <b>Responsible:</b> {responsible_role}
+            """
             content.append(Paragraph(rec_text, normal_style))
-            content.append(Spacer(1, 0.15*inch))  # ✅ FIX #17: Consistent spacing
+            content.append(Spacer(1, 0.2*inch))  # Increased spacing between recommendations
 
         # ⭐ Consistent spacing before page break
         content.append(Spacer(1, SPACING['before_page_break']*inch))
@@ -1538,12 +1481,12 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
         elif charts_exported == total_charts and total_charts > 0:
             print(f"✅ Success: All {total_charts} charts exported successfully!")
 
-        # ⭐⭐ DEMANDING USER FIX: Professional Unicode symbols (NO EMOJI!)
+        # ⭐ 5-STAR FIX: Professional Title Case with icon
         content.append(PageBreak())
         if lang == "vi":
-            appendix_title = f"{SECTION_MARKERS['appendix']}Phụ Lục: Phương Pháp Tính Quality Score"  # Unicode
+            appendix_title = "📚 Phụ Lục: Phương Pháp Tính Quality Score"  # Title Case
         else:
-            appendix_title = f"{SECTION_MARKERS['appendix']}Appendix: Quality Score Methodology"
+            appendix_title = "📚 Appendix: Quality Score Methodology"
         
         content.append(Paragraph(f"<b>{appendix_title}</b>", heading_style))
         content.append(Spacer(1, SPACING['after_title']*inch))  # ⭐ Consistent spacing
@@ -1646,11 +1589,11 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
             với đội ngũ và chuyên gia ngành của bạn trước khi đầu tư lớn hoặc thay đổi chiến lược.
             """
         
-        # ⭐⭐ DEMANDING USER FIX: Professional Unicode symbols (NO EMOJI!)
+        # ⭐ 5-STAR FIX: Professional Title Case with warning icon
         if lang == "en":
-            limitations_title = f"{SECTION_MARKERS['limitations']}Important: Limitations and Disclaimers"
+            limitations_title = "⚠️ Important: Limitations and Disclaimers"  # Title Case
         else:
-            limitations_title = f"{SECTION_MARKERS['limitations']}Quan Trọng: Giới Hạn và Miễn Trừ Trách Nhiệm"
+            limitations_title = "⚠️ Quan Trọng: Giới Hạn và Miễn Trừ Trách Nhiệm"
         
         content.append(Paragraph(f"<b>{limitations_title}</b>", heading_style))
         content.append(Spacer(1, SPACING['after_title']*inch))  # ⭐ Consistent spacing
