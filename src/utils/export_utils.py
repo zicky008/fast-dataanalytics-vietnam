@@ -249,36 +249,36 @@ def create_callout_box(text: str, style: str = 'info', lang: str = 'vi',
     from reportlab.platypus import Table, TableStyle, Paragraph
     from reportlab.lib.styles import ParagraphStyle
     
-    # Define box styles (McKinsey/BCG standard)
+    # Define box styles (McKinsey/BCG standard) - Unicode symbols only (NO emoji)
     box_styles = {
         'info': {
             'bg': colors.HexColor('#EFF6FF'),      # Light blue
             'border': colors.HexColor('#2563EB'),  # Blue
-            'icon': 'ℹ',
+            'icon': '◆',  # Unicode diamond (NOT emoji ℹ)
             'label': 'KEY INSIGHT' if lang == 'en' else 'INSIGHT CHÍNH'
         },
         'success': {
             'bg': colors.HexColor('#F0FDF4'),      # Light green
             'border': colors.HexColor('#16A34A'),  # Green
-            'icon': '✓',
+            'icon': '✓',  # Unicode checkmark
             'label': 'SUCCESS' if lang == 'en' else 'THÀNH CÔNG'
         },
         'warning': {
             'bg': colors.HexColor('#FFF7ED'),      # Light orange
             'border': colors.HexColor('#EA580C'),  # Orange
-            'icon': '⚠',
+            'icon': '▲',  # Unicode triangle (NOT emoji ⚠)
             'label': 'WARNING' if lang == 'en' else 'CẢNH BÁO'
         },
         'danger': {
             'bg': colors.HexColor('#FEF2F2'),      # Light red
             'border': colors.HexColor('#DC2626'),  # Red
-            'icon': '⚠',
+            'icon': '!',  # Exclamation mark
             'label': 'CRITICAL' if lang == 'en' else 'QUAN TRỌNG'
         },
         'executive': {
             'bg': colors.HexColor('#F7F9FB'),      # Light gray-blue
             'border': colors.HexColor('#1E40AF'),  # Dark blue
-            'icon': '📋',
+            'icon': '»',  # Unicode guillemet (NOT emoji 📋)
             'label': 'EXECUTIVE SUMMARY' if lang == 'en' else 'TÓM TẮT ĐIỀU HÀNH'
         }
     }
@@ -669,12 +669,12 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
         content.append(metadata_table)
         content.append(Spacer(1, 0.4*inch))  # ✅ FIX #17: Consistent spacing
 
-        # ⭐ 5-STAR FIX: Professional Title Case with icon (NOT ALL CAPS)
-        # McKinsey/BCG/Deloitte standard: Title Case + Unicode icon
+        # ⭐ 5-STAR FIX: Professional Title Case with Unicode symbol (NOT emoji - rendering reliability)
+        # McKinsey/BCG/Deloitte standard: Title Case + Unicode symbol (» ■ ◆ ▶ ▪)
         if lang == "vi":
-            exec_title = "📋 Tóm Tắt Điều Hành"  # Title Case + Professional icon
+            exec_title = "» Tóm Tắt Điều Hành"  # Professional Unicode symbol (emoji-free for reliability)
         else:
-            exec_title = "📋 Executive Summary"
+            exec_title = "» Executive Summary"
         
         content.append(Paragraph(f"<b>{exec_title}</b>", heading_style))
         content.append(Spacer(1, SPACING['after_title']*inch))  # ⭐ Consistent spacing
@@ -696,11 +696,11 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
         content.append(summary_box)
         content.append(Spacer(1, SPACING['between_sections']*inch))  # ⭐ Consistent spacing
 
-        # ⭐ 5-STAR FIX: Professional Title Case with icon (NOT ALL CAPS)
+        # ⭐ 5-STAR FIX: Professional Title Case with Unicode symbol (NOT emoji)
         if lang == "vi":
-            kpi_title = "📊 Chỉ Số Hiệu Suất Chính"  # Title Case + Professional icon
+            kpi_title = "■ Chỉ Số Hiệu Suất Chính"  # Professional Unicode symbol (rendering-safe)
         else:
-            kpi_title = "📊 Key Performance Indicators"
+            kpi_title = "■ Key Performance Indicators"
         
         content.append(Paragraph(f"<b>{kpi_title}</b>", heading_style))
         content.append(Spacer(1, SPACING['after_title']*inch))  # ⭐ Consistent spacing
@@ -979,59 +979,77 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
 
         content.append(Spacer(1, SPACING['between_sections']*inch))  # ⭐ Consistent spacing
 
-        # ⭐ 5-STAR FIX: Professional Title Case with icon
+        # ⭐ 5-STAR FIX: Professional Title Case with Unicode symbol
         if lang == "vi":
-            insights_title = "💡 Insights Chính"  # Title Case + Professional icon
+            insights_title = "◆ Insights Chính"  # Professional Unicode symbol (emoji-free)
         else:
-            insights_title = "💡 Key Insights"
+            insights_title = "◆ Key Insights"
         
         content.append(Paragraph(f"<b>{insights_title}</b>", heading_style))
         content.append(Spacer(1, SPACING['after_title']*inch))  # ⭐ Consistent spacing
 
         for i, insight in enumerate(result['insights'].get('key_insights', [])[:5], 1):
-            # ✅ FIX #23: Bold impact labels and enhanced formatting like production app
+            # ⭐ ENHANCED: Scannable format with bold key metrics
             if insight['impact'] == 'high':
-                impact_label = "<b><font color='red'>[HIGH IMPACT]</font></b>"
+                impact_label = "<font color='#DC2626'><b>[HIGH IMPACT]</b></font>"  # Red
+                box_style = 'danger'
             elif insight['impact'] == 'medium':
-                impact_label = "<b><font color='orange'>[MEDIUM IMPACT]</font></b>"
+                impact_label = "<font color='#EA580C'><b>[MEDIUM IMPACT]</b></font>"  # Orange
+                box_style = 'warning'
             else:
                 impact_label = "<b>[LOW IMPACT]</b>"
-            
+                box_style = 'info'
+
             # ✅ FIX #9: Sanitize insight text
             title_clean = sanitize_text_for_pdf(insight['title'])
             desc_clean = sanitize_text_for_pdf(insight['description'])
-            # ✅ FIX #23: Enhanced formatting with bold title and colored impact
-            insight_text = f"{impact_label} <b>{title_clean}</b><br/><i>{desc_clean}</i>"
+
+            # ⭐ SCANNABLE ENHANCEMENT: Auto-bold key metrics (numbers, percentages, currency)
+            import re
+            # Pattern matches: numbers with commas, currency symbols, percentages
+            metric_pattern = r'(₫[\d,]+\.?\d*|[\d,]+\.?\d*[%₫]?|[\d,]+\.?\d*\s*(?:đơn|sao|stars?)|[\d,]+\.?\d*/[\d,]+)'
+            desc_with_bold_metrics = re.sub(metric_pattern, r'<b>\1</b>', desc_clean)
+
+            # Professional formatting with clear visual hierarchy
+            insight_text = f"""
+            {impact_label} <b>{title_clean}</b>
+            <br/>
+            {desc_with_bold_metrics}
+            """
+
             content.append(Paragraph(insight_text, normal_style))
             content.append(Spacer(1, 0.15*inch))  # ✅ FIX #17: Consistent spacing
 
         content.append(Spacer(1, 0.3*inch))  # ✅ FIX #17: Consistent section break
 
-        # ⭐ 5-STAR FIX: Professional Title Case with icon
+        # ⭐ 5-STAR FIX: Professional Title Case with Unicode symbol
         if lang == "vi":
-            rec_title = "🎯 Khuyến Nghị"  # Title Case + Professional icon
+            rec_title = "▶ Khuyến Nghị"  # Professional Unicode symbol (emoji-free)
         else:
-            rec_title = "🎯 Recommendations"
+            rec_title = "▶ Recommendations"
         
         content.append(Paragraph(f"<b>{rec_title}</b>", heading_style))
         content.append(Spacer(1, SPACING['after_title']*inch))  # ⭐ Consistent spacing
 
         for i, rec in enumerate(result['insights'].get('recommendations', [])[:5], 1):
-            # ✅ FIX #23: Bold priority labels with colors like production app
+            # ⭐ ENHANCED: Professional priority labels with color coding
             if rec['priority'] == 'high':
-                priority_label = "<b><font color='red'>[HIGH PRIORITY]</font></b>"
+                priority_label = "<font color='#DC2626'><b>[HIGH]</b></font>"  # Red
+                priority_symbol = "▲"
             elif rec['priority'] == 'medium':
-                priority_label = "<b><font color='orange'>[MEDIUM PRIORITY]</font></b>"
+                priority_label = "<font color='#EA580C'><b>[MEDIUM]</b></font>"  # Orange
+                priority_symbol = "●"
             else:
-                priority_label = "<b>[LOW PRIORITY]</b>"
-            
+                priority_label = "<b>[LOW]</b>"
+                priority_symbol = "▼"
+
             # ✅ FIX #11: Determine responsible role based on action keywords and domain
             responsible_role = rec.get('responsible', None)  # Check if already provided
             if not responsible_role:
                 # Infer from action content and domain
                 action_lower = rec['action'].lower()
                 domain_lower = result['domain_info']['domain'].lower()
-                
+
                 if any(keyword in action_lower for keyword in ['budget', 'cost', 'financial', 'investment', 'roi', 'pricing']):
                     responsible_role = "CFO / Finance Director"
                 elif any(keyword in action_lower for keyword in ['marketing', 'campaign', 'advertising', 'social media', 'brand', 'customer acquisition']):
@@ -1062,21 +1080,29 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
                         responsible_role = "Sales Manager"
                     else:
                         responsible_role = "Department Head"
-            
-            # ✅ FIX #23: Enhanced formatting with bold action and italic details
-            rec_text = f"{priority_label} <b>{rec['action']}</b><br/><i>Expected Impact: {rec['expected_impact']}</i><br/><i>Timeline: {rec['timeline']}</i><br/><b>Responsible:</b> {responsible_role}"
+
+            # ⭐ SCANNABLE ENHANCEMENT: Clear structure with icons and bold labels
+            rec_text = f"""
+            {priority_symbol} {priority_label} <b>{rec['action']}</b>
+            <br/><br/>
+            <b>Expected Impact:</b> {rec['expected_impact']}
+            <br/>
+            <b>Timeline:</b> {rec['timeline']}
+            <br/>
+            <b>Responsible:</b> {responsible_role}
+            """
             content.append(Paragraph(rec_text, normal_style))
-            content.append(Spacer(1, 0.15*inch))  # ✅ FIX #17: Consistent spacing
+            content.append(Spacer(1, 0.2*inch))  # Increased spacing between recommendations
 
         # ⭐ Consistent spacing before page break
         content.append(Spacer(1, SPACING['before_page_break']*inch))
         content.append(PageBreak())
 
-        # ⭐ 5-STAR FIX: Professional Title Case with icon
+        # ⭐ 5-STAR FIX: Professional Title Case with Unicode symbol
         if lang == "vi":
-            chart_title = "📈 Phân Tích Trực Quan"  # Title Case + Professional icon
+            chart_title = "▪ Phân Tích Trực Quan"  # Professional Unicode symbol (emoji-free)
         else:
-            chart_title = "📈 Visual Analysis"
+            chart_title = "▪ Visual Analysis"
         
         content.append(Paragraph(f"<b>{chart_title}</b>", heading_style))
         content.append(Spacer(1, SPACING['after_title']*inch))  # ⭐ Consistent spacing
