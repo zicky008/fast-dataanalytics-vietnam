@@ -25,6 +25,38 @@ import re
 # PROFESSIONAL COLOR PALETTES (ColorBrewer - Research-Validated)
 # ============================================================================
 
+# ⭐ PROFESSIONAL PDF COLORS (McKinsey/BCG/Deloitte Standard)
+# Source: PDF_PROFESSIONAL_STANDARDS_RESEARCH.md
+PDF_COLORS = {
+    'primary': '#1E40AF',      # Dark blue (headers, borders)
+    'secondary': '#2563EB',    # Blue (links, info)
+    'success': '#16A34A',      # Green (positive status)
+    'danger': '#DC2626',       # Red (negative status)
+    'warning': '#EA580C',      # Orange (medium priority)
+    'gray': '#64748B',         # Gray (footnotes, secondary text)
+    'light_gray': '#F8FAFC',   # Light background
+    'text': '#1E293B',         # Main text color
+}
+
+# ⭐ PROFESSIONAL STATUS INDICATORS (Unicode symbols, not emoji)
+STATUS_INDICATORS = {
+    'above': {'symbol': '▲', 'color': PDF_COLORS['success'], 'label': 'Above Target'},
+    'below': {'symbol': '▼', 'color': PDF_COLORS['danger'], 'label': 'Below Target'},
+    'on_target': {'symbol': '●', 'color': PDF_COLORS['secondary'], 'label': 'On Target'},
+    'good': {'symbol': '✓', 'color': PDF_COLORS['success'], 'label': 'Good'},
+    'alert': {'symbol': '!', 'color': PDF_COLORS['danger'], 'label': 'Needs Attention'},
+    'watch': {'symbol': '◐', 'color': PDF_COLORS['warning'], 'label': 'Monitor'},
+}
+
+# ⭐ CONSISTENT SPACING STANDARDS (Professional reports)
+SPACING = {
+    'after_title': 0.2,           # Title → Content (inches)
+    'between_sections': 0.4,      # Section → Section
+    'after_table': 0.3,           # Table → Text
+    'after_paragraph': 0.15,      # Paragraph → Paragraph
+    'before_page_break': 0.4,     # Last content → Page break
+}
+
 # Tableau 10 - Colorblind-safe, print-friendly (Qualitative palette)
 # Source: ColorBrewer / Tableau Research
 # Use for: Pie charts, categorical bar charts, distinct categories
@@ -79,6 +111,230 @@ def remove_emoji(text: str) -> str:
         u"\U000024C2-\U0001F251"
         "]+", flags=re.UNICODE)
     return emoji_pattern.sub('', text).strip()
+
+
+def find_source_url(source_text: str) -> str:
+    """
+    ⭐ 5-STAR FIX: Find clickable URL for benchmark source using fuzzy matching
+    Enhanced with 20+ professional sources (McKinsey, BCG, Deloitte, Gartner, etc.)
+    
+    Args:
+        source_text: Benchmark source name
+    
+    Returns:
+        URL string or None if not found
+    """
+    # Comprehensive source URL mapping (⭐ 20+ sources)
+    source_urls = {
+        # Big 4 Consulting
+        'McKinsey Manufacturing Report': 'https://www.mckinsey.com/capabilities/operations/our-insights',
+        'McKinsey': 'https://www.mckinsey.com/capabilities/operations/our-insights',
+        'BCG Operations Excellence': 'https://www.bcg.com/capabilities/operations/overview',
+        'BCG': 'https://www.bcg.com/publications',
+        'Bain Supply Chain': 'https://www.bain.com/consulting-services/operations/',
+        'Bain': 'https://www.bain.com/insights/',
+        'Deloitte Financial Services': 'https://www2.deloitte.com/us/en/pages/financial-services/topics/center-for-financial-services.html',
+        'Deloitte': 'https://www2.deloitte.com/global/en/insights.html',
+        'PwC HR Metrics': 'https://www.pwc.com/gx/en/services/people-organisation.html',
+        'PwC': 'https://www.pwc.com/gx/en/research-insights.html',
+        'EY Performance Management': 'https://www.ey.com/en_us/performance-improvement',
+        'EY': 'https://www.ey.com/en_us/insights',
+        'Accenture Technology': 'https://www.accenture.com/us-en/services/technology-index',
+        'Accenture': 'https://www.accenture.com/us-en/insights',
+        
+        # Market Research
+        'Gartner IT Benchmarks': 'https://www.gartner.com/en/research/benchmarking',
+        'Gartner': 'https://www.gartner.com/en/research/benchmarking',
+        'Forrester Research': 'https://www.forrester.com/research/',
+        'Forrester': 'https://www.forrester.com/research/',
+        'IDC Industry Benchmarks': 'https://www.idc.com/research',
+        'IDC': 'https://www.idc.com/research',
+        
+        # Marketing & Advertising
+        'WordStream PPC Benchmarks': 'https://www.wordstream.com/blog/ws/2019/11/12/google-ads-benchmarks',
+        'WordStream': 'https://www.wordstream.com/blog/ws/2019/11/12/google-ads-benchmarks',
+        'HubSpot Marketing Benchmarks': 'https://www.hubspot.com/marketing-statistics',
+        'HubSpot': 'https://www.hubspot.com/marketing-statistics',
+        'Nielsen Consumer Insights': 'https://www.nielsen.com/insights/',
+        'Nielsen': 'https://www.nielsen.com/insights/',
+        
+        # Sales & CRM
+        'Salesforce Sales Benchmarks': 'https://www.salesforce.com/resources/research-reports/',
+        'Salesforce': 'https://www.salesforce.com/resources/research-reports/',
+        
+        # Customer Support
+        'Zendesk Support Benchmarks': 'https://www.zendesk.com/benchmark/',
+        'Zendesk': 'https://www.zendesk.com/benchmark/',
+        
+        # Data & Statistics
+        'Statista Market Data': 'https://www.statista.com/',
+        'Statista': 'https://www.statista.com/',
+        'APQC Process Benchmarks': 'https://www.apqc.org/expertise/benchmarking',
+        'APQC': 'https://www.apqc.org/expertise/benchmarking',
+        
+        # Standards
+        'ISO Standards': 'https://www.iso.org/standards.html',
+        'ISO': 'https://www.iso.org/standards.html',
+        
+        # Generic benchmarks
+        'Industry Standard': 'https://www.bls.gov/data/',  # US Bureau of Labor Statistics
+        'Market Average': 'https://www.bls.gov/data/',
+        'Global Benchmark': 'https://data.worldbank.org/',
+    }
+    
+    if not source_text:
+        return None
+    
+    source_lower = source_text.lower()
+    
+    # Exact match first
+    for known_source, url in source_urls.items():
+        if known_source.lower() == source_lower:
+            return url
+    
+    # Partial match (contains)
+    for known_source, url in source_urls.items():
+        if known_source.lower() in source_lower:
+            return url
+    
+    # Keyword fuzzy matching
+    keywords = {
+        'mckinsey': 'https://www.mckinsey.com/capabilities/operations/our-insights',
+        'gartner': 'https://www.gartner.com/en/research/benchmarking',
+        'deloitte': 'https://www2.deloitte.com/global/en/insights.html',
+        'pwc': 'https://www.pwc.com/gx/en/research-insights.html',
+        'pricewaterhouse': 'https://www.pwc.com/gx/en/research-insights.html',
+        'bcg': 'https://www.bcg.com/publications',
+        'boston consulting': 'https://www.bcg.com/publications',
+        'bain': 'https://www.bain.com/insights/',
+        'accenture': 'https://www.accenture.com/us-en/insights',
+        'forrester': 'https://www.forrester.com/research/',
+        'wordstream': 'https://www.wordstream.com/blog/ws/2019/11/12/google-ads-benchmarks',
+        'hubspot': 'https://www.hubspot.com/marketing-statistics',
+        'salesforce': 'https://www.salesforce.com/resources/research-reports/',
+        'zendesk': 'https://www.zendesk.com/benchmark/',
+    }
+    
+    for keyword, url in keywords.items():
+        if keyword in source_lower:
+            return url
+    
+    # Default for generic terms
+    if any(term in source_lower for term in ['industry', 'market', 'average', 'standard', 'benchmark']):
+        return 'https://www.bls.gov/data/'
+    
+    return None  # No URL found
+
+
+def create_callout_box(text: str, style: str = 'info', lang: str = 'vi', 
+                       base_font: str = 'DejaVuSans', bold_font: str = 'DejaVuSans-Bold',
+                       normal_style: Any = None) -> Any:
+    """
+    ⭐ 5-STAR FIX: Create professional callout box (McKinsey/BCG/Deloitte style)
+    Replaces ugly bold paragraphs with elegant bordered boxes + icons
+    
+    Args:
+        text: Content text
+        style: 'info', 'success', 'warning', 'danger', 'executive'
+        lang: Language code
+        base_font: Base font name
+        bold_font: Bold font name
+        normal_style: Base paragraph style
+    
+    Returns:
+        Table object with professional styled callout box
+    """
+    from reportlab.lib import colors
+    from reportlab.lib.units import inch
+    from reportlab.platypus import Table, TableStyle, Paragraph
+    from reportlab.lib.styles import ParagraphStyle
+    
+    # Define box styles (McKinsey/BCG standard)
+    box_styles = {
+        'info': {
+            'bg': colors.HexColor('#EFF6FF'),      # Light blue
+            'border': colors.HexColor('#2563EB'),  # Blue
+            'icon': 'ℹ',
+            'label': 'KEY INSIGHT' if lang == 'en' else 'INSIGHT CHÍNH'
+        },
+        'success': {
+            'bg': colors.HexColor('#F0FDF4'),      # Light green
+            'border': colors.HexColor('#16A34A'),  # Green
+            'icon': '✓',
+            'label': 'SUCCESS' if lang == 'en' else 'THÀNH CÔNG'
+        },
+        'warning': {
+            'bg': colors.HexColor('#FFF7ED'),      # Light orange
+            'border': colors.HexColor('#EA580C'),  # Orange
+            'icon': '⚠',
+            'label': 'WARNING' if lang == 'en' else 'CẢNH BÁO'
+        },
+        'danger': {
+            'bg': colors.HexColor('#FEF2F2'),      # Light red
+            'border': colors.HexColor('#DC2626'),  # Red
+            'icon': '⚠',
+            'label': 'CRITICAL' if lang == 'en' else 'QUAN TRỌNG'
+        },
+        'executive': {
+            'bg': colors.HexColor('#F7F9FB'),      # Light gray-blue
+            'border': colors.HexColor('#1E40AF'),  # Dark blue
+            'icon': '📋',
+            'label': 'EXECUTIVE SUMMARY' if lang == 'en' else 'TÓM TẮT ĐIỀU HÀNH'
+        }
+    }
+    
+    box_style = box_styles.get(style, box_styles['info'])
+    
+    # Create paragraph styles
+    header_style = ParagraphStyle(
+        'CalloutHeader',
+        parent=normal_style if normal_style else None,
+        fontName=bold_font,
+        fontSize=11,
+        textColor=box_style['border'],
+        leading=14
+    )
+    
+    body_style = ParagraphStyle(
+        'CalloutBody',
+        parent=normal_style if normal_style else None,
+        fontName=base_font,
+        fontSize=10,
+        leading=14
+    )
+    
+    # Create header and body paragraphs
+    header_para = Paragraph(
+        f"<b>{box_style['icon']} {box_style['label']}</b>",
+        header_style
+    )
+    
+    body_para = Paragraph(text, body_style)
+    
+    # Create inner table (header + body)
+    inner_data = [[header_para], [body_para]]
+    inner_table = Table(inner_data, colWidths=[6*inch])
+    inner_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), box_style['bg']),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('TOPPADDING', (0, 0), (-1, -1), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+        ('LEFTPADDING', (0, 0), (-1, -1), 15),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 15),
+        ('LINEBELOW', (0, 0), (-1, 0), 1, box_style['border']),  # Header underline
+    ]))
+    
+    # Create outer table with colored border
+    outer_table = Table([[inner_table]], colWidths=[6.5*inch])
+    outer_table.setStyle(TableStyle([
+        ('BOX', (0, 0), (-1, -1), 2, box_style['border']),  # 2pt colored border
+        ('LEFTPADDING', (0, 0), (-1, -1), 0),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+        ('TOPPADDING', (0, 0), (-1, -1), 0),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+    ]))
+    
+    return outer_table
 
 
 def sanitize_text_for_pdf(text: str) -> str:
@@ -413,32 +669,41 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
         content.append(metadata_table)
         content.append(Spacer(1, 0.4*inch))  # ✅ FIX #17: Consistent spacing
 
-        # ✅ FIX #22: Remove emoji icons (rendering errors) - Use Unicode symbols instead
-        # Executive Summary with simple marker
-        exec_title = "[EXECUTIVE SUMMARY]" if lang == "en" else "[TÓM TẮT ĐIỀU HÀNH]"
+        # ⭐ 5-STAR FIX: Professional Title Case with icon (NOT ALL CAPS)
+        # McKinsey/BCG/Deloitte standard: Title Case + Unicode icon
+        if lang == "vi":
+            exec_title = "📋 Tóm Tắt Điều Hành"  # Title Case + Professional icon
+        else:
+            exec_title = "📋 Executive Summary"
+        
         content.append(Paragraph(f"<b>{exec_title}</b>", heading_style))
-        content.append(Spacer(1, 0.15*inch))  # Space after heading
+        content.append(Spacer(1, SPACING['after_title']*inch))  # ⭐ Consistent spacing
         
         summary_text = result['insights'].get('executive_summary', 'No summary available')
         # ✅ FIX #9: Sanitize text for proper formatting
         summary_text = sanitize_text_for_pdf(summary_text)
         
-        # ✅ FIX #21: Remove highlight box (causes overlap) - Use simple bold paragraph instead
-        summary_para = Paragraph(f"<b>{summary_text}</b>", ParagraphStyle('SummaryBold',
-            parent=normal_style,
-            fontSize=11,
-            leading=15,
-            leftIndent=12,
-            rightIndent=12,
-            spaceBefore=6,
-            spaceAfter=6
-        ))
-        content.append(summary_para)
-        content.append(Spacer(1, 0.3*inch))  # ✅ FIX #17: Consistent spacing
+        # ⭐ 5-STAR FIX: Professional callout box (McKinsey style)
+        # Replaces ugly bold paragraph with elegant bordered box
+        summary_box = create_callout_box(
+            text=summary_text,
+            style='executive',
+            lang=lang,
+            base_font=base_font,
+            bold_font=bold_font,
+            normal_style=normal_style
+        )
+        content.append(summary_box)
+        content.append(Spacer(1, SPACING['between_sections']*inch))  # ⭐ Consistent spacing
 
-        # ✅ FIX #22: Remove emoji - Use text marker
-        kpi_title = "[KEY PERFORMANCE INDICATORS]" if lang == "en" else "[CHỈ SỐ HIỆU SUẤT CHÍNH]"
+        # ⭐ 5-STAR FIX: Professional Title Case with icon (NOT ALL CAPS)
+        if lang == "vi":
+            kpi_title = "📊 Chỉ Số Hiệu Suất Chính"  # Title Case + Professional icon
+        else:
+            kpi_title = "📊 Key Performance Indicators"
+        
         content.append(Paragraph(f"<b>{kpi_title}</b>", heading_style))
+        content.append(Spacer(1, SPACING['after_title']*inch))  # ⭐ Consistent spacing
 
         kpis = result['dashboard'].get('kpis', {})
         if kpis:
@@ -465,37 +730,26 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
                 else:
                     clean_kpi_name_cell = clean_kpi_name
                 
-                # ✅ FIX #18: Add clickable links to benchmark sources for depth
+                # ⭐ 5-STAR FIX: Enhanced clickable links with 20+ professional sources
+                # Uses fuzzy matching for better URL detection
                 source = kpi_info.get('benchmark_source', 'Industry Standard')
                 
-                # Map sources to URLs for interactivity
-                source_urls = {
-                    'McKinsey Manufacturing Report': 'https://www.mckinsey.com/capabilities/operations/our-insights',
-                    'Gartner IT Benchmarks': 'https://www.gartner.com/en/research/benchmarking',
-                    'WordStream PPC Benchmarks': 'https://www.wordstream.com/blog/ws/2019/11/12/google-ads-benchmarks',
-                    'HubSpot Marketing Benchmarks': 'https://www.hubspot.com/marketing-statistics',
-                    'Salesforce Sales Benchmarks': 'https://www.salesforce.com/resources/research-reports/',
-                    'Zendesk Support Benchmarks': 'https://www.zendesk.com/benchmark/',
-                    'Deloitte Financial Services': 'https://www2.deloitte.com/us/en/pages/financial-services/topics/center-for-financial-services.html',
-                    'PwC HR Metrics': 'https://www.pwc.com/gx/en/services/people-organisation.html'
-                }
+                # Find URL using enhanced fuzzy matching function
+                source_url = find_source_url(source)
                 
-                # Check if source has a URL
-                source_url = None
-                for known_source, url in source_urls.items():
-                    if known_source.lower() in source.lower():
-                        source_url = url
-                        break
-                
-                # ✅ RE-FIX #18: Create clickable link with proper ReportLab syntax
+                # ⭐ Create professional clickable link (blue + underline)
                 if source_url:
-                    # ReportLab link syntax: <link href="URL">text</link>
-                    source_link = f'<link href="{source_url}" color="blue"><u>{source}</u></link>'
+                    # ReportLab link syntax with professional styling
+                    source_link = f'<link href="{source_url}" color="{PDF_COLORS["secondary"]}"><u>{source}</u></link>'
                     source_paragraph = Paragraph(source_link, ParagraphStyle('LinkStyle',
-                        parent=normal_style, textColor=colors.blue, underline=True))
+                        parent=normal_style, 
+                        textColor=colors.HexColor(PDF_COLORS['secondary']),
+                        fontSize=8,
+                        leading=10))
                 else:
-                    # No link, just wrap for word wrap
-                    source_paragraph = Paragraph(source, normal_style) if len(source) > 25 else source
+                    # No link found, still wrap for proper display
+                    source_paragraph = Paragraph(source, ParagraphStyle('SourceNoLink',
+                        parent=normal_style, fontSize=8, leading=10)) if len(source) > 25 else source
 
                 # Format value with thousand separators
                 value = kpi_info['value']
@@ -537,48 +791,56 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
 
                 # Note: source_paragraph already created above with clickable links
                 
-                # ✅ RE-FIX #15 & #16: CONSISTENT arrows and colors
-                # RULE: Above = ⬆️, Below = ⬇️ (literal direction)
-                # COLOR: Green = positive/good, Red = negative/bad
+                # ⭐ 5-STAR FIX: Professional Unicode status indicators (NOT emoji)
+                # Uses ▲▼● symbols with smart color logic
                 status_raw = kpi_info.get('status', 'N/A')
                 status_display = status_raw
-                status_color = colors.HexColor('#64748B')  # Default gray
+                status_color = colors.HexColor(PDF_COLORS['gray'])  # Default gray
                 
                 if status_raw not in ['N/A', 'Unknown']:
-                    # Determine if current status is good or bad based on KPI type
+                    # Determine KPI type for smart color logic
                     kpi_lower = clean_kpi_name.lower() if isinstance(clean_kpi_name, str) else str(clean_kpi_name).lower()
                     is_cost_type = any(keyword in kpi_lower for keyword in ['cost', 'expense', 'defect', 'downtime', 'error', 'reject', 'waste', 'rate'])
                     is_revenue_type = any(keyword in kpi_lower for keyword in ['revenue', 'profit', 'efficiency', 'yield', 'quality', 'conversion', 'roi', 'roas', 'satisfaction', 'oee'])
                     
-                    # ✅ FIXED LOGIC: Arrow matches word literally, color shows good/bad
+                    # ⭐ Professional indicators: ▲ (Above), ▼ (Below), ● (Target)
                     if status_raw in ['Above', 'High', 'Over']:
-                        status_display = f"Above ⬆️"  # Arrow UP (matches "Above")
-                        # Color depends on KPI type
+                        symbol = STATUS_INDICATORS['above']['symbol']  # ▲
+                        status_display = f"{symbol} Above"
+                        # Smart color: Green for revenue-type, Red for cost-type
                         if is_cost_type:
-                            status_color = colors.HexColor('#DC2626')  # RED = bad (cost high)
+                            status_color = colors.HexColor(PDF_COLORS['danger'])  # Red (bad)
                         elif is_revenue_type:
-                            status_color = colors.HexColor('#16A34A')  # GREEN = good (revenue high)
+                            status_color = colors.HexColor(PDF_COLORS['success'])  # Green (good)
                         else:
-                            status_color = colors.HexColor('#64748B')  # Gray = neutral
+                            status_color = colors.HexColor(PDF_COLORS['secondary'])  # Blue (neutral)
+                    
                     elif status_raw in ['Below', 'Low', 'Under']:
-                        status_display = f"Below ⬇️"  # Arrow DOWN (matches "Below")
-                        # Color depends on KPI type
+                        symbol = STATUS_INDICATORS['below']['symbol']  # ▼
+                        status_display = f"{symbol} Below"
+                        # Smart color: Red for revenue-type, Green for cost-type
                         if is_cost_type:
-                            status_color = colors.HexColor('#16A34A')  # GREEN = good (cost low)
+                            status_color = colors.HexColor(PDF_COLORS['success'])  # Green (good)
                         elif is_revenue_type:
-                            status_color = colors.HexColor('#DC2626')  # RED = bad (revenue low)
+                            status_color = colors.HexColor(PDF_COLORS['danger'])  # Red (bad)
                         else:
-                            status_color = colors.HexColor('#64748B')  # Gray = neutral
+                            status_color = colors.HexColor(PDF_COLORS['secondary'])  # Blue (neutral)
+                    
                     elif status_raw in ['Good', 'Excellent', 'On Target']:
-                        status_display = f"{status_raw} ✓"
-                        status_color = colors.HexColor('#16A34A')  # GREEN
+                        symbol = STATUS_INDICATORS['good']['symbol']  # ✓
+                        status_display = f"{symbol} {status_raw}"
+                        status_color = colors.HexColor(PDF_COLORS['success'])  # Always green
+                    
                     elif status_raw in ['Poor', 'Critical', 'Alert']:
-                        status_display = f"{status_raw} ✗"
-                        status_color = colors.HexColor('#DC2626')  # RED
+                        symbol = STATUS_INDICATORS['alert']['symbol']  # !
+                        status_display = f"{symbol} {status_raw}"
+                        status_color = colors.HexColor(PDF_COLORS['danger'])  # Always red
                 
-                # ✅ FIX #16: Wrap status in colored Paragraph for accessibility
-                status_cell = Paragraph(f'<font color="{status_color}">{status_display}</font>', 
-                    ParagraphStyle('Status', parent=normal_style, fontSize=9, alignment=1))
+                # ⭐ Professional styled status cell
+                status_cell = Paragraph(
+                    f'<font color="{status_color}"><b>{status_display}</b></font>',
+                    ParagraphStyle('Status', parent=normal_style, fontSize=9, alignment=1, leading=12)
+                )
                 
                 kpi_data.append([
                     clean_kpi_name_cell,  # ✅ FIX #14: Wrapped KPI name
@@ -671,20 +933,60 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
                     content.append(calc_para)
                     content.append(Spacer(1, 0.15*inch))
 
-            # ⭐ Add KPI Status legend for clarity (addresses real user feedback)
-            content.append(Spacer(1, 0.15*inch))
+            # ⭐ 5-STAR FIX: Professional Status Indicator Guide (Table format)
+            # McKinsey-style legend with clear symbols and meanings
+            content.append(Spacer(1, SPACING['after_table']*inch))
+            
             if lang == "en":
-                status_note = "<i><font size=8>Status Guide: ✅ Above = +10% vs benchmark | ➡️ Competitive = ±10% | ⚠️ Below = -10% vs benchmark. Note: Lower is better for costs/time.</font></i>"
+                guide_title = "Status Indicator Guide"
+                guide_data = [
+                    ["Symbol", "Meaning", "Color Logic"],
+                    ["▲", "Above Target (+10% vs benchmark)", "Green (revenue) / Red (cost)"],
+                    ["▼", "Below Target (-10% vs benchmark)", "Red (revenue) / Green (cost)"],
+                    ["●", "On Target (±10% vs benchmark)", "Blue"],
+                    ["✓", "Good Performance", "Green"],
+                    ["!", "Needs Attention", "Red"],
+                ]
             else:
-                status_note = "<i><font size=8>Hướng dẫn Trạng thái: ✅ Trên chuẩn = +10% so với benchmark | ➡️ Cạnh tranh = ±10% | ⚠️ Dưới chuẩn = -10% so với benchmark. Lưu ý: Thấp hơn tốt hơn cho chi phí/thời gian.</font></i>"
-            content.append(Paragraph(status_note, normal_style))
+                guide_title = "Hướng Dẫn Chỉ Số Trạng Thái"
+                guide_data = [
+                    ["Ký Hiệu", "Ý Nghĩa", "Logic Màu Sắc"],
+                    ["▲", "Trên Chuẩn (+10% so với benchmark)", "Xanh (doanh thu) / Đỏ (chi phí)"],
+                    ["▼", "Dưới Chuẩn (-10% so với benchmark)", "Đỏ (doanh thu) / Xanh (chi phí)"],
+                    ["●", "Đạt Chuẩn (±10% so với benchmark)", "Xanh dương"],
+                    ["✓", "Hiệu Suất Tốt", "Xanh"],
+                    ["!", "Cần Chú Ý", "Đỏ"],
+                ]
+            
+            guide_table = Table(guide_data, colWidths=[0.8*inch, 2.5*inch, 3.2*inch])
+            guide_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor(PDF_COLORS['light_gray'])),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.HexColor(PDF_COLORS['primary'])),
+                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                ('FONTNAME', (0, 0), (-1, 0), bold_font),
+                ('FONTNAME', (0, 1), (-1, -1), base_font),
+                ('FONTSIZE', (0, 0), (-1, -1), 9),
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#E2E8F0')),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor(PDF_COLORS['light_gray'])]),
+                ('TOPPADDING', (0, 0), (-1, -1), 6),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+            ]))
+            
+            content.append(Paragraph(f"<b>{guide_title}</b>", 
+                ParagraphStyle('GuideTitle', parent=normal_style, fontSize=10, fontName=bold_font)))
+            content.append(Spacer(1, 0.1*inch))
+            content.append(guide_table)
 
-        content.append(Spacer(1, 0.5*inch))  # ✅ Clear section transition
+        content.append(Spacer(1, SPACING['between_sections']*inch))  # ⭐ Consistent spacing
 
-        # ✅ FIX #22: Remove emoji - Use text marker
-        insights_title = "[KEY INSIGHTS]" if lang == "en" else "[INSIGHTS CHÍNH]"
+        # ⭐ 5-STAR FIX: Professional Title Case with icon
+        if lang == "vi":
+            insights_title = "💡 Insights Chính"  # Title Case + Professional icon
+        else:
+            insights_title = "💡 Key Insights"
+        
         content.append(Paragraph(f"<b>{insights_title}</b>", heading_style))
-        content.append(Spacer(1, 0.2*inch))  # ✅ FIX #17: Consistent spacing
+        content.append(Spacer(1, SPACING['after_title']*inch))  # ⭐ Consistent spacing
 
         for i, insight in enumerate(result['insights'].get('key_insights', [])[:5], 1):
             # ✅ FIX #23: Bold impact labels and enhanced formatting like production app
@@ -705,10 +1007,14 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
 
         content.append(Spacer(1, 0.3*inch))  # ✅ FIX #17: Consistent section break
 
-        # ✅ FIX #22: Remove emoji - Use text marker
-        rec_title = "[RECOMMENDATIONS]" if lang == "en" else "[KHUYẾN NGHỊ]"
+        # ⭐ 5-STAR FIX: Professional Title Case with icon
+        if lang == "vi":
+            rec_title = "🎯 Khuyến Nghị"  # Title Case + Professional icon
+        else:
+            rec_title = "🎯 Recommendations"
+        
         content.append(Paragraph(f"<b>{rec_title}</b>", heading_style))
-        content.append(Spacer(1, 0.2*inch))  # ✅ FIX #17: Consistent spacing
+        content.append(Spacer(1, SPACING['after_title']*inch))  # ⭐ Consistent spacing
 
         for i, rec in enumerate(result['insights'].get('recommendations', [])[:5], 1):
             # ✅ FIX #23: Bold priority labels with colors like production app
@@ -762,14 +1068,18 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
             content.append(Paragraph(rec_text, normal_style))
             content.append(Spacer(1, 0.15*inch))  # ✅ FIX #17: Consistent spacing
 
-        # ✅ FIX #17: Consistent spacing before page break
-        content.append(Spacer(1, 0.4*inch))  # Consistent breathing room
+        # ⭐ Consistent spacing before page break
+        content.append(Spacer(1, SPACING['before_page_break']*inch))
         content.append(PageBreak())
 
-        # ✅ FIX #22: Remove emoji - Use text marker
-        chart_title = "[VISUAL ANALYSIS]" if lang == "en" else "[PHÂN TÍCH TRỰC QUAN]"
+        # ⭐ 5-STAR FIX: Professional Title Case with icon
+        if lang == "vi":
+            chart_title = "📈 Phân Tích Trực Quan"  # Title Case + Professional icon
+        else:
+            chart_title = "📈 Visual Analysis"
+        
         content.append(Paragraph(f"<b>{chart_title}</b>", heading_style))
-        content.append(Spacer(1, 0.2*inch))  # ✅ FIX #17: Consistent spacing
+        content.append(Spacer(1, SPACING['after_title']*inch))  # ⭐ Consistent spacing
 
         charts = result['dashboard']['charts']
         charts_exported = 0
@@ -1133,12 +1443,15 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
         elif charts_exported == total_charts and total_charts > 0:
             print(f"✅ Success: All {total_charts} charts exported successfully!")
 
-        # ✅ FIX #19: Quality Score Methodology with icon
+        # ⭐ 5-STAR FIX: Professional Title Case with icon
         content.append(PageBreak())
-        # ✅ FIX #22: Remove emoji - Use text marker
-        appendix_title = "[APPENDIX: QUALITY SCORE METHODOLOGY]" if lang == "en" else "[PHỤ LỤC: PHƯƠNG PHÁP TÍNH QUALITY SCORE]"
+        if lang == "vi":
+            appendix_title = "📚 Phụ Lục: Phương Pháp Tính Quality Score"  # Title Case
+        else:
+            appendix_title = "📚 Appendix: Quality Score Methodology"
+        
         content.append(Paragraph(f"<b>{appendix_title}</b>", heading_style))
-        content.append(Spacer(1, 0.2*inch))  # ✅ FIX #17: Consistent spacing
+        content.append(Spacer(1, SPACING['after_title']*inch))  # ⭐ Consistent spacing
 
         if lang == "en":
             methodology_text = """
@@ -1238,14 +1551,14 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
             với đội ngũ và chuyên gia ngành của bạn trước khi đầu tư lớn hoặc thay đổi chiến lược.
             """
         
-        # ✅ FIX #19: Add icon to limitations section
-        # ✅ FIX #22: Remove emoji - Use text marker with emphasis
+        # ⭐ 5-STAR FIX: Professional Title Case with warning icon
         if lang == "en":
-            limitations_title = "[IMPORTANT: LIMITATIONS AND DISCLAIMERS]"
+            limitations_title = "⚠️ Important: Limitations and Disclaimers"  # Title Case
         else:
-            limitations_title = "[QUAN TRỌNG: GIỚI HẠN VÀ MIỄN TRỪ TRÁCH NHIỆM]"
+            limitations_title = "⚠️ Quan Trọng: Giới Hạn và Miễn Trừ Trách Nhiệm"
+        
         content.append(Paragraph(f"<b>{limitations_title}</b>", heading_style))
-        content.append(Spacer(1, 0.2*inch))  # ✅ FIX #17: Consistent spacing
+        content.append(Spacer(1, SPACING['after_title']*inch))  # ⭐ Consistent spacing
         content.append(Paragraph(limitations_text, normal_style))
         content.append(Spacer(1, 0.3*inch))
 
