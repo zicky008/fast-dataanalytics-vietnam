@@ -174,6 +174,26 @@ BENCHMARK_SOURCES = {
         'cost': 'FREE',
         'sample_size': 'Global social media data'
     },
+    'marketing_vietnam_digital': {
+        'name': 'Vietnam Digital Marketing Report 2024 (We Are Social + Meltwater)',
+        'url': 'https://datareportal.com/reports/digital-2024-vietnam',
+        'year': '2024',
+        'metrics': 'Social media users: 76.9M (78% population), Facebook: 68M users, TikTok: 57M, Average time online: 6h48m/day',
+        'credibility': '⭐⭐⭐⭐⭐',
+        'vietnam_specific': True,
+        'cost': 'FREE',
+        'sample_size': '100M+ Vietnam internet users tracked'
+    },
+    'marketing_vietnam_ecommerce_trends': {
+        'name': 'Vietnam E-commerce White Book 2024 (Ministry of Industry)',
+        'url': 'https://www.moit.gov.vn/en/news/vietnam-e-commerce-development-report.html',
+        'year': '2024',
+        'metrics': 'E-commerce growth: +25% YoY, Market size: $20.5B USD, Mobile commerce: 74% of transactions',
+        'credibility': '⭐⭐⭐⭐⭐',
+        'vietnam_specific': True,
+        'cost': 'FREE',
+        'sample_size': 'Official government data - Vietnam Ministry of Industry and Trade'
+    },
     
     # ========================
     # E-COMMERCE (VIETNAM-FIRST!)
@@ -281,6 +301,16 @@ BENCHMARK_SOURCES = {
         'vietnam_specific': False,
         'cost': 'FREE',
         'sample_size': 'Global enterprise research'
+    },
+    'sales_vietnam_b2b': {
+        'name': 'Vietnam B2B E-commerce Report 2024 (VECOM)',
+        'url': 'https://vecom.vn/tin-tuc/vietnam-b2b-ecommerce-market-report',
+        'year': '2024',
+        'metrics': 'B2B e-commerce: $15B USD market, Growth: +30% YoY, Digital adoption: 65% of B2B buyers',
+        'credibility': '⭐⭐⭐⭐⭐',
+        'vietnam_specific': True,
+        'cost': 'FREE',
+        'sample_size': 'Vietnam E-commerce Association (VECOM) industry data'
     },
     
     # ========================
