@@ -3,6 +3,8 @@
 LEAN Strategy: Build Curated Benchmark Sources with Verified URLs
 Goal: 20-25 excellent sources (not 32 mediocre)
 Criteria: 5-star (Working URL + Real Data + Authoritative + Vietnam-relevant + Free)
+
+Phase 2: Pre-commit hook active - all URLs validated before commit ✅
 """
 
 # Top 20 Curated Benchmark Sources - VERIFIED
