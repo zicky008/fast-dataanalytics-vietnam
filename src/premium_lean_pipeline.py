@@ -175,24 +175,24 @@ BENCHMARK_SOURCES = {
         'sample_size': 'Global social media data'
     },
     'marketing_vietnam_digital': {
-        'name': 'Vietnam Digital Marketing Report 2024 (We Are Social + Meltwater)',
+        'name': 'Vietnam Digital Report 2024 (We Are Social + Meltwater)',
         'url': 'https://datareportal.com/reports/digital-2024-vietnam',
         'year': '2024',
-        'metrics': 'Social media users: 76.9M (78% population), Facebook: 68M users, TikTok: 57M, Average time online: 6h48m/day',
+        'metrics': 'Social media users: 76.9M (78% population), Internet users: 79.1M, Mobile: 98.3M connections, Daily online: 6h48m',
         'credibility': '⭐⭐⭐⭐⭐',
         'vietnam_specific': True,
         'cost': 'FREE',
-        'sample_size': '100M+ Vietnam internet users tracked'
+        'sample_size': '100M+ global users tracked, Vietnam-specific data validated'
     },
-    'marketing_vietnam_ecommerce_trends': {
-        'name': 'Vietnam E-commerce White Book 2024 (Ministry of Industry)',
-        'url': 'https://www.moit.gov.vn/en/news/vietnam-e-commerce-development-report.html',
+    'marketing_vietnam_ecommerce': {
+        'name': 'Vietnam E-Business Index Report 2024 (VECOM)',
+        'url': 'https://esc.vn/wp-content/uploads/2025/07/Bao-cao-EBI-2024-ENG.pdf',
         'year': '2024',
-        'metrics': 'E-commerce growth: +25% YoY, Market size: $20.5B USD, Mobile commerce: 74% of transactions',
+        'metrics': 'E-commerce: $25B USD market (+25% YoY), Online retail: $17.3B, Mobile payments: 2B transactions, Express delivery: 2.17B parcels',
         'credibility': '⭐⭐⭐⭐⭐',
         'vietnam_specific': True,
         'cost': 'FREE',
-        'sample_size': 'Official government data - Vietnam Ministry of Industry and Trade'
+        'sample_size': 'Vietnam E-commerce Association (VECOM) - Official industry report'
     },
     
     # ========================
@@ -303,14 +303,14 @@ BENCHMARK_SOURCES = {
         'sample_size': 'Global enterprise research'
     },
     'sales_vietnam_b2b': {
-        'name': 'Vietnam B2B E-commerce Report 2024 (VECOM)',
-        'url': 'https://vecom.vn/tin-tuc/vietnam-b2b-ecommerce-market-report',
+        'name': 'Vietnam B2B E-commerce (VECOM EBI 2024)',
+        'url': 'https://esc.vn/wp-content/uploads/2025/07/Bao-cao-EBI-2024-ENG.pdf',
         'year': '2024',
-        'metrics': 'B2B e-commerce: $15B USD market, Growth: +30% YoY, Digital adoption: 65% of B2B buyers',
+        'metrics': 'B2B sector included in $25B total e-commerce market, Cross-border B2C exports: $3.5B, Digital payments infrastructure: 11B transactions',
         'credibility': '⭐⭐⭐⭐⭐',
         'vietnam_specific': True,
         'cost': 'FREE',
-        'sample_size': 'Vietnam E-commerce Association (VECOM) industry data'
+        'sample_size': 'Vietnam E-commerce Association (VECOM) - Official industry report, same source as EBI report'
     },
     
     # ========================
