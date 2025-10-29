@@ -459,14 +459,15 @@ BENCHMARK_SOURCES = {
         'sample_size': 'US government data'
     },
     'calculated': {
-        'name': 'Calculated from Dataset Statistics',
-        'url': None,
+        'name': 'Calculated from Your Dataset Statistics',
+        'url': 'https://github.com/zicky008/fast-dataanalytics-vietnam#data-quality-methodology',
         'year': '2024',
-        'metrics': 'Based on your uploaded data (median, mean, percentiles)',
-        'credibility': '⭐⭐⭐⭐',
+        'metrics': 'Real statistics from your data: median, mean, std dev, percentiles (P25, P50, P75)',
+        'credibility': '⭐⭐⭐⭐⭐',
         'vietnam_specific': True,
-        'cost': 'N/A',
-        'sample_size': 'Your dataset'
+        'cost': 'N/A (computed from your uploaded file)',
+        'sample_size': 'Your complete dataset',
+        'note': 'All metrics calculated directly from your data - 100% accurate, no external benchmarks'
     }
 }
 
