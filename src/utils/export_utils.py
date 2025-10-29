@@ -377,14 +377,11 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
             print(f"⚠️ Date range detection failed: {str(date_error)[:100]}")
             data_period = "Not Available"
 
-        # ✅ FIX #14: Wrap long text in Paragraph for Expert Perspective to prevent overflow
+        # ✅ RE-FIX #14: ALWAYS wrap Expert Panel (even short text can overflow)
         expert_role_text = result['domain_info']['expert_role']
-        if len(expert_role_text) > 80:
-            # Use Paragraph for automatic wrapping
-            expert_role_wrapped = Paragraph(expert_role_text, ParagraphStyle('ExpertWrap', 
-                parent=normal_style, fontSize=9, leading=11))
-        else:
-            expert_role_wrapped = expert_role_text
+        # CRITICAL: Always use Paragraph to prevent ANY overflow
+        expert_role_wrapped = Paragraph(expert_role_text, ParagraphStyle('ExpertWrap', 
+            parent=normal_style, fontSize=8, leading=10, wordWrap='CJK'))  # Smaller font to fit
         
         metadata_data = [
             ["Report Date" if lang == "en" else "Ngày báo cáo", datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
@@ -398,8 +395,8 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
             ["Quality Score" if lang == "en" else "Điểm chất lượng", f"{result['quality_scores']['overall']:.0f}/100"]
         ]
         
-        # ✅ FIX #14: Adjusted column widths for better text wrapping (label: 2.2", value: 4.3")
-        metadata_table = Table(metadata_data, colWidths=[2.2*inch, 4.3*inch])
+        # ✅ RE-FIX #14: Wider value column to prevent overflow (label: 2.0", value: 4.5")
+        metadata_table = Table(metadata_data, colWidths=[2.0*inch, 4.5*inch])
         metadata_table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#F8FAFC')),
             ('TEXTCOLOR', (0, 0), (-1, -1), colors.HexColor('#1E293B')),
@@ -416,35 +413,32 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
         content.append(metadata_table)
         content.append(Spacer(1, 0.4*inch))  # ✅ FIX #17: Consistent spacing
 
-        # ✅ FIX #19: Add icons to section headers for 5-star professional experience
-        # Executive Summary with icon
-        exec_icon = "📊" if lang == "en" else "📊"
-        exec_title = f"{exec_icon} Executive Summary" if lang == "en" else f"{exec_icon} Tóm Tắt Điều Hành"
-        content.append(Paragraph(exec_title, heading_style))
+        # ✅ FIX #22: Remove emoji icons (rendering errors) - Use Unicode symbols instead
+        # Executive Summary with simple marker
+        exec_title = "[EXECUTIVE SUMMARY]" if lang == "en" else "[TÓM TẮT ĐIỀU HÀNH]"
+        content.append(Paragraph(f"<b>{exec_title}</b>", heading_style))
+        content.append(Spacer(1, 0.15*inch))  # Space after heading
         
         summary_text = result['insights'].get('executive_summary', 'No summary available')
         # ✅ FIX #9: Sanitize text for proper formatting
         summary_text = sanitize_text_for_pdf(summary_text)
         
-        # ✅ FIX #19: Add highlight box for executive summary (5-star UX)
-        from reportlab.platypus import KeepTogether
-        summary_para = Paragraph(summary_text, ParagraphStyle('SummaryHighlight',
+        # ✅ FIX #21: Remove highlight box (causes overlap) - Use simple bold paragraph instead
+        summary_para = Paragraph(f"<b>{summary_text}</b>", ParagraphStyle('SummaryBold',
             parent=normal_style,
-            backColor=colors.HexColor('#FEF3C7'),  # Light yellow highlight
-            borderColor=colors.HexColor('#F59E0B'),  # Amber border
-            borderWidth=1,
-            borderPadding=12,
+            fontSize=11,
+            leading=15,
+            leftIndent=12,
+            rightIndent=12,
             spaceBefore=6,
-            spaceAfter=6,
-            leading=14
+            spaceAfter=6
         ))
         content.append(summary_para)
         content.append(Spacer(1, 0.3*inch))  # ✅ FIX #17: Consistent spacing
 
-        # Key KPIs with icon
-        kpi_icon = "🎯" if lang == "en" else "🎯"
-        kpi_title = f"{kpi_icon} Key Performance Indicators" if lang == "en" else f"{kpi_icon} Chỉ Số Hiệu Suất Chính"
-        content.append(Paragraph(kpi_title, heading_style))
+        # ✅ FIX #22: Remove emoji - Use text marker
+        kpi_title = "[KEY PERFORMANCE INDICATORS]" if lang == "en" else "[CHỈ SỐ HIỆU SUẤT CHÍNH]"
+        content.append(Paragraph(f"<b>{kpi_title}</b>", heading_style))
 
         kpis = result['dashboard'].get('kpis', {})
         if kpis:
@@ -493,10 +487,12 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
                         source_url = url
                         break
                 
-                # Create clickable link if URL exists
+                # ✅ RE-FIX #18: Create clickable link with proper ReportLab syntax
                 if source_url:
-                    source_link = f'<a href="{source_url}" color="blue"><u>{source}</u></a>'
-                    source_paragraph = Paragraph(source_link, normal_style)
+                    # ReportLab link syntax: <link href="URL">text</link>
+                    source_link = f'<link href="{source_url}" color="blue"><u>{source}</u></link>'
+                    source_paragraph = Paragraph(source_link, ParagraphStyle('LinkStyle',
+                        parent=normal_style, textColor=colors.blue, underline=True))
                 else:
                     # No link, just wrap for word wrap
                     source_paragraph = Paragraph(source, normal_style) if len(source) > 25 else source
@@ -541,7 +537,9 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
 
                 # Note: source_paragraph already created above with clickable links
                 
-                # ✅ FIX #15 & #16: Enhanced status with CONSISTENT logic, color, and icons
+                # ✅ RE-FIX #15 & #16: CONSISTENT arrows and colors
+                # RULE: Above = ⬆️, Below = ⬇️ (literal direction)
+                # COLOR: Green = positive/good, Red = negative/bad
                 status_raw = kpi_info.get('status', 'N/A')
                 status_display = status_raw
                 status_color = colors.HexColor('#64748B')  # Default gray
@@ -552,31 +550,31 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
                     is_cost_type = any(keyword in kpi_lower for keyword in ['cost', 'expense', 'defect', 'downtime', 'error', 'reject', 'waste', 'rate'])
                     is_revenue_type = any(keyword in kpi_lower for keyword in ['revenue', 'profit', 'efficiency', 'yield', 'quality', 'conversion', 'roi', 'roas', 'satisfaction', 'oee'])
                     
-                    # ✅ FIX #15: CORRECTED LOGIC - For costs/defects, "Above" = bad (red), "Below" = good (green)
+                    # ✅ FIXED LOGIC: Arrow matches word literally, color shows good/bad
                     if status_raw in ['Above', 'High', 'Over']:
+                        status_display = f"Above ⬆️"  # Arrow UP (matches "Above")
+                        # Color depends on KPI type
                         if is_cost_type:
-                            status_display = f"Above ⬇️"  # Above cost/defect = BAD
-                            status_color = colors.HexColor('#DC2626')  # Red (bad)
+                            status_color = colors.HexColor('#DC2626')  # RED = bad (cost high)
                         elif is_revenue_type:
-                            status_display = f"Above ⬆️"  # Above revenue = GOOD
-                            status_color = colors.HexColor('#16A34A')  # Green (good)
+                            status_color = colors.HexColor('#16A34A')  # GREEN = good (revenue high)
                         else:
-                            status_display = status_raw
+                            status_color = colors.HexColor('#64748B')  # Gray = neutral
                     elif status_raw in ['Below', 'Low', 'Under']:
+                        status_display = f"Below ⬇️"  # Arrow DOWN (matches "Below")
+                        # Color depends on KPI type
                         if is_cost_type:
-                            status_display = f"Below ⬆️"  # Below cost/defect = GOOD
-                            status_color = colors.HexColor('#16A34A')  # Green (good)
+                            status_color = colors.HexColor('#16A34A')  # GREEN = good (cost low)
                         elif is_revenue_type:
-                            status_display = f"Below ⬇️"  # Below revenue = BAD
-                            status_color = colors.HexColor('#DC2626')  # Red (bad)
+                            status_color = colors.HexColor('#DC2626')  # RED = bad (revenue low)
                         else:
-                            status_display = status_raw
+                            status_color = colors.HexColor('#64748B')  # Gray = neutral
                     elif status_raw in ['Good', 'Excellent', 'On Target']:
                         status_display = f"{status_raw} ✓"
-                        status_color = colors.HexColor('#16A34A')  # Green
+                        status_color = colors.HexColor('#16A34A')  # GREEN
                     elif status_raw in ['Poor', 'Critical', 'Alert']:
                         status_display = f"{status_raw} ✗"
-                        status_color = colors.HexColor('#DC2626')  # Red
+                        status_color = colors.HexColor('#DC2626')  # RED
                 
                 # ✅ FIX #16: Wrap status in colored Paragraph for accessibility
                 status_cell = Paragraph(f'<font color="{status_color}">{status_display}</font>', 
@@ -683,33 +681,43 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
 
         content.append(Spacer(1, 0.5*inch))  # ✅ Clear section transition
 
-        # ✅ FIX #19: Key Insights with icon
-        insights_icon = "💡" if lang == "en" else "💡"
-        insights_title = f"{insights_icon} Key Insights" if lang == "en" else f"{insights_icon} Insights Chính"
-        content.append(Paragraph(insights_title, heading_style))
+        # ✅ FIX #22: Remove emoji - Use text marker
+        insights_title = "[KEY INSIGHTS]" if lang == "en" else "[INSIGHTS CHÍNH]"
+        content.append(Paragraph(f"<b>{insights_title}</b>", heading_style))
         content.append(Spacer(1, 0.2*inch))  # ✅ FIX #17: Consistent spacing
 
         for i, insight in enumerate(result['insights'].get('key_insights', [])[:5], 1):
-            # Use text labels instead of emoji for PDF compatibility
-            impact_label = "[HIGH]" if insight['impact'] == 'high' else "[MEDIUM]" if insight['impact'] == 'medium' else "[LOW]"
+            # ✅ FIX #23: Bold impact labels and enhanced formatting like production app
+            if insight['impact'] == 'high':
+                impact_label = "<b><font color='red'>[HIGH IMPACT]</font></b>"
+            elif insight['impact'] == 'medium':
+                impact_label = "<b><font color='orange'>[MEDIUM IMPACT]</font></b>"
+            else:
+                impact_label = "<b>[LOW IMPACT]</b>"
+            
             # ✅ FIX #9: Sanitize insight text
             title_clean = sanitize_text_for_pdf(insight['title'])
             desc_clean = sanitize_text_for_pdf(insight['description'])
-            insight_text = f"{impact_label} <b>{title_clean}</b><br/>{desc_clean}"
+            # ✅ FIX #23: Enhanced formatting with bold title and colored impact
+            insight_text = f"{impact_label} <b>{title_clean}</b><br/><i>{desc_clean}</i>"
             content.append(Paragraph(insight_text, normal_style))
             content.append(Spacer(1, 0.15*inch))  # ✅ FIX #17: Consistent spacing
 
         content.append(Spacer(1, 0.3*inch))  # ✅ FIX #17: Consistent section break
 
-        # ✅ FIX #19: Recommendations with icon
-        rec_icon = "✨" if lang == "en" else "✨"
-        rec_title = f"{rec_icon} Recommendations" if lang == "en" else f"{rec_icon} Khuyến Nghị"
-        content.append(Paragraph(rec_title, heading_style))
+        # ✅ FIX #22: Remove emoji - Use text marker
+        rec_title = "[RECOMMENDATIONS]" if lang == "en" else "[KHUYẾN NGHỊ]"
+        content.append(Paragraph(f"<b>{rec_title}</b>", heading_style))
         content.append(Spacer(1, 0.2*inch))  # ✅ FIX #17: Consistent spacing
 
         for i, rec in enumerate(result['insights'].get('recommendations', [])[:5], 1):
-            # Use text labels instead of emoji for PDF compatibility
-            priority_label = "[HIGH]" if rec['priority'] == 'high' else "[MEDIUM]" if rec['priority'] == 'medium' else "[LOW]"
+            # ✅ FIX #23: Bold priority labels with colors like production app
+            if rec['priority'] == 'high':
+                priority_label = "<b><font color='red'>[HIGH PRIORITY]</font></b>"
+            elif rec['priority'] == 'medium':
+                priority_label = "<b><font color='orange'>[MEDIUM PRIORITY]</font></b>"
+            else:
+                priority_label = "<b>[LOW PRIORITY]</b>"
             
             # ✅ FIX #11: Determine responsible role based on action keywords and domain
             responsible_role = rec.get('responsible', None)  # Check if already provided
@@ -749,18 +757,18 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
                     else:
                         responsible_role = "Department Head"
             
-            rec_text = f"{priority_label} <b>{rec['action']}</b><br/>Expected Impact: {rec['expected_impact']}<br/>Timeline: {rec['timeline']}<br/><b>Responsible:</b> {responsible_role}"
+            # ✅ FIX #23: Enhanced formatting with bold action and italic details
+            rec_text = f"{priority_label} <b>{rec['action']}</b><br/><i>Expected Impact: {rec['expected_impact']}</i><br/><i>Timeline: {rec['timeline']}</i><br/><b>Responsible:</b> {responsible_role}"
             content.append(Paragraph(rec_text, normal_style))
-            content.append(Spacer(1, 0.18*inch))  # ✅ Tight, professional spacing
+            content.append(Spacer(1, 0.15*inch))  # ✅ FIX #17: Consistent spacing
 
         # ✅ FIX #17: Consistent spacing before page break
         content.append(Spacer(1, 0.4*inch))  # Consistent breathing room
         content.append(PageBreak())
 
-        # ✅ FIX #19: Charts with icon
-        chart_icon = "📈" if lang == "en" else "📈"
-        chart_title = f"{chart_icon} Visual Analysis" if lang == "en" else f"{chart_icon} Phân Tích Trực Quan"
-        content.append(Paragraph(chart_title, heading_style))
+        # ✅ FIX #22: Remove emoji - Use text marker
+        chart_title = "[VISUAL ANALYSIS]" if lang == "en" else "[PHÂN TÍCH TRỰC QUAN]"
+        content.append(Paragraph(f"<b>{chart_title}</b>", heading_style))
         content.append(Spacer(1, 0.2*inch))  # ✅ FIX #17: Consistent spacing
 
         charts = result['dashboard']['charts']
@@ -1127,9 +1135,9 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
 
         # ✅ FIX #19: Quality Score Methodology with icon
         content.append(PageBreak())
-        appendix_icon = "📋"
-        appendix_title = f"{appendix_icon} Appendix: Quality Score Methodology" if lang == "en" else f"{appendix_icon} Phụ lục: Phương pháp tính Quality Score"
-        content.append(Paragraph(appendix_title, heading_style))
+        # ✅ FIX #22: Remove emoji - Use text marker
+        appendix_title = "[APPENDIX: QUALITY SCORE METHODOLOGY]" if lang == "en" else "[PHỤ LỤC: PHƯƠNG PHÁP TÍNH QUALITY SCORE]"
+        content.append(Paragraph(f"<b>{appendix_title}</b>", heading_style))
         content.append(Spacer(1, 0.2*inch))  # ✅ FIX #17: Consistent spacing
 
         if lang == "en":
@@ -1231,9 +1239,12 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
             """
         
         # ✅ FIX #19: Add icon to limitations section
-        limit_icon = "⚠️"
-        limitations_title_with_icon = f"{limit_icon} {limitations_title}"
-        content.append(Paragraph(limitations_title_with_icon, heading_style))
+        # ✅ FIX #22: Remove emoji - Use text marker with emphasis
+        if lang == "en":
+            limitations_title = "[IMPORTANT: LIMITATIONS AND DISCLAIMERS]"
+        else:
+            limitations_title = "[QUAN TRỌNG: GIỚI HẠN VÀ MIỄN TRỪ TRÁCH NHIỆM]"
+        content.append(Paragraph(f"<b>{limitations_title}</b>", heading_style))
         content.append(Spacer(1, 0.2*inch))  # ✅ FIX #17: Consistent spacing
         content.append(Paragraph(limitations_text, normal_style))
         content.append(Spacer(1, 0.3*inch))
