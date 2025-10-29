@@ -1,38 +1,22 @@
 {
   "summary": {
-    "total_tests": 17,
-    "passed": 17,
-    "failed": 0,
+    "total_tests": 15,
+    "passed": 14,
+    "failed": 1,
     "warnings": 0,
-    "pass_rate": 100.0,
-    "rating": "\u2b50\u2b50\u2b50\u2b50\u2b50 (5/5 stars)",
-    "verdict": "PRODUCTION READY - EXCELLENT QUALITY",
-    "critical_failures": 0
+    "pass_rate": 93.33333333333333,
+    "rating": "\u2b50\u2b50\u2b50 (3/5 stars)",
+    "verdict": "NEEDS IMPROVEMENT (fix critical issues before production)",
+    "critical_failures": 1
   },
   "detailed_results": [
     {
       "test_id": "T1.1",
       "test_name": "App Accessibility",
-      "status": "PASS",
-      "details": "App accessible with status code 200. Load time: 0.92s",
+      "status": "FAIL",
+      "details": "HTTP 404 - App not accessible",
       "severity": "HIGH",
-      "timestamp": "2025-10-22 07:23:54"
-    },
-    {
-      "test_id": "T1.2",
-      "test_name": "Page Load Performance",
-      "status": "PASS",
-      "details": "Excellent load time: 0.92s (target: <5s)",
-      "severity": "MEDIUM",
-      "timestamp": "2025-10-22 07:23:54"
-    },
-    {
-      "test_id": "T1.3",
-      "test_name": "Streamlit Framework Detection",
-      "status": "PASS",
-      "details": "Streamlit framework detected in page source",
-      "severity": "LOW",
-      "timestamp": "2025-10-22 07:23:54"
+      "timestamp": "2025-10-28 16:06:43"
     },
     {
       "test_id": "T2.1",
@@ -40,7 +24,7 @@
       "status": "PASS",
       "details": "Sample file found with 180 rows, 14 columns",
       "severity": "HIGH",
-      "timestamp": "2025-10-22 07:23:54"
+      "timestamp": "2025-10-28 16:06:43"
     },
     {
       "test_id": "T2.2",
@@ -48,7 +32,7 @@
       "status": "PASS",
       "details": "All 8 required columns present",
       "severity": "HIGH",
-      "timestamp": "2025-10-22 07:23:54"
+      "timestamp": "2025-10-28 16:06:43"
     },
     {
       "test_id": "T2.3",
@@ -56,7 +40,7 @@
       "status": "PASS",
       "details": "No null values in critical columns",
       "severity": "HIGH",
-      "timestamp": "2025-10-22 07:23:54"
+      "timestamp": "2025-10-28 16:06:43"
     },
     {
       "test_id": "T2.4",
@@ -64,7 +48,7 @@
       "status": "PASS",
       "details": "All balance equations verified: units = good + defective",
       "severity": "HIGH",
-      "timestamp": "2025-10-22 07:23:54"
+      "timestamp": "2025-10-28 16:06:43"
     },
     {
       "test_id": "T2.5",
@@ -72,7 +56,7 @@
       "status": "PASS",
       "details": "Ground truth values calculated:\n                   \u2022 First Pass Yield: 97.4521581062%\n                   \u2022 Defect Rate: 2.5478418938%\n                   \u2022 OEE: 83.2817645062%\n                   \u2022 Total Units: 169,987\n                   \u2022 Total Good Units: 165,656",
       "severity": "HIGH",
-      "timestamp": "2025-10-22 07:23:54"
+      "timestamp": "2025-10-28 16:06:43"
     },
     {
       "test_id": "T3.1",
@@ -80,7 +64,7 @@
       "status": "PASS",
       "details": "Manufacturing domain code found in pipeline",
       "severity": "HIGH",
-      "timestamp": "2025-10-22 07:23:54"
+      "timestamp": "2025-10-28 16:06:43"
     },
     {
       "test_id": "T3.2",
@@ -88,7 +72,7 @@
       "status": "PASS",
       "details": "OEE formula (Availability \u00d7 Performance \u00d7 Quality) found",
       "severity": "HIGH",
-      "timestamp": "2025-10-22 07:23:54"
+      "timestamp": "2025-10-28 16:06:43"
     },
     {
       "test_id": "T3.3",
@@ -96,7 +80,7 @@
       "status": "PASS",
       "details": "Found 7/9 expected KPIs in code: oee, first pass yield, defect rate, machine utilization, cycle time, downtime, cost per unit",
       "severity": "HIGH",
-      "timestamp": "2025-10-22 07:23:54"
+      "timestamp": "2025-10-28 16:06:43"
     },
     {
       "test_id": "T4.1",
@@ -104,7 +88,7 @@
       "status": "PASS",
       "details": "Test file found (12695 bytes)",
       "severity": "HIGH",
-      "timestamp": "2025-10-22 07:23:54"
+      "timestamp": "2025-10-28 16:06:43"
     },
     {
       "test_id": "T4.2",
@@ -112,7 +96,7 @@
       "status": "PASS",
       "details": "Tests validate KPIs at 10 decimal places precision",
       "severity": "HIGH",
-      "timestamp": "2025-10-22 07:23:54"
+      "timestamp": "2025-10-28 16:06:43"
     },
     {
       "test_id": "T4.3",
@@ -120,7 +104,7 @@
       "status": "PASS",
       "details": "Tests use ground truth comparison methodology",
       "severity": "HIGH",
-      "timestamp": "2025-10-22 07:23:54"
+      "timestamp": "2025-10-28 16:06:43"
     },
     {
       "test_id": "T5.1",
@@ -128,7 +112,7 @@
       "status": "PASS",
       "details": "UAT documentation found (16,863 bytes)",
       "severity": "HIGH",
-      "timestamp": "2025-10-22 07:23:54"
+      "timestamp": "2025-10-28 16:06:43"
     },
     {
       "test_id": "T5.2",
@@ -136,7 +120,7 @@
       "status": "PASS",
       "details": "5-star rating documented in UAT",
       "severity": "HIGH",
-      "timestamp": "2025-10-22 07:23:54"
+      "timestamp": "2025-10-28 16:06:43"
     },
     {
       "test_id": "T5.3",
@@ -144,8 +128,17 @@
       "status": "PASS",
       "details": "Deployment guide found (10,399 bytes)",
       "severity": "MEDIUM",
-      "timestamp": "2025-10-22 07:23:54"
+      "timestamp": "2025-10-28 16:06:43"
     }
   ],
-  "critical_failures": []
+  "critical_failures": [
+    {
+      "test_id": "T1.1",
+      "test_name": "App Accessibility",
+      "status": "FAIL",
+      "details": "HTTP 404 - App not accessible",
+      "severity": "HIGH",
+      "timestamp": "2025-10-28 16:06:43"
+    }
+  ]
 }
