@@ -19,7 +19,7 @@ from src.utils.export_utils import (
 )
 
 def test_source_url_finder():
-    """Test enhanced source URL finder with 20+ sources"""
+    """Test enhanced source URL finder with 20+ sources (returns tuple: url, year, metrics)"""
     print("\n" + "="*80)
     print("TEST 1: Source URL Finder (20+ Professional Sources)")
     print("="*80)
@@ -36,25 +36,32 @@ def test_source_url_finder():
         ("bcg consulting", "https://www.bcg.com"),
         ("Industry Standard", "https://www.bls.gov"),
         
-        # New additions
+        # New additions (matching actual sources in export_utils.py)
         ("Forrester Research", "https://www.forrester.com"),
-        ("Nielsen Consumer", "https://www.nielsen.com"),
-        ("Accenture technology", "https://www.accenture.com"),
+        ("HubSpot Marketing", "https://www.hubspot.com"),
+        ("Salesforce CRM", "https://www.salesforce.com"),
     ]
     
     passed = 0
     failed = 0
     
     for source, expected_domain in test_cases:
-        url = find_source_url(source)
+        # NEW: Handle tuple return (url, year, metrics)
+        result = find_source_url(source)
+        url, year, metrics = result if result else (None, None, None)
+        
         if url and expected_domain in url:
-            print(f"✅ PASS: '{source}' → {url}")
+            # Show enhanced information (year + metrics preview)
+            year_display = f" ({year})" if year else ""
+            metrics_display = f" | {metrics[:40]}..." if metrics else ""
+            print(f"✅ PASS: '{source}' → {url}{year_display}{metrics_display}")
             passed += 1
         else:
             print(f"❌ FAIL: '{source}' → {url} (expected domain: {expected_domain})")
             failed += 1
     
     print(f"\nResults: {passed} passed, {failed} failed out of {len(test_cases)} tests")
+    print("📊 Enhanced return type: (url, year, metrics) for richer information display")
     return failed == 0
 
 
