@@ -40,18 +40,25 @@ def initialize_session_state():
     """Initialize session state variables"""
     if 'language' not in st.session_state:
         st.session_state['language'] = 'vi'  # Default Vietnamese
-    
+
     if 'theme' not in st.session_state:
         st.session_state['theme'] = 'dark'  # Default dark theme (better for first impression)
-    
+
     if 'currency' not in st.session_state:
         st.session_state['currency'] = 'VND'  # Default VND
-    
+
     if 'result' not in st.session_state:
         st.session_state['result'] = None
-    
+
     if 'df' not in st.session_state:
         st.session_state['df'] = None
+
+    # First-time user onboarding
+    if 'first_visit' not in st.session_state:
+        st.session_state['first_visit'] = True
+
+    if 'onboarding_dismissed' not in st.session_state:
+        st.session_state['onboarding_dismissed'] = False
 
 # ============================================
 # THEME MANAGEMENT
@@ -706,15 +713,60 @@ def main():
         
         st.markdown("---")
         
-        # Pricing
+        # Pricing (Vietnam Hack: "₫99K = 2 coffees" positioning)
         st.markdown(f"### {get_text('pricing', lang)}")
-        st.success(f"""
-        {get_text('free_plan', lang)}
-        
-        {get_text('pro_plan', lang)}
-        {get_text('pro_features', lang)}
-        """)
-        
+        if lang == 'vi':
+            st.success("""
+            **💎 Starter Plan: ₫99K/tháng**
+            _(Giá 2 ly cà phê Highlands/tuần)_
+
+            ✅ 30 ngày dùng thử miễn phí
+            ✅ Không cần thẻ tín dụng
+            ✅ Unlimited dashboards
+            ✅ Đảm bảo hoàn tiền 100%
+
+            🎁 **Early Adopter**: ₫49K/tháng trọn đời
+            _(50 khách hàng đầu tiên)_
+            """)
+        else:
+            st.success("""
+            **💎 Starter Plan: ₫99K/month**
+            _(Price of 2 Highlands coffees/week)_
+
+            ✅ 30-day free trial
+            ✅ No credit card required
+            ✅ Unlimited dashboards
+            ✅ 100% money-back guarantee
+
+            🎁 **Early Adopter**: ₫49K/month LIFETIME
+            _(First 50 customers only)_
+            """)
+
+        st.markdown("---")
+
+        # Support Section (Vietnam Hack: Zalo priority)
+        st.markdown(f"### {'💬 Hỗ Trợ' if lang == 'vi' else '💬 Support'}")
+        if lang == 'vi':
+            st.info("""
+            📱 **Zalo**: [Đang cập nhật]
+            _(Phản hồi trong 2 giờ)_
+
+            📧 **Email**: support@fast-dataanalytics.com
+            _(Phản hồi trong 24 giờ)_
+
+            ⏰ **Giờ làm việc**: 8am-6pm (T2-T7)
+            """)
+        else:
+            st.info("""
+            📱 **Zalo**: [To be updated]
+            _(Response within 2 hours)_
+
+            📧 **Email**: support@fast-dataanalytics.com
+            _(Response within 24 hours)_
+
+            ⏰ **Business hours**: 8am-6pm (Mon-Sat)
+            """)
+
         st.markdown("---")
         
         # Data Quality Guide
@@ -744,7 +796,40 @@ def main():
     # ============================================
     with tab1:
         st.markdown(f"### {get_text('upload_title', lang)}")
-        
+
+        # First-time user onboarding (PMF Strategy Tactic #4)
+        if st.session_state.get('first_visit', False) and not st.session_state.get('onboarding_dismissed', False):
+            if lang == 'vi':
+                st.info("""
+                ### 👋 Chào mừng đến với Fast DataAnalytics!
+
+                **3 bước đơn giản để tạo dashboard chuyên nghiệp:**
+
+                1. **📤 Upload dữ liệu**: Chọn file Excel/CSV của bạn (hoặc thử file mẫu bên dưới)
+                2. **⏱️ Chờ 60 giây**: Hệ thống tự động phân tích và tạo dashboard
+                3. **📊 Xem kết quả**: Dashboard với 9 KPIs + 8 biểu đồ + insights chuyên gia
+
+                💡 **Mẹo**: Lần đầu dùng? Click một trong các file mẫu bên dưới để xem dashboard trông như thế nào!
+                """)
+            else:
+                st.info("""
+                ### 👋 Welcome to Fast DataAnalytics!
+
+                **3 simple steps to create professional dashboard:**
+
+                1. **📤 Upload data**: Choose your Excel/CSV file (or try sample data below)
+                2. **⏱️ Wait 60 seconds**: System automatically analyzes and creates dashboard
+                3. **📊 View results**: Dashboard with 9 KPIs + 8 charts + expert insights
+
+                💡 **Tip**: First time? Click one of the sample files below to see how your dashboard will look!
+                """)
+
+            # Dismiss button
+            if st.button("✅ " + ("Đã hiểu, bắt đầu!" if lang == 'vi' else "Got it, let's start!"), key="dismiss_onboarding"):
+                st.session_state['onboarding_dismissed'] = True
+                st.session_state['first_visit'] = False
+                st.rerun()
+
         # Instructions
         with st.expander(get_text('instructions_title', lang), expanded=False):
             st.markdown(get_text('instructions_content', lang))
