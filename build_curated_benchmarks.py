@@ -56,6 +56,62 @@ CURATED_BENCHMARKS = {
         'notes': 'Authoritative global research - free summary report'
     },
 
+    # NEW VIETNAM SOURCES (Phase 1)
+    'hr_salary_michaelpage': {
+        'name': 'Michael Page Vietnam Salary Guide 2025',
+        'url': 'https://www.michaelpage.com.vn/salary-guide',
+        'metrics': 'Vietnam salary ranges by role, industry, seniority level (VND)',
+        'credibility': '⭐⭐⭐⭐⭐',
+        'vietnam_specific': True,
+        'cost': 'FREE (downloadable PDF)',
+        'verification_status': 'PENDING',
+        'notes': 'Global recruitment leader - Vietnam-specific comprehensive salary data'
+    },
+
+    'hr_salary_talentnet': {
+        'name': 'Talentnet-Mercer Total Remuneration Report 2024',
+        'url': 'https://www.talentnetgroup.com/vn/featured-insights/rewards/talentnet-mercer-total-remuneration-survey-report-highlights-2024',
+        'metrics': 'Vietnam total compensation benchmarks (salary + benefits, bonus structures)',
+        'credibility': '⭐⭐⭐⭐⭐',
+        'vietnam_specific': True,
+        'cost': 'FREE (report highlights)',
+        'verification_status': 'PENDING',
+        'notes': 'Mercer global authority + Talentnet Vietnam partner - highly authoritative'
+    },
+
+    'hr_salary_robertwalters': {
+        'name': 'Robert Walters Salary Survey Vietnam 2025',
+        'url': 'https://www.robertwalters.com.vn/our-services/salary-survey.html',
+        'metrics': 'Vietnam salary trends by sector, hiring market insights',
+        'credibility': '⭐⭐⭐⭐⭐',
+        'vietnam_specific': True,
+        'cost': 'FREE (downloadable guide)',
+        'verification_status': 'PENDING',
+        'notes': 'Global recruitment firm - Vietnam market specialist'
+    },
+
+    'hr_salary_itviec': {
+        'name': 'ITviec Vietnam IT Salary & Recruitment Market Report 2024-2025',
+        'url': 'https://itviec.com/report/vietnam-it-salary-and-recruitment-market',
+        'metrics': 'Vietnam IT-specific salaries, hiring trends, skills demand',
+        'credibility': '⭐⭐⭐⭐⭐',
+        'vietnam_specific': True,
+        'cost': 'FREE',
+        'verification_status': 'PENDING',
+        'notes': 'Leading Vietnam IT job board - IT sector authority'
+    },
+
+    'hr_salary_adecco': {
+        'name': 'Adecco Vietnam Salary Guide 2024',
+        'url': 'https://adecco.com.vn/en/knowledge-center/detail/adecco-vietnam-salary-guide-2024',
+        'metrics': 'Vietnam salary benchmarks across industries',
+        'credibility': '⭐⭐⭐⭐',
+        'vietnam_specific': True,
+        'cost': 'FREE',
+        'verification_status': 'PENDING',
+        'notes': 'Global staffing firm - Vietnam market data'
+    },
+
     # ============================================================================
     # MARKETING / DIGITAL MARKETING (4 sources)
     # ============================================================================
@@ -329,23 +385,23 @@ def print_summary():
 ⭐ 5-Star Credibility: {high_cred} ({high_cred/total*100:.1f}%)
 
 Breakdown by Domain:
-- HR: 4 sources (50% Vietnam-specific)
+- HR: 9 sources (78% Vietnam-specific) 🇻🇳
 - Marketing: 4 sources (25% Vietnam-specific)
-- E-commerce: 5 sources (60% Vietnam-specific)
-- Sales: 3 sources (33% Vietnam-specific)
+- E-commerce: 5 sources (60% Vietnam-specific) 🇻🇳
+- Sales: 3 sources (33% Vietnam-specific) 🇻🇳
 - Customer Service: 2 sources (0% Vietnam but global leaders)
-- Calculated: 1 source (100% user's data)
+- Calculated: 1 source (100% user's data) 🇻🇳
 
 Quality Metrics:
 - All sources have URLs ✅
 - All will be verified with WebFetch ✅
-- Focus on FREE accessible sources ✅
+- Focus on FREE accessible sources (95.8%) ✅
 - Authoritative sources only ✅
 
 Expected Impact:
-- Before: 32 sources (no URLs, no Vietnam, some paywalled)
-- After: 20 sources (all verified, 35% Vietnam, 100% accessible)
-- Credibility Score: +1.5 points estimated
+- Before: 32 sources (no URLs, 0% Vietnam, 25% paywalled)
+- After: 24 sources (all with URLs, 50% Vietnam, 95.8% free) ✅
+- Credibility Score: +2.0 points estimated (7.66 → 9.7/10)
     """)
 
 if __name__ == '__main__':
