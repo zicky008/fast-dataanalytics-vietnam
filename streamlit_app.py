@@ -40,18 +40,25 @@ def initialize_session_state():
     """Initialize session state variables"""
     if 'language' not in st.session_state:
         st.session_state['language'] = 'vi'  # Default Vietnamese
-    
+
     if 'theme' not in st.session_state:
         st.session_state['theme'] = 'dark'  # Default dark theme (better for first impression)
-    
+
     if 'currency' not in st.session_state:
         st.session_state['currency'] = 'VND'  # Default VND
-    
+
     if 'result' not in st.session_state:
         st.session_state['result'] = None
-    
+
     if 'df' not in st.session_state:
         st.session_state['df'] = None
+
+    # First-time user onboarding
+    if 'first_visit' not in st.session_state:
+        st.session_state['first_visit'] = True
+
+    if 'onboarding_dismissed' not in st.session_state:
+        st.session_state['onboarding_dismissed'] = False
 
 # ============================================
 # THEME MANAGEMENT
@@ -706,15 +713,60 @@ def main():
         
         st.markdown("---")
         
-        # Pricing
+        # Pricing (Vietnam Hack: "₫99K = 2 coffees" positioning)
         st.markdown(f"### {get_text('pricing', lang)}")
-        st.success(f"""
-        {get_text('free_plan', lang)}
-        
-        {get_text('pro_plan', lang)}
-        {get_text('pro_features', lang)}
-        """)
-        
+        if lang == 'vi':
+            st.success("""
+            **💎 Starter Plan: ₫99K/tháng**
+            _(Giá 2 ly cà phê Highlands/tuần)_
+
+            ✅ 30 ngày dùng thử miễn phí
+            ✅ Không cần thẻ tín dụng
+            ✅ Unlimited dashboards
+            ✅ Đảm bảo hoàn tiền 100%
+
+            🎁 **Early Adopter**: ₫49K/tháng trọn đời
+            _(50 khách hàng đầu tiên)_
+            """)
+        else:
+            st.success("""
+            **💎 Starter Plan: ₫99K/month**
+            _(Price of 2 Highlands coffees/week)_
+
+            ✅ 30-day free trial
+            ✅ No credit card required
+            ✅ Unlimited dashboards
+            ✅ 100% money-back guarantee
+
+            🎁 **Early Adopter**: ₫49K/month LIFETIME
+            _(First 50 customers only)_
+            """)
+
+        st.markdown("---")
+
+        # Support Section (Vietnam Hack: Zalo priority)
+        st.markdown(f"### {'💬 Hỗ Trợ' if lang == 'vi' else '💬 Support'}")
+        if lang == 'vi':
+            st.info("""
+            📱 **Zalo**: [Đang cập nhật]
+            _(Phản hồi trong 2 giờ)_
+
+            📧 **Email**: support@fast-dataanalytics.com
+            _(Phản hồi trong 24 giờ)_
+
+            ⏰ **Giờ làm việc**: 8am-6pm (T2-T7)
+            """)
+        else:
+            st.info("""
+            📱 **Zalo**: [To be updated]
+            _(Response within 2 hours)_
+
+            📧 **Email**: support@fast-dataanalytics.com
+            _(Response within 24 hours)_
+
+            ⏰ **Business hours**: 8am-6pm (Mon-Sat)
+            """)
+
         st.markdown("---")
         
         # Data Quality Guide
@@ -744,7 +796,40 @@ def main():
     # ============================================
     with tab1:
         st.markdown(f"### {get_text('upload_title', lang)}")
-        
+
+        # First-time user onboarding (PMF Strategy Tactic #4)
+        if st.session_state.get('first_visit', False) and not st.session_state.get('onboarding_dismissed', False):
+            if lang == 'vi':
+                st.info("""
+                ### 👋 Chào mừng đến với Fast DataAnalytics!
+
+                **3 bước đơn giản để tạo dashboard chuyên nghiệp:**
+
+                1. **📤 Upload dữ liệu**: Chọn file Excel/CSV của bạn (hoặc thử file mẫu bên dưới)
+                2. **⏱️ Chờ 60 giây**: Hệ thống tự động phân tích và tạo dashboard
+                3. **📊 Xem kết quả**: Dashboard với 9 KPIs + 8 biểu đồ + insights chuyên gia
+
+                💡 **Mẹo**: Lần đầu dùng? Click một trong các file mẫu bên dưới để xem dashboard trông như thế nào!
+                """)
+            else:
+                st.info("""
+                ### 👋 Welcome to Fast DataAnalytics!
+
+                **3 simple steps to create professional dashboard:**
+
+                1. **📤 Upload data**: Choose your Excel/CSV file (or try sample data below)
+                2. **⏱️ Wait 60 seconds**: System automatically analyzes and creates dashboard
+                3. **📊 View results**: Dashboard with 9 KPIs + 8 charts + expert insights
+
+                💡 **Tip**: First time? Click one of the sample files below to see how your dashboard will look!
+                """)
+
+            # Dismiss button
+            if st.button("✅ " + ("Đã hiểu, bắt đầu!" if lang == 'vi' else "Got it, let's start!"), key="dismiss_onboarding"):
+                st.session_state['onboarding_dismissed'] = True
+                st.session_state['first_visit'] = False
+                st.rerun()
+
         # Instructions
         with st.expander(get_text('instructions_title', lang), expanded=False):
             st.markdown(get_text('instructions_content', lang))
@@ -755,7 +840,84 @@ def main():
             type=['csv', 'xlsx', 'xls'],
             help=get_text('file_help', lang)
         )
-        
+
+        # Sample Data Section (PMF Strategy #2 - Quick Win!)
+        st.markdown("---")
+        if lang == 'vi':
+            st.markdown("#### ❓ Chưa có dữ liệu? Dùng file mẫu:")
+            st.caption("Click vào một trong các mẫu dưới đây để xem dashboard trông như thế nào")
+        else:
+            st.markdown("#### ❓ Don't have data? Try sample data:")
+            st.caption("Click on one of the samples below to see how your dashboard will look")
+
+        # Sample data mapping
+        sample_files = {
+            'vi': {
+                '🛒 E-commerce': ('sample_data/ecommerce_shopify_daily.csv', 'Dữ liệu bán hàng online (Shopify)'),
+                '📊 Marketing': ('sample_data/marketing_multichannel_campaigns.csv', 'Chiến dịch marketing đa kênh'),
+                '💼 Sales': ('sample_data/sales_pipeline_crm.csv', 'Pipeline bán hàng CRM'),
+                '💰 Finance': ('sample_data/finance_monthly_pnl.csv', 'Báo cáo tài chính hàng tháng'),
+                '🏭 Manufacturing': ('sample_data/manufacturing_production_30days.csv', 'Dữ liệu sản xuất 30 ngày'),
+                '🎧 Customer Service': ('sample_data/customer_service_tickets_30days.csv', 'Tickets hỗ trợ khách hàng'),
+                '🍜 Restaurant': ('sample_data/test_vietnamese_restaurant.csv', 'Dữ liệu nhà hàng Việt Nam')
+            },
+            'en': {
+                '🛒 E-commerce': ('sample_data/ecommerce_shopify_daily.csv', 'Online sales data (Shopify)'),
+                '📊 Marketing': ('sample_data/marketing_multichannel_campaigns.csv', 'Multi-channel marketing campaigns'),
+                '💼 Sales': ('sample_data/sales_pipeline_crm.csv', 'Sales pipeline CRM'),
+                '💰 Finance': ('sample_data/finance_monthly_pnl.csv', 'Monthly P&L report'),
+                '🏭 Manufacturing': ('sample_data/manufacturing_production_30days.csv', '30-day production data'),
+                '🎧 Customer Service': ('sample_data/customer_service_tickets_30days.csv', 'Customer support tickets'),
+                '🍜 Restaurant': ('sample_data/test_vietnamese_restaurant.csv', 'Vietnamese restaurant data')
+            }
+        }
+
+        # Display sample data buttons in 2 rows
+        cols1 = st.columns(4)
+        cols2 = st.columns(3)
+
+        sample_items = list(sample_files[lang].items())
+
+        # Row 1: First 4 buttons
+        for idx, (name, (file_path, description)) in enumerate(sample_items[:4]):
+            with cols1[idx]:
+                if st.button(name, key=f"sample_{idx}", use_container_width=True):
+                    try:
+                        # Load sample data
+                        sample_df = pd.read_csv(file_path)
+                        st.session_state['df'] = sample_df
+                        st.session_state['sample_loaded'] = True
+                        st.session_state['sample_name'] = name
+                        st.session_state['sample_description'] = description
+                        if lang == 'vi':
+                            st.success(f"✅ Đã tải mẫu {name}! Click 'Phân Tích' bên dưới.")
+                        else:
+                            st.success(f"✅ {name} sample loaded! Click 'Analyze' below.")
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Error loading sample: {str(e)}")
+
+        # Row 2: Last 3 buttons
+        for idx, (name, (file_path, description)) in enumerate(sample_items[4:], start=4):
+            with cols2[idx-4]:
+                if st.button(name, key=f"sample_{idx}", use_container_width=True):
+                    try:
+                        # Load sample data
+                        sample_df = pd.read_csv(file_path)
+                        st.session_state['df'] = sample_df
+                        st.session_state['sample_loaded'] = True
+                        st.session_state['sample_name'] = name
+                        st.session_state['sample_description'] = description
+                        if lang == 'vi':
+                            st.success(f"✅ Đã tải mẫu {name}! Click 'Phân Tích' bên dưới.")
+                        else:
+                            st.success(f"✅ {name} sample loaded! Click 'Analyze' below.")
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Error loading sample: {str(e)}")
+
+        st.markdown("---")
+
         # Dataset description
         dataset_description = st.text_area(
             get_text('dataset_description', lang),
@@ -763,25 +925,39 @@ def main():
             help=get_text('dataset_help', lang)
         )
         
-        # Analyze button
-        if uploaded_file:
+        # Analyze button (show for both uploaded file AND sample data)
+        has_data = uploaded_file or st.session_state.get('sample_loaded', False)
+
+        if has_data:
             col1, col2 = st.columns([1, 3])
             with col1:
                 analyze_button = st.button(get_text('analyze_button', lang), type="primary", use_container_width=True)
             with col2:
                 st.caption(get_text('time_estimate', lang))
-        
-        # Process file
-        if uploaded_file and 'analyze_button' in locals() and analyze_button:
-            # Load file
-            with st.spinner(get_text('loading_file', lang)):
-                success, df, message = safe_file_upload(uploaded_file, max_size_mb=200, lang=lang)
-            
-            if not success:
-                st.error(message)
-                st.stop()
-            
-            st.success(message)
+
+        # Process file or sample data
+        if has_data and 'analyze_button' in locals() and analyze_button:
+            # Check if using sample data or uploaded file
+            if st.session_state.get('sample_loaded', False):
+                # Using sample data - already loaded in session state
+                df = st.session_state['df']
+                sample_name = st.session_state.get('sample_name', 'Sample')
+                if lang == 'vi':
+                    st.success(f"✅ Đang phân tích mẫu dữ liệu: {sample_name}")
+                else:
+                    st.success(f"✅ Analyzing sample data: {sample_name}")
+                # Clear sample_loaded flag after use
+                st.session_state['sample_loaded'] = False
+            else:
+                # Using uploaded file
+                with st.spinner(get_text('loading_file', lang)):
+                    success, df, message = safe_file_upload(uploaded_file, max_size_mb=200, lang=lang)
+
+                if not success:
+                    st.error(message)
+                    st.stop()
+
+                st.success(message)
             
             # Display data preview
             with st.expander(get_text('preview_data', lang), expanded=False):
