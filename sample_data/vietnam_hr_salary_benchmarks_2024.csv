@@ -1,0 +1,48 @@
+role,department,industry,city,experience_level,min_salary_vnd_monthly,max_salary_vnd_monthly,median_salary_vnd_monthly,percentile_25,percentile_75,bonus_months,total_comp_yearly_vnd,source,last_updated,notes
+HR Manager,Human Resources,Technology,Ho Chi Minh,5-7 years,25000000,40000000,32500000,28000000,37000000,2.5,422500000,Michael Page Vietnam 2025,2024-12,High demand for tech HR
+HR Manager,Human Resources,Manufacturing,Binh Duong,5-7 years,18000000,28000000,23000000,20000000,26000000,2.0,299000000,Talentnet-Mercer 2024,2024-11,Industrial zone salaries lower
+HR Manager,Human Resources,Retail,Hanoi,5-7 years,20000000,32000000,26000000,22000000,30000000,1.5,331000000,Robert Walters Vietnam 2025,2024-12,Northern Vietnam market
+HR Specialist,Human Resources,E-commerce,Ho Chi Minh,3-5 years,15000000,25000000,20000000,17000000,23000000,2.0,260000000,Adecco Vietnam 2024,2024-10,Fast-growing sector
+HR Specialist,Human Resources,Finance,Hanoi,3-5 years,16000000,26000000,21000000,18000000,24000000,2.5,273000000,Michael Page Vietnam 2025,2024-12,Banking sector competitive
+Recruitment Manager,Human Resources,Technology,Ho Chi Minh,5-7 years,22000000,38000000,30000000,25000000,35000000,2.5,390000000,ITviec Vietnam 2024-2025,2024-11,Tech talent war driving salaries
+Talent Acquisition Lead,Human Resources,Consulting,Ho Chi Minh,5-7 years,24000000,42000000,33000000,27000000,38000000,3.0,429000000,Robert Walters Vietnam 2025,2024-12,Consulting firms pay premium
+Compensation & Benefits Manager,Human Resources,FMCG,Ho Chi Minh,7-10 years,28000000,45000000,36500000,31000000,41000000,3.0,474500000,Talentnet-Mercer 2024,2024-11,Specialized role commands higher salary
+Learning & Development Manager,Human Resources,Technology,Hanoi,5-7 years,23000000,38000000,30500000,26000000,35000000,2.0,396500000,Michael Page Vietnam 2025,2024-12,Training focus in tech
+HR Business Partner,Human Resources,Multinational,Ho Chi Minh,7-10 years,30000000,50000000,40000000,34000000,46000000,3.5,522000000,Robert Walters Vietnam 2025,2024-12,Strategic HR role high value
+Marketing Manager,Marketing,E-commerce,Ho Chi Minh,5-7 years,28000000,45000000,36500000,31000000,41000000,2.5,474500000,Michael Page Vietnam 2025,2024-12,Digital focus critical
+Marketing Manager,Marketing,FMCG,Ho Chi Minh,5-7 years,30000000,48000000,39000000,33000000,44000000,3.0,507000000,Robert Walters Vietnam 2025,2024-12,FMCG pays well for brand management
+Marketing Manager,Marketing,Technology,Hanoi,5-7 years,26000000,42000000,34000000,29000000,39000000,2.5,442000000,Adecco Vietnam 2024,2024-10,B2B marketing focus
+Digital Marketing Manager,Marketing,Retail,Ho Chi Minh,4-6 years,24000000,40000000,32000000,27000000,37000000,2.0,416000000,Michael Page Vietnam 2025,2024-12,Performance marketing skills valued
+Performance Marketing Lead,Marketing,E-commerce,Ho Chi Minh,4-6 years,26000000,44000000,35000000,29000000,40000000,2.5,455000000,ITviec Vietnam 2024-2025,2024-11,ROI-driven roles in demand
+Social Media Manager,Marketing,Consumer Goods,Ho Chi Minh,3-5 years,18000000,30000000,24000000,20000000,28000000,2.0,312000000,Adecco Vietnam 2024,2024-10,Content creation + community management
+Content Marketing Manager,Marketing,Technology,Hanoi,4-6 years,20000000,35000000,27500000,23000000,32000000,2.5,357500000,Michael Page Vietnam 2025,2024-12,Storytelling + SEO skills needed
+Brand Manager,Marketing,FMCG,Ho Chi Minh,5-7 years,28000000,46000000,37000000,31000000,42000000,3.0,481000000,Robert Walters Vietnam 2025,2024-12,Brand strategy expertise premium
+SEO/SEM Manager,Marketing,E-commerce,Ho Chi Minh,4-6 years,22000000,38000000,30000000,25000000,35000000,2.0,390000000,ITviec Vietnam 2024-2025,2024-11,Technical SEO in high demand
+Marketing Analytics Manager,Marketing,Technology,Ho Chi Minh,5-7 years,26000000,44000000,35000000,29000000,40000000,2.5,455000000,Michael Page Vietnam 2025,2024-12,Data-driven marketing growing
+Software Developer,Engineering,Technology,Ho Chi Minh,3-5 years,20000000,35000000,27500000,23000000,32000000,2.5,357500000,ITviec Vietnam 2024-2025,2024-11,General full-stack developer
+Senior Software Developer,Engineering,Technology,Ho Chi Minh,5-7 years,30000000,50000000,40000000,34000000,46000000,3.0,520000000,ITviec Vietnam 2024-2025,2024-11,Senior dev shortage driving salaries
+Backend Developer,Engineering,Fintech,Ho Chi Minh,3-5 years,22000000,38000000,30000000,25000000,35000000,2.5,390000000,ITviec Vietnam 2024-2025,2024-11,Fintech pays premium
+Frontend Developer,Engineering,E-commerce,Ho Chi Minh,3-5 years,18000000,32000000,25000000,21000000,29000000,2.0,325000000,ITviec Vietnam 2024-2025,2024-11,React/Vue.js skills in demand
+Mobile Developer,Engineering,Technology,Ho Chi Minh,4-6 years,24000000,42000000,33000000,27000000,38000000,2.5,429000000,ITviec Vietnam 2024-2025,2024-11,iOS/Android native or Flutter
+DevOps Engineer,Engineering,Technology,Ho Chi Minh,4-6 years,26000000,45000000,35500000,29000000,41000000,3.0,462500000,ITviec Vietnam 2024-2025,2024-11,Cloud + automation expertise valued
+QA Engineer,Engineering,Technology,Ho Chi Minh,3-5 years,15000000,26000000,20500000,17000000,24000000,2.0,266500000,ITviec Vietnam 2024-2025,2024-11,Automation testing skills needed
+Data Engineer,Engineering,Fintech,Ho Chi Minh,4-6 years,25000000,44000000,34500000,28000000,40000000,3.0,448500000,ITviec Vietnam 2024-2025,2024-11,Big data pipeline expertise
+Data Analyst,Analytics,E-commerce,Ho Chi Minh,2-4 years,16000000,28000000,22000000,18000000,26000000,2.0,286000000,Michael Page Vietnam 2025,2024-12,SQL + visualization tools
+Business Analyst,Analytics,Banking,Hanoi,3-5 years,18000000,32000000,25000000,21000000,29000000,2.5,325000000,Robert Walters Vietnam 2025,2024-12,Process improvement focus
+Data Scientist,Analytics,Technology,Ho Chi Minh,4-6 years,28000000,48000000,38000000,32000000,44000000,3.0,494000000,ITviec Vietnam 2024-2025,2024-11,ML/AI skills command premium
+Product Manager,Product,Technology,Ho Chi Minh,5-7 years,30000000,52000000,41000000,34000000,48000000,3.0,533000000,Michael Page Vietnam 2025,2024-12,Product strategy + tech understanding
+E-commerce Manager,E-commerce,Retail,Ho Chi Minh,4-6 years,24000000,40000000,32000000,27000000,37000000,2.5,416000000,Adecco Vietnam 2024,2024-10,Multi-platform management (Shopee/Lazada/TikTok)
+Sales Manager,Sales,B2B Software,Ho Chi Minh,5-7 years,25000000,45000000,35000000,28000000,41000000,3.0,455000000,Robert Walters Vietnam 2025,2024-12,Enterprise sales experience valued
+Sales Manager,Sales,FMCG,Ho Chi Minh,5-7 years,24000000,42000000,33000000,27000000,38000000,2.5,429000000,Michael Page Vietnam 2025,2024-12,Distribution channel management
+Account Manager,Sales,Advertising,Ho Chi Minh,3-5 years,18000000,30000000,24000000,20000000,28000000,2.0,312000000,Adecco Vietnam 2024,2024-10,Client relationship management
+Business Development Manager,Sales,Technology,Ho Chi Minh,4-6 years,26000000,44000000,35000000,29000000,40000000,3.0,455000000,Robert Walters Vietnam 2025,2024-12,New market entry focus
+Finance Manager,Finance,Manufacturing,Binh Duong,5-7 years,22000000,38000000,30000000,25000000,35000000,2.5,390000000,Talentnet-Mercer 2024,2024-11,FP&A + reporting
+Accounting Manager,Finance,Retail,Ho Chi Minh,5-7 years,20000000,35000000,27500000,23000000,32000000,2.0,357500000,Robert Walters Vietnam 2025,2024-12,VAS + IFRS knowledge required
+Financial Controller,Finance,Multinational,Ho Chi Minh,7-10 years,35000000,60000000,47500000,40000000,55000000,3.5,618750000,Michael Page Vietnam 2025,2024-12,Strategic finance role
+Treasury Manager,Finance,Banking,Hanoi,7-10 years,30000000,52000000,41000000,34000000,48000000,3.0,533000000,Robert Walters Vietnam 2025,2024-12,Cash flow + risk management
+Operations Manager,Operations,Manufacturing,Binh Duong,5-7 years,22000000,38000000,30000000,25000000,35000000,2.5,390000000,Talentnet-Mercer 2024,2024-11,Lean manufacturing experience
+Operations Manager,Operations,E-commerce,Ho Chi Minh,5-7 years,24000000,42000000,33000000,27000000,38000000,2.5,429000000,Adecco Vietnam 2024,2024-10,Logistics + fulfillment focus
+Supply Chain Manager,Operations,FMCG,Ho Chi Minh,5-7 years,26000000,44000000,35000000,29000000,40000000,3.0,455000000,Michael Page Vietnam 2025,2024-12,End-to-end supply chain optimization
+Customer Service Manager,Customer Service,E-commerce,Ho Chi Minh,4-6 years,18000000,32000000,25000000,21000000,29000000,2.0,325000000,Adecco Vietnam 2024,2024-10,Omnichannel support management
+IT Manager,Technology,Banking,Hanoi,7-10 years,32000000,55000000,43500000,36000000,50000000,3.0,565500000,Robert Walters Vietnam 2025,2024-12,Infrastructure + security focus
+Project Manager,Technology,Consulting,Ho Chi Minh,5-7 years,26000000,44000000,35000000,29000000,40000000,2.5,455000000,Michael Page Vietnam 2025,2024-12,Agile + PMP certification valued
