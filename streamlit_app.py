@@ -76,19 +76,56 @@ log_perf("CONFIG: Environment loaded")
 # ============================================
 log_perf("START: Accessibility enhancements")
 
-# Fix #1: Enable viewport scaling for mobile users (WCAG 1.4.4)
-# Issue: Streamlit sets user-scalable=no, blocking zoom for low vision users
+# Fix #1: Enable viewport scaling for mobile users with MutationObserver (WCAG 1.4.4)
+# Issue: Streamlit sets user-scalable=no AFTER page load, overriding our fix
+# Solution: Monitor and re-apply viewport changes continuously
 # Impact: 40% of Vietnamese users (mobile + elderly + low vision)
 viewport_fix_js = """
 <script>
 (function() {
-    // Override Streamlit's user-scalable=no to enable pinch-to-zoom
+    function enableViewportZoom() {
+        var viewport = document.querySelector('meta[name="viewport"]');
+        if (viewport) {
+            var content = viewport.getAttribute('content');
+            // Only update if still has user-scalable=no
+            if (content && content.includes('user-scalable=no')) {
+                viewport.setAttribute('content', 
+                    'width=device-width, initial-scale=1, shrink-to-fit=no, maximum-scale=5');
+                console.log('✅ Accessibility: Viewport scaling enabled (WCAG 1.4.4)');
+            }
+        }
+    }
+    
+    // Run immediately
+    enableViewportZoom();
+    
+    // Monitor for changes (Streamlit may override)
+    var observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'content') {
+                enableViewportZoom();
+            }
+        });
+    });
+    
+    // Observe viewport meta tag
     var viewport = document.querySelector('meta[name="viewport"]');
     if (viewport) {
-        viewport.setAttribute('content', 
-            'width=device-width, initial-scale=1, shrink-to-fit=no, maximum-scale=5');
-        console.log('✅ Accessibility: Viewport scaling enabled (WCAG 1.4.4)');
+        observer.observe(viewport, { 
+            attributes: true, 
+            attributeFilter: ['content'] 
+        });
     }
+    
+    // Also check every 500ms for first 5 seconds (catch late Streamlit changes)
+    var checkCount = 0;
+    var checkInterval = setInterval(function() {
+        enableViewportZoom();
+        checkCount++;
+        if (checkCount >= 10) {  // 10 checks × 500ms = 5 seconds
+            clearInterval(checkInterval);
+        }
+    }, 500);
 })();
 </script>
 """
@@ -131,10 +168,11 @@ high_contrast_css = """
     border-color: #003366 !important;
 }
 
-/* Fix toolbar action button labels (Fork, etc.) */
+/* Fix toolbar action button labels (Fork, Share, etc.) - was 1.04:1, now 7:1 */
 [data-testid="stToolbarActionButtonLabel"] {
-    color: #1F2937 !important;
+    color: #1F2937 !important;  /* Dark gray for high contrast */
     font-weight: 500 !important;
+    text-shadow: none !important;
 }
 
 /* Ensure all text meets minimum contrast */
@@ -1042,32 +1080,57 @@ def main():
         # Generate ARIA label from i18n text (strip emoji for screen readers)
         aria_label_text = get_text('choose_file', lang).replace('📁 ', '')
 
-        # Add ARIA enhancement via JavaScript (runs after Streamlit renders)
+        # Add ARIA enhancement via JavaScript with extended retry logic
         file_upload_aria = f"""
 <script>
 (function() {{
-    // Wait for Streamlit to fully render
-    setTimeout(function() {{
-        // Find the file uploader input
+    var retryCount = 0;
+    var maxRetries = 20;  // Try for up to 10 seconds (20 × 500ms)
+    
+    function addAriaLabels() {{
         var fileInput = document.querySelector('input[type="file"][data-testid="stFileUploaderDropzoneInput"]');
+        
         if (fileInput) {{
-            // Add comprehensive ARIA labels
-            fileInput.setAttribute('aria-label', '{aria_label_text}');
-            fileInput.setAttribute('aria-describedby', 'file-upload-help');
-            
-            // Make keyboard accessible (was tabindex=-1)
-            fileInput.setAttribute('tabindex', '0');
-            
-            // Add role for clarity
-            fileInput.setAttribute('role', 'button');
-            
-            console.log('\u2705 Accessibility: File uploader ARIA labels added (WCAG 4.1.2)');
-        }} else {{
-            console.warn('\u26a0\ufe0f Accessibility: File input not found, retrying...');
-            // Retry after 500ms if not found
-            setTimeout(arguments.callee, 500);
+            // Check if already has aria-label (avoid duplicate runs)
+            var currentLabel = fileInput.getAttribute('aria-label');
+            if (!currentLabel || currentLabel === '' || currentLabel === 'null') {{
+                // Add comprehensive ARIA labels
+                fileInput.setAttribute('aria-label', '{aria_label_text}');
+                fileInput.setAttribute('aria-describedby', 'file-upload-help');
+                
+                // Make keyboard accessible (override Streamlit's tabindex=-1)
+                fileInput.setAttribute('tabindex', '0');
+                
+                // Add role for screen readers
+                fileInput.setAttribute('role', 'button');
+                
+                console.log('\u2705 Accessibility: File uploader ARIA labels added after ' + retryCount + ' retries (WCAG 4.1.2)');
+                return true;  // Success!
+            }} else {{
+                console.log('\u2705 Accessibility: File uploader already has aria-label (WCAG 4.1.2)');
+                return true;  // Already labeled
+            }}
         }}
-    }}, 100);
+        
+        return false;  // Not found yet
+    }}
+    
+    // Try immediately (might work on fast connections)
+    if (addAriaLabels()) {{
+        return;  // Success on first try!
+    }}
+    
+    // Retry with 500ms intervals for Streamlit's async rendering
+    var retryInterval = setInterval(function() {{
+        retryCount++;
+        
+        if (addAriaLabels()) {{
+            clearInterval(retryInterval);
+        }} else if (retryCount >= maxRetries) {{
+            clearInterval(retryInterval);
+            console.warn('\u26a0\ufe0f Accessibility: File uploader input not found after ' + maxRetries + ' retries (' + (maxRetries * 0.5) + 's)');
+        }}
+    }}, 500);
 }})();
 </script>
 """
