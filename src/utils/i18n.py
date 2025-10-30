@@ -44,8 +44,8 @@ TRANSLATIONS = {
 - Results comply with ISO 8000 standards
 - Export to PDF/PowerPoint available after completion
 """,
-        "choose_file": "Choose CSV or Excel file",
-        "file_help": "Max 200MB. Supports UTF-8 and Latin1 encoding",
+        "choose_file": "📁 Upload CSV, XLSX, or XLS file",
+        "file_help": "Select your data file for analysis. Supported: CSV, Excel (.xlsx, .xls). Max 200MB. Your data is processed securely and not stored.",
         "dataset_description": "Dataset description (optional)",
         "dataset_placeholder": "Example: Marketing campaign data from Facebook Ads in January 2024...",
         "dataset_help": "Description helps AI understand your data better",
@@ -233,8 +233,8 @@ TRANSLATIONS = {
 - Kết quả tuân thủ chuẩn ISO 8000
 - Có thể export PDF/PowerPoint sau khi hoàn thành
 """,
-        "choose_file": "Chọn file CSV hoặc Excel",
-        "file_help": "File tối đa 200MB. Hỗ trợ UTF-8 và Latin1 encoding",
+        "choose_file": "📁 Tải lên file CSV, XLSX, hoặc XLS",
+        "file_help": "Chọn file dữ liệu của bạn để phân tích. Hỗ trợ: CSV, Excel (.xlsx, .xls). Tối đa 200MB. Dữ liệu của bạn được xử lý an toàn và không lưu trữ.",
         "dataset_description": "Mô tả dữ liệu (tùy chọn)",
         "dataset_placeholder": "Ví dụ: Dữ liệu marketing campaign từ Facebook Ads tháng 1/2024...",
         "dataset_help": "Mô tả giúp AI hiểu rõ hơn về dữ liệu của bạn",
