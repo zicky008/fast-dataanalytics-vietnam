@@ -39,6 +39,80 @@ from benchmark_loader import get_benchmark_loader
 
 
 # ==================================================================================
+# CRITICAL: NEVER_IMPUTE_FIELDS Protection (Legal + Trust)
+# ==================================================================================
+# These fields are TOO IMPORTANT to fill with fake/imputed data
+# Missing = KEEP AS NULL and FLAG to user with warning
+# Rationale: Wrong revenue/salary data → Wrong decisions → Legal liability + Lost trust
+# Updated: 2025-10-30 - Added to PremiumLeanPipeline for production safety
+# ==================================================================================
+
+NEVER_IMPUTE_FIELDS = {
+    # Financial fields (legal liability + wrong strategic decisions)
+    'revenue', 'sales', 'income', 'cost', 'expense', 'profit', 'margin',
+    'price', 'amount', 'payment', 'fee', 'charge', 'budget', 'spending',
+    'deal_value', 'deal_amount', 'contract_value', 'invoice_amount',
+    'doanh_thu', 'doanh_so', 'chi_phi', 'loi_nhuan', 'gia', 'tien', 'thanh_toan',
+    
+    # Marketing/Sales metrics (wrong data = wrong decisions)
+    'roas', 'roi', 'conversion_rate', 'cpa', 'cpc', 'cpm', 'ctr',
+    'conversions', 'leads', 'clicks', 'impressions', 'reach',
+    'ty_le_chuyen_doi', 'chi_phi_don_hang',
+    
+    # E-commerce operational metrics
+    'discount', 'rating', 'review', 'delivery_time', 'delivery_days',
+    'shipping_fee', 'order_status', 'return_rate',
+    'giam_gia', 'danh_gia', 'thoi_gian_giao',
+    
+    # Customer Service metrics (affect CSAT/SLA compliance)
+    'resolution_time', 'response_time', 'satisfaction_score', 'csat',
+    'nps', 'issue_category', 'priority', 'sla_breach',
+    'resolved_date', 'resolution_date', 'closed_date',
+    'thoi_gian_xu_ly', 'muc_do_hai_long', 'ngay_giai_quyet',
+    
+    # Metadata fields (categorical/competitive intelligence)
+    'channel', 'source', 'medium', 'campaign', 'platform',
+    'competitors', 'competitor_name',
+    'kenh', 'nguon', 'doi_thu_canh_tranh',
+    
+    # HR fields (compliance/privacy + labor law)
+    'salary', 'wage', 'compensation', 'bonus', 'commission', 'payroll',
+    'employee_id', 'staff_id', 'position', 'title', 'role', 'job_title',
+    'ho_ten', 'ten', 'name', 'full_name',
+    'luong', 'thu_nhap', 'chuc_vu', 'vi_tri',
+    'luong_thang', 'luong_co_ban',  # Added Vietnamese salary variations
+    
+    # Customer PII (privacy law GDPR/PDPA compliance)
+    'email', 'phone', 'address', 'ssn', 'passport', 'id_number', 'cccd', 'cmnd',
+    'credit_card', 'bank_account', 'so_dien_thoai', 'dia_chi',
+    
+    # Business-critical IDs (data integrity)
+    'order_id', 'transaction_id', 'invoice_id', 'customer_id', 'user_id',
+    'deal_id', 'ticket_id', 'campaign_id', 'lead_id',
+    'ma_don_hang', 'ma_khach_hang', 'ma_giao_dich', 'ma_hoa_don',
+}
+
+def is_never_impute_field(column_name: str) -> bool:
+    """
+    Check if a column should NEVER be imputed with fake data.
+    
+    Args:
+        column_name: Name of the column to check
+    
+    Returns:
+        True if field is protected (never impute), False otherwise
+    
+    Example:
+        >>> is_never_impute_field('luong_thang')
+        True
+        >>> is_never_impute_field('customer_age')
+        False
+    """
+    col_lower = column_name.lower()
+    return any(protected_field in col_lower for protected_field in NEVER_IMPUTE_FIELDS)
+
+
+# ==================================================================================
 # PROFESSIONAL COLOR PALETTES (ColorBrewer Standard)
 # ==================================================================================
 # Research-validated color palette for professional, accessible data visualization
@@ -971,7 +1045,11 @@ class PremiumLeanPipeline:
         
         domain_context = get_domain_specific_prompt_context(domain_info)
         
-        # Simplified cleaning prompt (faster)
+        # Check for protected fields in dataset
+        protected_cols = [col for col in df.columns if is_never_impute_field(col)]
+        protected_warning = f"\n⚠️ PROTECTED FIELDS DETECTED: {', '.join(protected_cols)}" if protected_cols else ""
+        
+        # Simplified cleaning prompt (faster) WITH NEVER_IMPUTE PROTECTION
         prompt = f"""
 {domain_context}
 
@@ -981,15 +1059,32 @@ DATA: {df.shape[0]} rows × {df.shape[1]} columns
 Columns: {', '.join(df.columns[:15])}
 Missing: {df.isnull().sum().sum()} values
 Duplicates: {df.duplicated().sum()} rows
+{protected_warning}
 
 REQUIREMENTS (Essential Only):
-1. Fix missing values (median/mode)
+
+🔴 **CRITICAL RULE #1: NEVER IMPUTE PROTECTED FIELDS**
+The following fields are PROTECTED and must NEVER be imputed:
+- Financial: revenue, sales, cost, expense, profit, price, salary, luong, doanh_thu
+- IDs: employee_id, customer_id, order_id, ma_don_hang, ma_khach_hang
+- PII: email, phone, address, cccd, cmnd, so_dien_thoai
+
+For protected fields:
+→ IF MISSING: Keep as NULL (DO NOT fill with median/mode/any value)
+→ FLAG in report: "X rows with missing [field_name] - kept as NULL"
+→ REASON: Fake data → Wrong business decisions → Legal liability
+
+Protected fields in THIS dataset: {', '.join(protected_cols) if protected_cols else 'None'}
+
+1. Fix missing values:
+   - NON-protected fields only: Use median for numeric, mode for categorical
+   - Protected fields: KEEP AS NULL + add to missing_flagged report
 2. Remove duplicates
 3. Standardize formats (dates, numbers)
 4. Basic validation against domain rules
 
 QUALITY GATES:
-- Missing <2%
+- Missing <2% (excluding protected fields with legitimate nulls)
 - Duplicates = 0
 - Validation ≥95%
 
@@ -3911,6 +4006,8 @@ Your response must be parseable by json.loads() immediately."""
         
         # Handle missing values - ONLY if they actually exist
         missing_handled = cleaning_plan.get('cleaning_summary', {}).get('missing_handled', {})
+        protected_fields_skipped = []  # Track protected fields for reporting
+        
         for col, method in missing_handled.items():
             if col not in df_clean.columns:
                 continue
@@ -3919,12 +4016,35 @@ Your response must be parseable by json.loads() immediately."""
             if df_clean[col].isnull().sum() == 0:
                 continue  # Skip - no missing values to handle
             
+            # 🔴 CRITICAL PROTECTION: NEVER impute protected fields
+            if is_never_impute_field(col):
+                # Protected field with missing values - KEEP AS NULL for data integrity
+                protected_fields_skipped.append({
+                    'column': col,
+                    'missing_count': df_clean[col].isnull().sum(),
+                    'reason': 'NEVER_IMPUTE_PROTECTION'
+                })
+                continue  # Skip imputation - preserve NULL values
+            
             if method == 'median' and df_clean[col].dtype in ['int64', 'float64']:
                 # Use proper pandas method (not inplace to avoid warnings)
                 df_clean[col] = df_clean[col].fillna(df_clean[col].median())
             elif method == 'mode':
                 if len(df_clean[col].mode()) > 0:
                     df_clean[col] = df_clean[col].fillna(df_clean[col].mode()[0])
+        
+        # Store protection report in cleaning plan
+        if protected_fields_skipped:
+            cleaning_plan.setdefault('cleaning_summary', {})['protected_fields_preserved'] = protected_fields_skipped
+            
+            # Display protection report to user
+            if is_streamlit_context():
+                with st.expander("🛡️ Data Integrity Protection Report", expanded=False):
+                    st.info("✅ **NEVER_IMPUTE Protection Active**")
+                    st.write("The following critical fields have missing values that were **preserved as NULL** to maintain data integrity:")
+                    for field in protected_fields_skipped:
+                        st.write(f"- **{field['column']}**: {field['missing_count']} missing values kept as NULL")
+                    st.caption("⚠️ Imputing these fields would cause wrong business decisions and legal liability.")
         
         # ==================================================================================
         # DOMAIN-SPECIFIC DEDUPLICATION (NEW - Phase 1 Implementation)
