@@ -5,13 +5,34 @@ Version: 2.0 (Bilingual, Dark Mode, Export Features)
 Target: 55 seconds with professional UX
 """
 
+# ============================================
+# PERFORMANCE PROFILING (Real User Testing)
+# ============================================
+import time
+_APP_START_TIME = time.time()
+
+def log_perf(label):
+    """Log performance timing for profiling"""
+    elapsed = time.time() - _APP_START_TIME
+    print(f"⏱️ PERF [{elapsed:.2f}s] {label}")
+    return elapsed
+
+log_perf("START: App initialization")
+
 import streamlit as st
+log_perf("IMPORT: streamlit")
+
 import pandas as pd
+log_perf("IMPORT: pandas")
+
 import os
 from dotenv import load_dotenv
+log_perf("IMPORT: os, dotenv")
+
 import sys
 import base64
 from datetime import datetime
+log_perf("IMPORT: sys, base64, datetime")
 
 # ============================================
 # PAGE CONFIGURATION - MUST BE FIRST ST COMMAND
@@ -43,23 +64,31 @@ st.set_page_config(
 
 # Add src to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+log_perf("CONFIG: Path setup")
 
 # Load environment variables
 load_dotenv()
+log_perf("CONFIG: Environment loaded")
 
 # Import pipeline and utilities
+log_perf("START: Heavy imports")
 from premium_lean_pipeline import PremiumLeanPipeline
+log_perf("IMPORT: PremiumLeanPipeline (HEAVY)")
+
 from utils.validators import safe_file_upload
 from utils.i18n import get_text, format_number, format_currency, convert_vnd_to_usd
 from utils.branding import get_logo_svg, get_brand_colors
+log_perf("IMPORT: Utils modules")
 
 # Import export utilities with error handling
 try:
     from utils.export_utils import export_to_pdf, export_to_powerpoint
     EXPORT_AVAILABLE = True
+    log_perf("IMPORT: Export utilities (PDF/PPT)")
 except ImportError:
     EXPORT_AVAILABLE = False
     print("⚠️ Export libraries not installed. PDF/PPT export disabled.")
+    log_perf("IMPORT: Export utilities (SKIPPED)")
 
 # ============================================
 # SESSION STATE INITIALIZATION
@@ -1393,4 +1422,11 @@ def main():
 # RUN APP
 # ============================================
 if __name__ == "__main__":
+    log_perf("START: main() execution")
     main()
+    log_perf("END: main() completed")
+    
+    # Display performance summary in sidebar (for debugging)
+    final_time = log_perf("APP READY")
+    if final_time > 10:  # Show warning if slow
+        print(f"⚠️ PERFORMANCE WARNING: App took {final_time:.2f}s to load (target: <5s)")
