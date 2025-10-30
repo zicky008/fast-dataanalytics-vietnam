@@ -19,7 +19,7 @@ from typing import Dict, List, Tuple, Any, Optional
 import streamlit as st
 from datetime import datetime
 import time
-import google.generativeai as genai
+# Note: google.generativeai removed - not used in this pipeline (dead import causing slow load)
 
 # Import utilities
 from utils.validators import safe_file_upload, sanitize_column_names
