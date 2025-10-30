@@ -1,0 +1,11 @@
+campaign_name,channel,spend_vnd,clicks,impressions,conversions,revenue_vnd,date
+Facebook_Ads_Campaign_Jan,Facebook Ads,15000000,4500,120000,180,28000000,2024-01-15
+Facebook_Ads_Campaign_Feb,Facebook Ads,18000000,5200,145000,195,32000000,2024-02-15
+Google_Search_Campaign_Jan,Google Ads,12000000,3800,95000,220,35000000,2024-01-15
+TikTok_Ads_Campaign_Jan,TikTok Ads,10000000,8500,250000,150,22000000,2024-01-15
+Facebook_Ads_Campaign_Mar,Facebook Ads,20000000,5800,160000,210,38000000,2024-03-15
+Google_Display_Campaign_Feb,Google Ads,8000000,2200,180000,95,15000000,2024-02-15
+TikTok_Ads_Campaign_Feb,TikTok Ads,12000000,9200,280000,165,25000000,2024-02-15
+Facebook_Retargeting_Mar,Facebook Ads,14000000,4200,110000,240,42000000,2024-03-15
+Email_Campaign_Jan,Email Marketing,2000000,1200,25000,85,12000000,2024-01-15
+Facebook_Ads_Campaign_Apr,Facebook Ads,22000000,6100,175000,225,45000000,2024-04-15

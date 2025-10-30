@@ -1,0 +1,14 @@
+deal_name,stage,deal_value_vnd,sales_type,industry,created_date,close_date,probability,sales_rep
+Deal_SME_001,Closed Won,45000000,B2B,Software (SaaS),2024-01-15,2024-03-20,100,Rep_A
+Deal_SME_002,Closed Won,52000000,B2B,Software (SaaS),2024-01-20,2024-04-10,100,Rep_B
+Deal_SME_003,Closed Lost,38000000,B2B,Software (SaaS),2024-01-25,2024-03-15,0,Rep_A
+Deal_Enterprise_001,Closed Won,280000000,B2B,Software (SaaS),2023-10-15,2024-04-20,100,Rep_C
+Deal_SME_004,Closed Won,48000000,B2B,Software (SaaS),2024-02-01,2024-04-25,100,Rep_B
+Deal_SME_005,Closed Lost,42000000,B2B,Software (SaaS),2024-02-10,2024-03-28,0,Rep_A
+Deal_Standard_001,Closed Won,125000000,B2B,Software (SaaS),2024-01-05,2024-05-15,100,Rep_C
+Deal_SME_006,Pipeline,55000000,B2B,Software (SaaS),2024-03-01,,75,Rep_B
+Deal_Enterprise_002,Pipeline,320000000,B2B,Software (SaaS),2024-02-15,,60,Rep_C
+Deal_SME_007,Closed Won,50000000,B2B,Software (SaaS),2024-02-20,2024-05-10,100,Rep_A
+Deal_SME_008,Closed Won,46000000,B2B,Software (SaaS),2024-03-05,2024-05-20,100,Rep_B
+Deal_SME_009,Closed Lost,40000000,B2B,Software (SaaS),2024-03-10,2024-04-30,0,Rep_A
+Deal_Standard_002,Pipeline,150000000,B2B,Software (SaaS),2024-03-20,,80,Rep_C
