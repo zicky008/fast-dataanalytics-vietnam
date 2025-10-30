@@ -15,7 +15,7 @@ Total: ~55 seconds
 import pandas as pd
 import json
 import re
-from typing import Dict, List, Tuple, Any
+from typing import Dict, List, Tuple, Any, Optional
 import streamlit as st
 from datetime import datetime
 import time
@@ -33,6 +33,9 @@ from domain_detection import (
     get_domain_specific_prompt_context,
     DOMAIN_PROFILES
 )
+
+# Import Vietnam benchmark loader
+from benchmark_loader import get_benchmark_loader
 
 
 # ==================================================================================
@@ -399,7 +402,38 @@ class PremiumLeanPipeline:
             'audit_trail': [],
             'performance_metrics': {}
         }
-    
+        # Load Vietnam benchmarks (300+ metrics from CSV files)
+        self.benchmark_loader = get_benchmark_loader()
+        self.vietnam_benchmarks_loaded = any(self.benchmark_loader.load_all_benchmarks().values())
+
+    def _get_vietnam_benchmark(self, domain: str, metric_name: str, user_value: float, filters: Dict = None) -> Optional[Dict]:
+        """
+        Helper method to get Vietnam benchmark for a metric.
+
+        Args:
+            domain: 'hr', 'marketing', 'ecommerce', or 'sales'
+            metric_name: Metric name (e.g., 'CPA', 'salary', 'AOV')
+            user_value: User's actual value
+            filters: Additional filters (e.g., {'channel': 'Facebook Ads'})
+
+        Returns:
+            Dict with benchmark data or None if not found
+        """
+        if not self.vietnam_benchmarks_loaded:
+            return None
+
+        try:
+            comparison = self.benchmark_loader.compare_value_to_benchmark(
+                domain=domain,
+                metric_name=metric_name,
+                user_value=user_value,
+                filters=filters or {}
+            )
+            return comparison
+        except Exception as e:
+            # Silently fail if benchmark not found
+            return None
+
     @log_performance("Premium Lean Pipeline")
     def run_pipeline(self, df: pd.DataFrame, dataset_description: str = "") -> Dict:
         """
@@ -725,40 +759,86 @@ OUTPUT JSON:
             avg_salary = df[salary_col].mean()
             median_salary = df[salary_col].median()
 
-            # ⚠️ CRITICAL FIX: Detect currency and set realistic benchmarks
-            # Heuristic: Values > 1M = VND, < 500K = USD
-            if avg_salary > 1000000:
-                # Vietnam market - VND (Mercer Vietnam TRS 2024)
-                avg_benchmark = 240000000  # ~240M VND/year (~$10K USD) - realistic for VN
-                median_benchmark = 216000000  # ~216M VND/year (~$9K USD)
-                range_benchmark = 360000000  # ~360M VND range
+            # ⚠️ CRITICAL FIX: Use Vietnam benchmark data from CSV files (not hardcoded!)
+            # Detect currency: Values > 1M = VND, < 500K = USD
+            is_vnd = avg_salary > 1000000
+
+            # Try to get Vietnam benchmark from CSV data
+            vietnam_benchmark = None
+            vietnam_context = ''
+
+            if is_vnd and self.vietnam_benchmarks_loaded:
+                # Try to match role from dataframe
+                role_cols = [col for col in df.columns if 'role' in col.lower() or 'position' in col.lower() or 'title' in col.lower()]
+                city_cols = [col for col in df.columns if 'city' in col.lower() or 'location' in col.lower()]
+
+                filters = {}
+                if role_cols and not df[role_cols[0]].isna().all():
+                    # Get most common role
+                    most_common_role = df[role_cols[0]].mode()[0] if len(df[role_cols[0]].mode()) > 0 else None
+                    if most_common_role:
+                        filters['role'] = str(most_common_role)
+
+                if city_cols and not df[city_cols[0]].isna().all():
+                    most_common_city = df[city_cols[0]].mode()[0] if len(df[city_cols[0]].mode()) > 0 else None
+                    if most_common_city:
+                        filters['city'] = str(most_common_city)
+
+                # Get Vietnam HR benchmark
+                vietnam_comparison = self.benchmark_loader.compare_value_to_benchmark(
+                    domain='hr',
+                    metric_name='salary',
+                    user_value=median_salary,
+                    filters=filters
+                )
+
+                if vietnam_comparison:
+                    vietnam_benchmark = vietnam_comparison
+                    vietnam_context = vietnam_comparison.get('message', '')
+
+            # Set benchmarks (use Vietnam data if available, else fallback to estimates)
+            if vietnam_benchmark:
+                avg_benchmark = vietnam_benchmark['benchmark_median']
+                median_benchmark = vietnam_benchmark['benchmark_median']
+                range_benchmark = vietnam_benchmark['benchmark_q3'] - vietnam_benchmark['benchmark_q1']
+                benchmark_source = vietnam_benchmark.get('benchmark_source', BENCHMARK_SOURCES['hr_salary'])
+            elif is_vnd:
+                # Vietnam market - VND fallback (if CSV not loaded)
+                avg_benchmark = 32500000  # ~32.5M VND/month - realistic median from CSV
+                median_benchmark = 32500000
+                range_benchmark = 25000000  # Q3-Q1 range
+                benchmark_source = BENCHMARK_SOURCES['hr_salary'] + ' (Estimated)'
             else:
-                # International market - USD (Mercer Global 2024)
-                avg_benchmark = 18000  # $18K USD/year - realistic global average
-                median_benchmark = 16000  # $16K USD/year
-                range_benchmark = 50000  # $50K USD range
+                # International market - USD
+                avg_benchmark = 18000
+                median_benchmark = 16000
+                range_benchmark = 50000
+                benchmark_source = 'Global Market Data (Estimated)'
 
             kpis['Average Salary'] = {
                 'value': float(avg_salary),
                 'benchmark': avg_benchmark,
-                'benchmark_source': BENCHMARK_SOURCES['hr_salary'],
-                'status': 'Above' if avg_salary >= avg_benchmark else 'Below',
-                'column': salary_col
+                'benchmark_source': benchmark_source,
+                'status': 'Above' if avg_salary >= avg_benchmark * 0.9 else 'Below',
+                'column': salary_col,
+                'vietnam_context': vietnam_context if vietnam_benchmark else ''
             }
 
             kpis['Median Salary'] = {
                 'value': float(median_salary),
                 'benchmark': median_benchmark,
-                'benchmark_source': BENCHMARK_SOURCES['hr_salary'],
-                'status': 'Above' if median_salary >= median_benchmark else 'Below',
-                'column': salary_col
+                'benchmark_source': benchmark_source,
+                'status': 'Above' if median_salary >= median_benchmark * 0.9 else 'Below',
+                'column': salary_col,
+                'vietnam_context': vietnam_context if vietnam_benchmark else '',
+                'percentile': vietnam_benchmark.get('percentile', None) if vietnam_benchmark else None
             }
 
             kpis['Salary Range'] = {
                 'value': float(df[salary_col].max() - df[salary_col].min()),
                 'benchmark': range_benchmark,
-                'benchmark_source': BENCHMARK_SOURCES['hr_salary'],
-                'status': 'Wide Range' if (df[salary_col].max() - df[salary_col].min()) > range_benchmark else 'Normal Range',
+                'benchmark_source': benchmark_source,
+                'status': 'Wide Range' if (df[salary_col].max() - df[salary_col].min()) > range_benchmark * 1.2 else 'Normal Range',
                 'column': salary_col
             }
             
@@ -875,7 +955,7 @@ OUTPUT JSON:
                         'column': f"{conversion_col}/{click_col}"
                     }
             
-            # 6. CPA (Cost Per Acquisition)
+            # 6. CPA (Cost Per Acquisition) - WITH VIETNAM BENCHMARK INTEGRATION
             if spend_cols and conversion_cols:
                 cost_col = spend_cols[0]
                 conversion_col = conversion_cols[0]
@@ -883,22 +963,61 @@ OUTPUT JSON:
                 total_conversions = df[conversion_col].sum()
                 if total_conversions > 0:
                     cpa = total_cost / total_conversions
-                    # ✅ Smart benchmark based on currency (WordStream 2025: $70.11 USD average)
+
+                    # Try to get Vietnam benchmark from CSV data
+                    vietnam_benchmark = None
+                    vietnam_context = ''
                     sample_spend = df[cost_col].dropna().head(10).mean()
-                    if sample_spend > 100000:  # Likely VND
-                        benchmark_cpa = 1680000  # 1.68M VND (~$70 USD * 24,000)
+                    is_vnd = sample_spend > 100000
+
+                    if is_vnd:
+                        # Try to detect channel and industry from column names/data
+                        filters = {}
+                        channel_cols = [col for col in df.columns if 'channel' in col.lower() or 'platform' in col.lower() or 'source' in col.lower()]
+                        industry_cols = [col for col in df.columns if 'industry' in col.lower() or 'category' in col.lower()]
+
+                        # Check column names for channel hints
+                        col_names_str = ' '.join(df.columns).lower()
+                        if 'facebook' in col_names_str or 'fb' in col_names_str:
+                            filters['channel'] = 'Facebook Ads'
+                        elif 'google' in col_names_str or 'search' in col_names_str:
+                            filters['channel'] = 'Google Ads'
+                        elif 'tiktok' in col_names_str:
+                            filters['channel'] = 'TikTok Ads'
+
+                        vietnam_benchmark = self._get_vietnam_benchmark(
+                            domain='marketing',
+                            metric_name='CPA',
+                            user_value=cpa,
+                            filters=filters
+                        )
+
+                        if vietnam_benchmark:
+                            vietnam_context = vietnam_benchmark.get('message', '')
+
+                    # Set benchmark (use Vietnam data if available, else fallback)
+                    if vietnam_benchmark:
+                        benchmark_cpa = vietnam_benchmark['benchmark_median']
+                        benchmark_source = vietnam_benchmark.get('benchmark_source', BENCHMARK_SOURCES['marketing_cpa'])
+                        currency = 'VND'
+                    elif is_vnd:
+                        benchmark_cpa = 85000  # ~85K VND - realistic Vietnam average from CSV
+                        benchmark_source = BENCHMARK_SOURCES['marketing_cpa'] + ' (Estimated)'
                         currency = 'VND'
                     else:
-                        benchmark_cpa = 70  # ✅ $70 USD - WordStream 2025 average
+                        benchmark_cpa = 70  # $70 USD - WordStream 2025 average
+                        benchmark_source = BENCHMARK_SOURCES['marketing_cpa']
                         currency = 'USD'
 
                     kpis['Cost Per Acquisition (CPA)'] = {
                         'value': float(cpa),
                         'benchmark': benchmark_cpa,
-                        'benchmark_source': BENCHMARK_SOURCES['marketing_cpa'],
+                        'benchmark_source': benchmark_source,
                         'status': 'Below' if cpa <= benchmark_cpa else 'Above',  # Lower is better!
                         'column': f"{cost_col}/{conversion_col}",
-                        'insight': f"{'✅ Efficient' if cpa <= benchmark_cpa else '⚠️ High CPA'} - Lower is better. Benchmark: {benchmark_cpa:,.0f} {currency}"
+                        'insight': f"{'✅ Efficient' if cpa <= benchmark_cpa else '⚠️ High CPA'} - Lower is better. Benchmark: {benchmark_cpa:,.0f} {currency}",
+                        'vietnam_context': vietnam_context if vietnam_benchmark else '',
+                        'percentile': vietnam_benchmark.get('percentile', None) if vietnam_benchmark else None
                     }
             
             # 7. Engagement Rate (for social/video campaigns)
