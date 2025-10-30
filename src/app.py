@@ -225,7 +225,7 @@ with tab2:
         
         if kpis:
             st.markdown("### 📊 Key Performance Indicators")
-            
+
             cols = st.columns(min(3, len(kpis)))
             for i, (kpi_name, kpi_data) in enumerate(list(kpis.items())[:6]):
                 with cols[i % 3]:
@@ -234,9 +234,24 @@ with tab2:
                         value_str = f"{value:.1f}"
                     else:
                         value_str = str(value)
-                    
+
                     status = kpi_data.get('status', '')
                     st.metric(kpi_name, value_str, delta=status)
+
+                    # Show Vietnam benchmark comparison if available
+                    vietnam_context = kpi_data.get('vietnam_context', '')
+                    if vietnam_context:
+                        st.caption(f"🇻🇳 {vietnam_context}")
+
+                    # Show benchmark source
+                    benchmark_source = kpi_data.get('benchmark_source', '')
+                    if benchmark_source:
+                        st.caption(f"📊 {benchmark_source}")
+
+                    # Show percentile if available
+                    percentile = kpi_data.get('percentile', None)
+                    if percentile is not None:
+                        st.caption(f"📈 Percentile: {percentile:.0f}th")
         else:
             st.warning(f"⚠️ Không có KPIs. Dashboard keys: {list(dashboard.keys())}")
             

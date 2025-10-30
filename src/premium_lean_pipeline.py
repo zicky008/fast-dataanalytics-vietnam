@@ -15,7 +15,7 @@ Total: ~55 seconds
 import pandas as pd
 import json
 import re
-from typing import Dict, List, Tuple, Any
+from typing import Dict, List, Tuple, Any, Optional
 import streamlit as st
 from datetime import datetime
 import time
@@ -33,6 +33,9 @@ from domain_detection import (
     get_domain_specific_prompt_context,
     DOMAIN_PROFILES
 )
+
+# Import Vietnam benchmark loader
+from benchmark_loader import get_benchmark_loader
 
 
 # ==================================================================================
@@ -772,7 +775,38 @@ class PremiumLeanPipeline:
             'audit_trail': [],
             'performance_metrics': {}
         }
-    
+        # Load Vietnam benchmarks (300+ metrics from CSV files)
+        self.benchmark_loader = get_benchmark_loader()
+        self.vietnam_benchmarks_loaded = any(self.benchmark_loader.load_all_benchmarks().values())
+
+    def _get_vietnam_benchmark(self, domain: str, metric_name: str, user_value: float, filters: Dict = None) -> Optional[Dict]:
+        """
+        Helper method to get Vietnam benchmark for a metric.
+
+        Args:
+            domain: 'hr', 'marketing', 'ecommerce', or 'sales'
+            metric_name: Metric name (e.g., 'CPA', 'salary', 'AOV')
+            user_value: User's actual value
+            filters: Additional filters (e.g., {'channel': 'Facebook Ads'})
+
+        Returns:
+            Dict with benchmark data or None if not found
+        """
+        if not self.vietnam_benchmarks_loaded:
+            return None
+
+        try:
+            comparison = self.benchmark_loader.compare_value_to_benchmark(
+                domain=domain,
+                metric_name=metric_name,
+                user_value=user_value,
+                filters=filters or {}
+            )
+            return comparison
+        except Exception as e:
+            # Silently fail if benchmark not found
+            return None
+
     @log_performance("Premium Lean Pipeline")
     def run_pipeline(self, df: pd.DataFrame, dataset_description: str = "") -> Dict:
         """
@@ -1098,40 +1132,86 @@ OUTPUT JSON:
             avg_salary = df[salary_col].mean()
             median_salary = df[salary_col].median()
 
-            # ⚠️ CRITICAL FIX: Detect currency and set realistic benchmarks
-            # Heuristic: Values > 1M = VND, < 500K = USD
-            if avg_salary > 1000000:
-                # Vietnam market - VND (Mercer Vietnam TRS 2024)
-                avg_benchmark = 240000000  # ~240M VND/year (~$10K USD) - realistic for VN
-                median_benchmark = 216000000  # ~216M VND/year (~$9K USD)
-                range_benchmark = 360000000  # ~360M VND range
+            # ⚠️ CRITICAL FIX: Use Vietnam benchmark data from CSV files (not hardcoded!)
+            # Detect currency: Values > 1M = VND, < 500K = USD
+            is_vnd = avg_salary > 1000000
+
+            # Try to get Vietnam benchmark from CSV data
+            vietnam_benchmark = None
+            vietnam_context = ''
+
+            if is_vnd and self.vietnam_benchmarks_loaded:
+                # Try to match role from dataframe
+                role_cols = [col for col in df.columns if 'role' in col.lower() or 'position' in col.lower() or 'title' in col.lower()]
+                city_cols = [col for col in df.columns if 'city' in col.lower() or 'location' in col.lower()]
+
+                filters = {}
+                if role_cols and not df[role_cols[0]].isna().all():
+                    # Get most common role
+                    most_common_role = df[role_cols[0]].mode()[0] if len(df[role_cols[0]].mode()) > 0 else None
+                    if most_common_role:
+                        filters['role'] = str(most_common_role)
+
+                if city_cols and not df[city_cols[0]].isna().all():
+                    most_common_city = df[city_cols[0]].mode()[0] if len(df[city_cols[0]].mode()) > 0 else None
+                    if most_common_city:
+                        filters['city'] = str(most_common_city)
+
+                # Get Vietnam HR benchmark
+                vietnam_comparison = self.benchmark_loader.compare_value_to_benchmark(
+                    domain='hr',
+                    metric_name='salary',
+                    user_value=median_salary,
+                    filters=filters
+                )
+
+                if vietnam_comparison:
+                    vietnam_benchmark = vietnam_comparison
+                    vietnam_context = vietnam_comparison.get('message', '')
+
+            # Set benchmarks (use Vietnam data if available, else fallback to estimates)
+            if vietnam_benchmark:
+                avg_benchmark = vietnam_benchmark['benchmark_median']
+                median_benchmark = vietnam_benchmark['benchmark_median']
+                range_benchmark = vietnam_benchmark['benchmark_q3'] - vietnam_benchmark['benchmark_q1']
+                benchmark_source = vietnam_benchmark.get('benchmark_source', BENCHMARK_SOURCES['hr_salary'])
+            elif is_vnd:
+                # Vietnam market - VND fallback (if CSV not loaded)
+                avg_benchmark = 32500000  # ~32.5M VND/month - realistic median from CSV
+                median_benchmark = 32500000
+                range_benchmark = 25000000  # Q3-Q1 range
+                benchmark_source = BENCHMARK_SOURCES['hr_salary'] + ' (Estimated)'
             else:
-                # International market - USD (Mercer Global 2024)
-                avg_benchmark = 18000  # $18K USD/year - realistic global average
-                median_benchmark = 16000  # $16K USD/year
-                range_benchmark = 50000  # $50K USD range
+                # International market - USD
+                avg_benchmark = 18000
+                median_benchmark = 16000
+                range_benchmark = 50000
+                benchmark_source = 'Global Market Data (Estimated)'
 
             kpis['Average Salary'] = {
                 'value': float(avg_salary),
                 'benchmark': avg_benchmark,
-                'benchmark_source': BENCHMARK_SOURCES['hr_salary'],
-                'status': 'Above' if avg_salary >= avg_benchmark else 'Below',
-                'column': salary_col
+                'benchmark_source': benchmark_source,
+                'status': 'Above' if avg_salary >= avg_benchmark * 0.9 else 'Below',
+                'column': salary_col,
+                'vietnam_context': vietnam_context if vietnam_benchmark else ''
             }
 
             kpis['Median Salary'] = {
                 'value': float(median_salary),
                 'benchmark': median_benchmark,
-                'benchmark_source': BENCHMARK_SOURCES['hr_salary'],
-                'status': 'Above' if median_salary >= median_benchmark else 'Below',
-                'column': salary_col
+                'benchmark_source': benchmark_source,
+                'status': 'Above' if median_salary >= median_benchmark * 0.9 else 'Below',
+                'column': salary_col,
+                'vietnam_context': vietnam_context if vietnam_benchmark else '',
+                'percentile': vietnam_benchmark.get('percentile', None) if vietnam_benchmark else None
             }
 
             kpis['Salary Range'] = {
                 'value': float(df[salary_col].max() - df[salary_col].min()),
                 'benchmark': range_benchmark,
-                'benchmark_source': BENCHMARK_SOURCES['hr_salary'],
-                'status': 'Wide Range' if (df[salary_col].max() - df[salary_col].min()) > range_benchmark else 'Normal Range',
+                'benchmark_source': benchmark_source,
+                'status': 'Wide Range' if (df[salary_col].max() - df[salary_col].min()) > range_benchmark * 1.2 else 'Normal Range',
                 'column': salary_col
             }
             
@@ -1248,7 +1328,7 @@ OUTPUT JSON:
                         'column': f"{conversion_col}/{click_col}"
                     }
             
-            # 6. CPA (Cost Per Acquisition)
+            # 6. CPA (Cost Per Acquisition) - WITH VIETNAM BENCHMARK INTEGRATION
             if spend_cols and conversion_cols:
                 cost_col = spend_cols[0]
                 conversion_col = conversion_cols[0]
@@ -1256,22 +1336,61 @@ OUTPUT JSON:
                 total_conversions = df[conversion_col].sum()
                 if total_conversions > 0:
                     cpa = total_cost / total_conversions
-                    # ✅ Smart benchmark based on currency (WordStream 2025: $70.11 USD average)
+
+                    # Try to get Vietnam benchmark from CSV data
+                    vietnam_benchmark = None
+                    vietnam_context = ''
                     sample_spend = df[cost_col].dropna().head(10).mean()
-                    if sample_spend > 100000:  # Likely VND
-                        benchmark_cpa = 1680000  # 1.68M VND (~$70 USD * 24,000)
+                    is_vnd = sample_spend > 100000
+
+                    if is_vnd:
+                        # Try to detect channel and industry from column names/data
+                        filters = {}
+                        channel_cols = [col for col in df.columns if 'channel' in col.lower() or 'platform' in col.lower() or 'source' in col.lower()]
+                        industry_cols = [col for col in df.columns if 'industry' in col.lower() or 'category' in col.lower()]
+
+                        # Check column names for channel hints
+                        col_names_str = ' '.join(df.columns).lower()
+                        if 'facebook' in col_names_str or 'fb' in col_names_str:
+                            filters['channel'] = 'Facebook Ads'
+                        elif 'google' in col_names_str or 'search' in col_names_str:
+                            filters['channel'] = 'Google Ads'
+                        elif 'tiktok' in col_names_str:
+                            filters['channel'] = 'TikTok Ads'
+
+                        vietnam_benchmark = self._get_vietnam_benchmark(
+                            domain='marketing',
+                            metric_name='CPA',
+                            user_value=cpa,
+                            filters=filters
+                        )
+
+                        if vietnam_benchmark:
+                            vietnam_context = vietnam_benchmark.get('message', '')
+
+                    # Set benchmark (use Vietnam data if available, else fallback)
+                    if vietnam_benchmark:
+                        benchmark_cpa = vietnam_benchmark['benchmark_median']
+                        benchmark_source = vietnam_benchmark.get('benchmark_source', BENCHMARK_SOURCES['marketing_cpa'])
+                        currency = 'VND'
+                    elif is_vnd:
+                        benchmark_cpa = 85000  # ~85K VND - realistic Vietnam average from CSV
+                        benchmark_source = BENCHMARK_SOURCES['marketing_cpa'] + ' (Estimated)'
                         currency = 'VND'
                     else:
-                        benchmark_cpa = 70  # ✅ $70 USD - WordStream 2025 average
+                        benchmark_cpa = 70  # $70 USD - WordStream 2025 average
+                        benchmark_source = BENCHMARK_SOURCES['marketing_cpa']
                         currency = 'USD'
 
                     kpis['Cost Per Acquisition (CPA)'] = {
                         'value': float(cpa),
                         'benchmark': benchmark_cpa,
-                        'benchmark_source': BENCHMARK_SOURCES['marketing_cpa'],
+                        'benchmark_source': benchmark_source,
                         'status': 'Below' if cpa <= benchmark_cpa else 'Above',  # Lower is better!
                         'column': f"{cost_col}/{conversion_col}",
-                        'insight': f"{'✅ Efficient' if cpa <= benchmark_cpa else '⚠️ High CPA'} - Lower is better. Benchmark: {benchmark_cpa:,.0f} {currency}"
+                        'insight': f"{'✅ Efficient' if cpa <= benchmark_cpa else '⚠️ High CPA'} - Lower is better. Benchmark: {benchmark_cpa:,.0f} {currency}",
+                        'vietnam_context': vietnam_context if vietnam_benchmark else '',
+                        'percentile': vietnam_benchmark.get('percentile', None) if vietnam_benchmark else None
                     }
             
             # 7. Engagement Rate (for social/video campaigns)
@@ -1314,7 +1433,7 @@ OUTPUT JSON:
             returning_cols = [col for col in df.columns if 'returning' in col.lower()]
             mobile_cols = [col for col in df.columns if 'mobile' in col.lower()]
             
-            # 1. Conversion Rate = (Transactions / Sessions) × 100
+            # 1. Conversion Rate = (Transactions / Sessions) × 100 - WITH VIETNAM BENCHMARK
             if transaction_cols and session_cols:
                 trans_col = transaction_cols[0]
                 sess_col = session_cols[0]
@@ -1322,15 +1441,60 @@ OUTPUT JSON:
                 total_sessions = df[sess_col].sum()
                 if total_sessions > 0:
                     conversion_rate = (total_transactions / total_sessions) * 100
+
+                    # Try to get Vietnam benchmark from CSV data
+                    vietnam_benchmark = None
+                    vietnam_context = ''
+
+                    # Try to detect platform and category from column names/data
+                    filters = {}
+                    col_names_str = ' '.join(df.columns).lower()
+
+                    # Platform detection
+                    if 'shopee' in col_names_str:
+                        filters['platform'] = 'Shopee'
+                    elif 'lazada' in col_names_str:
+                        filters['platform'] = 'Lazada'
+                    elif 'tiktok' in col_names_str:
+                        filters['platform'] = 'TikTok Shop'
+
+                    # Category detection
+                    category_cols = [col for col in df.columns if 'category' in col.lower() or 'product_type' in col.lower()]
+                    if category_cols and not df[category_cols[0]].isna().all():
+                        most_common_cat = df[category_cols[0]].mode()[0] if len(df[category_cols[0]].mode()) > 0 else None
+                        if most_common_cat:
+                            filters['category'] = str(most_common_cat)
+
+                    vietnam_benchmark = self._get_vietnam_benchmark(
+                        domain='ecommerce',
+                        metric_name='Conversion Rate',
+                        user_value=conversion_rate,
+                        filters=filters
+                    )
+
+                    if vietnam_benchmark:
+                        vietnam_context = vietnam_benchmark.get('message', '')
+
+                    # Set benchmark (use Vietnam data if available, else fallback)
+                    if vietnam_benchmark:
+                        benchmark_conv = vietnam_benchmark['benchmark_median']
+                        benchmark_source = vietnam_benchmark.get('benchmark_source', BENCHMARK_SOURCES['ecommerce_conversion'])
+                    else:
+                        benchmark_conv = 2.3  # ~2.3% - realistic Vietnam average from CSV
+                        benchmark_source = BENCHMARK_SOURCES['ecommerce_conversion']
+
                     kpis['Conversion Rate (%)'] = {
                         'value': float(conversion_rate),
-                        'benchmark': 2.5,  # Industry avg 2.5-3%
-                        'status': 'Above' if conversion_rate >= 2.5 else 'Below',
+                        'benchmark': benchmark_conv,
+                        'benchmark_source': benchmark_source,
+                        'status': 'Above' if conversion_rate >= benchmark_conv else 'Below',
                         'column': f"{trans_col}/{sess_col}",
-                        'insight': f"{'✅ Strong' if conversion_rate >= 3.0 else '⚠️ Room for improvement'} - Industry avg is 2.5-3%"
+                        'insight': f"{'✅ Strong' if conversion_rate >= 3.0 else '⚠️ Room for improvement'} - Vietnam avg {benchmark_conv}%",
+                        'vietnam_context': vietnam_context if vietnam_benchmark else '',
+                        'percentile': vietnam_benchmark.get('percentile', None) if vietnam_benchmark else None
                     }
             
-            # 2. Average Order Value (AOV) = Total Revenue / Total Transactions
+            # 2. Average Order Value (AOV) = Total Revenue / Total Transactions - WITH VIETNAM BENCHMARK
             if revenue_cols and transaction_cols:
                 rev_col = revenue_cols[0]
                 trans_col = transaction_cols[0]
@@ -1338,24 +1502,69 @@ OUTPUT JSON:
                 total_transactions = df[trans_col].sum()
                 if total_transactions > 0:
                     aov = total_revenue / total_transactions
-                    # Smart benchmark: use currency detection
+
+                    # Currency detection
                     sample_revenue = df[rev_col].dropna().head(10).mean()
-                    if sample_revenue > 1000:  # Likely VND
-                        benchmark_aov = 150000  # 150K VND (~$6 USD)
+                    is_vnd = sample_revenue > 1000
+
+                    # Try to get Vietnam benchmark from CSV data
+                    vietnam_benchmark = None
+                    vietnam_context = ''
+
+                    if is_vnd:
+                        # Reuse platform/category detection from conversion rate
+                        filters = {}
+                        col_names_str = ' '.join(df.columns).lower()
+
+                        if 'shopee' in col_names_str:
+                            filters['platform'] = 'Shopee'
+                        elif 'lazada' in col_names_str:
+                            filters['platform'] = 'Lazada'
+                        elif 'tiktok' in col_names_str:
+                            filters['platform'] = 'TikTok Shop'
+
+                        category_cols = [col for col in df.columns if 'category' in col.lower() or 'product_type' in col.lower()]
+                        if category_cols and not df[category_cols[0]].isna().all():
+                            most_common_cat = df[category_cols[0]].mode()[0] if len(df[category_cols[0]].mode()) > 0 else None
+                            if most_common_cat:
+                                filters['category'] = str(most_common_cat)
+
+                        vietnam_benchmark = self._get_vietnam_benchmark(
+                            domain='ecommerce',
+                            metric_name='AOV',
+                            user_value=aov,
+                            filters=filters
+                        )
+
+                        if vietnam_benchmark:
+                            vietnam_context = vietnam_benchmark.get('message', '')
+
+                    # Set benchmark (use Vietnam data if available, else fallback)
+                    if vietnam_benchmark:
+                        benchmark_aov = vietnam_benchmark['benchmark_median']
+                        benchmark_source = vietnam_benchmark.get('benchmark_source', BENCHMARK_SOURCES['ecommerce_aov'])
+                        currency = 'VND'
+                    elif is_vnd:
+                        benchmark_aov = 385000  # ~385K VND - realistic Vietnam average from CSV
+                        benchmark_source = BENCHMARK_SOURCES['ecommerce_aov']
                         currency = 'VND'
                     else:
                         benchmark_aov = 81.49  # $81.49 USD (Shopify global avg)
+                        benchmark_source = BENCHMARK_SOURCES['ecommerce_aov']
                         currency = 'USD'
-                    
+
                     kpis['Average Order Value (AOV)'] = {
                         'value': float(aov),
                         'benchmark': benchmark_aov,
+                        'benchmark_source': benchmark_source,
                         'status': 'Above' if aov >= benchmark_aov else 'Below',
                         'column': f"{rev_col}/{trans_col}",
-                        'insight': f"{'✅' if aov >= benchmark_aov else '⚠️'} Benchmark: {benchmark_aov:,.0f} {currency}"
+                        'insight': f"{'✅' if aov >= benchmark_aov else '⚠️'} Benchmark: {benchmark_aov:,.0f} {currency}",
+                        'vietnam_context': vietnam_context if vietnam_benchmark else '',
+                        'percentile': vietnam_benchmark.get('percentile', None) if vietnam_benchmark else None
                     }
             
-            # 3. Cart Abandonment Rate = (Add-to-Carts - Checkouts) / Add-to-Carts × 100
+            # 3. Cart Abandonment Rate = (Add-to-Carts - Checkouts) / Add-to-Carts × 100 - WITH VIETNAM BENCHMARK
             if cart_cols and checkout_cols:
                 cart_col = [col for col in cart_cols if 'add' in col.lower() or 'cart' in col.lower()][0]
                 checkout_col = checkout_cols[0]
@@ -1363,12 +1572,55 @@ OUTPUT JSON:
                 total_checkouts = df[checkout_col].sum()
                 if total_carts > 0:
                     abandonment_rate = ((total_carts - total_checkouts) / total_carts) * 100
+
+                    # Try to get Vietnam benchmark from CSV data
+                    vietnam_benchmark = None
+                    vietnam_context = ''
+
+                    # Reuse platform/category detection
+                    filters = {}
+                    col_names_str = ' '.join(df.columns).lower()
+
+                    if 'shopee' in col_names_str:
+                        filters['platform'] = 'Shopee'
+                    elif 'lazada' in col_names_str:
+                        filters['platform'] = 'Lazada'
+                    elif 'tiktok' in col_names_str:
+                        filters['platform'] = 'TikTok Shop'
+
+                    category_cols = [col for col in df.columns if 'category' in col.lower() or 'product_type' in col.lower()]
+                    if category_cols and not df[category_cols[0]].isna().all():
+                        most_common_cat = df[category_cols[0]].mode()[0] if len(df[category_cols[0]].mode()) > 0 else None
+                        if most_common_cat:
+                            filters['category'] = str(most_common_cat)
+
+                    vietnam_benchmark = self._get_vietnam_benchmark(
+                        domain='ecommerce',
+                        metric_name='Cart Abandonment',
+                        user_value=abandonment_rate,
+                        filters=filters
+                    )
+
+                    if vietnam_benchmark:
+                        vietnam_context = vietnam_benchmark.get('message', '')
+
+                    # Set benchmark (use Vietnam data if available, else fallback)
+                    if vietnam_benchmark:
+                        benchmark_abandon = vietnam_benchmark['benchmark_median']
+                        benchmark_source = vietnam_benchmark.get('benchmark_source', BENCHMARK_SOURCES['ecommerce_cart_abandonment'])
+                    else:
+                        benchmark_abandon = 68.0  # ~68% - realistic Vietnam average from CSV
+                        benchmark_source = BENCHMARK_SOURCES['ecommerce_cart_abandonment']
+
                     kpis['Cart Abandonment Rate (%)'] = {
                         'value': float(abandonment_rate),
-                        'benchmark': 69.82,  # Industry avg
-                        'status': 'Below' if abandonment_rate <= 69.82 else 'Above',  # Lower is better!
+                        'benchmark': benchmark_abandon,
+                        'benchmark_source': benchmark_source,
+                        'status': 'Below' if abandonment_rate <= benchmark_abandon else 'Above',  # Lower is better!
                         'column': f"({cart_col}-{checkout_col})/{cart_col}",
-                        'insight': f"{'✅ Better than' if abandonment_rate < 69.82 else '⚠️ Worse than'} 69.82% industry avg"
+                        'insight': f"{'✅ Better than' if abandonment_rate < benchmark_abandon else '⚠️ Worse than'} {benchmark_abandon}% Vietnam avg",
+                        'vietnam_context': vietnam_context if vietnam_benchmark else '',
+                        'percentile': vietnam_benchmark.get('percentile', None) if vietnam_benchmark else None
                     }
                     
                     # 3.1 Cart Funnel Breakdown (detailed step analysis)
@@ -1516,17 +1768,61 @@ OUTPUT JSON:
                 lost_deals = df[df[stage_col].str.contains('lost', case=False, na=False)]
                 pipeline_deals = df[~df[stage_col].str.contains('closed|won|lost', case=False, na=False)]
                 
-                # 1. Win Rate = Won / (Won + Lost)
+                # 1. Win Rate = Won / (Won + Lost) - WITH VIETNAM BENCHMARK
                 total_won = len(won_deals)
                 total_lost = len(lost_deals)
                 if (total_won + total_lost) > 0:
                     win_rate = (total_won / (total_won + total_lost)) * 100
+
+                    # Try to get Vietnam benchmark from CSV data
+                    vietnam_benchmark = None
+                    vietnam_context = ''
+
+                    # Try to detect sales type and industry from column names/data
+                    filters = {}
+                    col_names_str = ' '.join(df.columns).lower()
+
+                    # Sales type detection
+                    if 'b2b' in col_names_str or 'enterprise' in col_names_str:
+                        filters['sales_type'] = 'B2B'
+                    elif 'b2c' in col_names_str or 'consumer' in col_names_str:
+                        filters['sales_type'] = 'B2C'
+
+                    # Industry detection from column names or data
+                    if 'saas' in col_names_str or 'software' in col_names_str:
+                        filters['industry'] = 'Software (SaaS)'
+                    elif 'consulting' in col_names_str:
+                        filters['industry'] = 'Consulting'
+                    elif 'real estate' in col_names_str or 'property' in col_names_str:
+                        filters['industry'] = 'Real Estate'
+
+                    vietnam_benchmark = self._get_vietnam_benchmark(
+                        domain='sales',
+                        metric_name='Win Rate',
+                        user_value=win_rate,
+                        filters=filters
+                    )
+
+                    if vietnam_benchmark:
+                        vietnam_context = vietnam_benchmark.get('message', '')
+
+                    # Set benchmark (use Vietnam data if available, else fallback)
+                    if vietnam_benchmark:
+                        benchmark_win = vietnam_benchmark['benchmark_median']
+                        benchmark_source = vietnam_benchmark.get('benchmark_source', BENCHMARK_SOURCES['sales_win_rate'])
+                    else:
+                        benchmark_win = 25.0  # ~25% - realistic Vietnam B2B average from CSV
+                        benchmark_source = BENCHMARK_SOURCES['sales_win_rate']
+
                     kpis['Win Rate (%)'] = {
                         'value': float(win_rate),
-                        'benchmark': 30.0,  # Industry avg 25-35%
-                        'status': 'Above' if win_rate >= 30.0 else 'Below',
+                        'benchmark': benchmark_win,
+                        'benchmark_source': benchmark_source,
+                        'status': 'Above' if win_rate >= benchmark_win else 'Below',
                         'column': stage_col,
-                        'insight': f"{'✅ Strong' if win_rate >= 35 else '⚠️ Below industry'} - B2B SaaS avg 25-35%"
+                        'insight': f"{'✅ Strong' if win_rate >= 35 else '⚠️ Below industry'} - Vietnam avg {benchmark_win}%",
+                        'vietnam_context': vietnam_context if vietnam_benchmark else '',
+                        'percentile': vietnam_benchmark.get('percentile', None) if vietnam_benchmark else None
                     }
                 
                 # 2. Total Pipeline Value (open deals)
@@ -1552,37 +1848,129 @@ OUTPUT JSON:
                         'insight': f"Pipeline adjusted for win probability"
                     }
                 
-                # 4. Average Deal Size (won deals)
+                # 4. Average Deal Size (won deals) - WITH VIETNAM BENCHMARK
                 if len(won_deals) > 0:
                     avg_deal_size = won_deals[deal_col].mean()
+
+                    # Try to get Vietnam benchmark from CSV data
+                    vietnam_benchmark = None
+                    vietnam_context = ''
+
+                    # Reuse sales type and industry detection from win rate
+                    filters = {}
+                    col_names_str = ' '.join(df.columns).lower()
+
+                    if 'b2b' in col_names_str or 'enterprise' in col_names_str:
+                        filters['sales_type'] = 'B2B'
+                    elif 'b2c' in col_names_str or 'consumer' in col_names_str:
+                        filters['sales_type'] = 'B2C'
+
+                    if 'saas' in col_names_str or 'software' in col_names_str:
+                        filters['industry'] = 'Software (SaaS)'
+                    elif 'consulting' in col_names_str:
+                        filters['industry'] = 'Consulting'
+                    elif 'real estate' in col_names_str or 'property' in col_names_str:
+                        filters['industry'] = 'Real Estate'
+
+                    # Detect deal segment (SME vs Enterprise) from deal size
+                    if avg_deal_size > 200000000:  # >200M VND = Enterprise
+                        filters['deal_size_segment'] = 'Enterprise'
+                    elif avg_deal_size > 50000000:  # 50-200M VND = Standard
+                        filters['deal_size_segment'] = 'Standard'
+                    else:  # <50M VND = SME
+                        filters['deal_size_segment'] = 'SME'
+
+                    vietnam_benchmark = self._get_vietnam_benchmark(
+                        domain='sales',
+                        metric_name='Deal Size',
+                        user_value=avg_deal_size,
+                        filters=filters
+                    )
+
+                    if vietnam_benchmark:
+                        vietnam_context = vietnam_benchmark.get('message', '')
+
+                    # Set benchmark (use Vietnam data if available, else fallback)
+                    if vietnam_benchmark:
+                        benchmark_deal = vietnam_benchmark['benchmark_median']
+                        benchmark_source = vietnam_benchmark.get('benchmark_source', BENCHMARK_SOURCES['sales_growth'])
+                    else:
+                        # Fallback: use 80% of current (conservative)
+                        benchmark_deal = float(avg_deal_size * 0.8)
+                        benchmark_source = 'Calculated from Your Dataset Statistics'
+
                     kpis['Average Deal Size'] = {
                         'value': float(avg_deal_size),
-                        'benchmark': float(avg_deal_size * 0.8),
-                        'status': 'Above Target',
+                        'benchmark': benchmark_deal,
+                        'benchmark_source': benchmark_source,
+                        'status': 'Above' if avg_deal_size >= benchmark_deal else 'Below',
                         'column': deal_col,
-                        'insight': f"Won deals: {avg_deal_size:,.0f} average"
+                        'insight': f"Won deals: {avg_deal_size:,.0f} average",
+                        'vietnam_context': vietnam_context if vietnam_benchmark else '',
+                        'percentile': vietnam_benchmark.get('percentile', None) if vietnam_benchmark else None
                     }
                 
-                # 5. Sales Cycle Length (if dates available)
+                # 5. Sales Cycle Length (if dates available) - WITH VIETNAM BENCHMARK
                 if created_cols and close_cols and len(won_deals) > 0:
                     created_col = created_cols[0]
                     close_col = close_cols[0]
-                    
+
                     try:
                         won_deals_copy = won_deals.copy()
                         won_deals_copy[created_col] = pd.to_datetime(won_deals_copy[created_col], errors='coerce')
                         won_deals_copy[close_col] = pd.to_datetime(won_deals_copy[close_col], errors='coerce')
                         won_deals_copy['cycle_days'] = (won_deals_copy[close_col] - won_deals_copy[created_col]).dt.days
-                        
+
                         avg_cycle = won_deals_copy['cycle_days'].mean()
                         # Only add KPI if we have valid cycle data
                         if pd.notna(avg_cycle):
+                            # Try to get Vietnam benchmark from CSV data
+                            vietnam_benchmark = None
+                            vietnam_context = ''
+
+                            # Reuse sales type and industry detection
+                            filters = {}
+                            col_names_str = ' '.join(df.columns).lower()
+
+                            if 'b2b' in col_names_str or 'enterprise' in col_names_str:
+                                filters['sales_type'] = 'B2B'
+                            elif 'b2c' in col_names_str or 'consumer' in col_names_str:
+                                filters['sales_type'] = 'B2C'
+
+                            if 'saas' in col_names_str or 'software' in col_names_str:
+                                filters['industry'] = 'Software (SaaS)'
+                            elif 'consulting' in col_names_str:
+                                filters['industry'] = 'Consulting'
+                            elif 'real estate' in col_names_str or 'property' in col_names_str:
+                                filters['industry'] = 'Real Estate'
+
+                            vietnam_benchmark = self._get_vietnam_benchmark(
+                                domain='sales',
+                                metric_name='Sales Cycle',
+                                user_value=avg_cycle,
+                                filters=filters
+                            )
+
+                            if vietnam_benchmark:
+                                vietnam_context = vietnam_benchmark.get('message', '')
+
+                            # Set benchmark (use Vietnam data if available, else fallback)
+                            if vietnam_benchmark:
+                                benchmark_cycle = vietnam_benchmark['benchmark_median']
+                                benchmark_source = vietnam_benchmark.get('benchmark_source', BENCHMARK_SOURCES['sales_cycle'])
+                            else:
+                                benchmark_cycle = 45.0  # ~45 days - realistic Vietnam B2B average from CSV
+                                benchmark_source = BENCHMARK_SOURCES['sales_cycle']
+
                             kpis['Sales Cycle (days)'] = {
                                 'value': float(avg_cycle),
-                                'benchmark': 30.0,  # B2B SaaS avg 30-90 days
-                                'status': 'Below' if avg_cycle <= 30.0 else 'Above',  # Lower is better
+                                'benchmark': benchmark_cycle,
+                                'benchmark_source': benchmark_source,
+                                'status': 'Below' if avg_cycle <= benchmark_cycle else 'Above',  # Lower is better
                                 'column': f"{close_col}-{created_col}",
-                                'insight': f"{'✅ Fast' if avg_cycle <= 30 else '⚠️ Long'} sales cycle - B2B avg 30-90 days"
+                                'insight': f"{'✅ Fast' if avg_cycle <= benchmark_cycle else '⚠️ Long'} sales cycle - Vietnam avg {benchmark_cycle} days",
+                                'vietnam_context': vietnam_context if vietnam_benchmark else '',
+                                'percentile': vietnam_benchmark.get('percentile', None) if vietnam_benchmark else None
                             }
                     except Exception:
                         pass
