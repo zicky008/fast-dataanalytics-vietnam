@@ -13,6 +13,34 @@ import sys
 import base64
 from datetime import datetime
 
+# ============================================
+# PAGE CONFIGURATION - MUST BE FIRST ST COMMAND
+# ============================================
+st.set_page_config(
+    page_title="Vietnam Data Analytics Dashboard | Fast & Trusted",
+    page_icon="📊",
+    layout="wide",
+    initial_sidebar_state="expanded",
+    menu_items={
+        'Get Help': 'https://github.com/zicky008/fast-dataanalytics-vietnam',
+        'Report a bug': 'https://github.com/zicky008/fast-dataanalytics-vietnam/issues',
+        'About': """
+        # Vietnam Data Analytics Dashboard
+        
+        **Fast, Trusted, and Accurate Data Analysis for Vietnamese Businesses**
+        
+        - 🚀 55-second analysis pipeline
+        - 🇻🇳 Vietnam-specific benchmarks and context
+        - 🔒 NEVER_IMPUTE protection for critical business data
+        - 📊 5 domains: HR, E-commerce, Marketing, Sales, Customer Service
+        - 🌍 Bilingual: Vietnamese & English
+        - 📱 Mobile responsive
+        
+        Version 2.0 | Built with ❤️ for Vietnamese businesses
+        """
+    }
+)
+
 # Add src to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 

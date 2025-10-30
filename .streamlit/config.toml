@@ -13,3 +13,5 @@ enableXsrfProtection = true
 
 [browser]
 gatherUsageStats = false
+serverAddress = "fast-nicedashboard.streamlit.app"
+serverPort = 443
