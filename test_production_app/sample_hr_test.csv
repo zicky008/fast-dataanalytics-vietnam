@@ -1,0 +1,16 @@
+employee_id,ho_ten,department,position,luong_thang,start_date,age,experience_years,education,performance_rating
+EMP001,Nguyen Van Anh,Technology,Senior Developer,28000000,2020-03-15,32,8,Bachelor,Excellent
+EMP002,Tran Thi Binh,Marketing,Marketing Manager,25000000,2019-06-01,35,10,Master,Excellent
+EMP003,Le Van Cuong,Sales,Sales Executive,18000000,2021-01-10,28,5,Bachelor,Good
+EMP004,Pham Thi Dung,HR,HR Specialist,15000000,2021-08-20,26,3,Bachelor,Good
+EMP005,Hoang Van Em,Finance,Accountant,16000000,2020-11-05,29,6,Bachelor,Very Good
+EMP006,Vo Thi Phuong,Technology,QA Engineer,21000000,2021-11-08,30,7,Bachelor,Very Good
+EMP007,Nguyen Van Giang,Operations,Operations Manager,32000000,2018-02-15,38,15,Master,Excellent
+EMP008,Tran Thi Huong,Customer Service,CS Team Lead,19000000,2020-05-12,31,8,Bachelor,Very Good
+EMP009,Le Van Khanh,Technology,Backend Developer,24000000,2020-09-20,29,6,Bachelor,Excellent
+EMP010,Pham Thi Lan,Marketing,Content Creator,12000000,2022-03-01,24,2,Bachelor,Good
+EMP011,Hoang Van Minh,Sales,Sales Manager,35000000,2017-04-10,40,18,Master,Excellent
+EMP012,Vo Thi Nga,Technology,Frontend Developer,22000000,2021-02-15,27,4,Bachelor,Very Good
+EMP013,Nguyen Van Phong,Finance,Financial Analyst,20000000,2019-10-08,33,9,Master,Excellent
+EMP014,Tran Thi Quynh,HR,Recruiter,14000000,2021-12-01,25,2,Bachelor,Good
+EMP015,Le Van Son,Technology,DevOps Engineer,26000000,2020-07-18,31,7,Bachelor,Excellent
