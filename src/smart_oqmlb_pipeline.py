@@ -45,11 +45,36 @@ NEVER_IMPUTE_FIELDS = {
     # Financial fields (legal liability + wrong strategic decisions)
     'revenue', 'sales', 'income', 'cost', 'expense', 'profit', 'margin',
     'price', 'amount', 'payment', 'fee', 'charge', 'budget', 'spending',
+    'deal_value', 'deal_amount', 'contract_value', 'invoice_amount',
     'doanh_thu', 'doanh_so', 'chi_phi', 'loi_nhuan', 'gia', 'tien', 'thanh_toan',
+    'gia_tri_hop_dong', 'gia_tri_deal',
+    
+    # Marketing/Sales metrics (wrong data = wrong decisions)
+    'roas', 'roi', 'conversion_rate', 'cpa', 'cpc', 'cpm', 'ctr',
+    'conversions', 'leads', 'clicks', 'impressions', 'reach',
+    'ty_le_chuyen_doi', 'chi_phi_don_hang', 'luot_chuyen_doi',
+    
+    # E-commerce operational metrics (affect revenue/customer experience)
+    'discount', 'rating', 'review', 'delivery_time', 'delivery_days',
+    'shipping_fee', 'order_status', 'return_rate',
+    'giam_gia', 'danh_gia', 'thoi_gian_giao', 'trang_thai_don_hang',
+    
+    # Customer Service metrics (affect CSAT/SLA compliance)
+    'resolution_time', 'response_time', 'satisfaction_score', 'csat',
+    'nps', 'issue_category', 'priority', 'sla_breach',
+    'resolved_date', 'resolution_date', 'closed_date', 'completion_date',
+    'thoi_gian_xu_ly', 'muc_do_hai_long', 'loai_van_de', 'ngay_giai_quyet',
+    
+    # Metadata fields (categorical/competitive intelligence)
+    'channel', 'source', 'medium', 'campaign', 'platform',
+    'competitors', 'competitor_name', 'competitive_advantage',
+    'kenh', 'nguon', 'doi_thu_canh_tranh',
     
     # HR fields (compliance/privacy + labor law)
     'salary', 'wage', 'compensation', 'bonus', 'commission', 'payroll',
-    'employee_id', 'staff_id', 'luong', 'thu_nhap', 'tien_luong',
+    'employee_id', 'staff_id', 'position', 'title', 'role', 'job_title',
+    'ho_ten', 'ten', 'name', 'full_name',
+    'luong', 'thu_nhap', 'tien_luong', 'chuc_vu', 'vi_tri',
     
     # Customer PII (privacy law GDPR/PDPA compliance)
     'email', 'phone', 'address', 'ssn', 'passport', 'id_number', 'cccd', 'cmnd',
@@ -57,7 +82,9 @@ NEVER_IMPUTE_FIELDS = {
     
     # Business-critical IDs (data integrity)
     'order_id', 'transaction_id', 'invoice_id', 'customer_id', 'user_id',
-    'ma_don_hang', 'ma_khach_hang', 'ma_giao_dich', 'ma_hoa_don'
+    'deal_id', 'ticket_id', 'campaign_id', 'lead_id',
+    'ma_don_hang', 'ma_khach_hang', 'ma_giao_dich', 'ma_hoa_don',
+    'ma_deal', 'ma_ticket', 'ma_campaign'
 }
 
 # ==================================================================================
