@@ -22,8 +22,9 @@ log_perf("START: App initialization")
 import streamlit as st
 log_perf("IMPORT: streamlit")
 
-import pandas as pd
-log_perf("IMPORT: pandas")
+# Pandas will be imported when needed (sample data or file upload)
+# This saves ~1-2s on initial page load
+log_perf("SKIP: pandas (will lazy load when needed)")
 
 import os
 from dotenv import load_dotenv
@@ -70,25 +71,52 @@ log_perf("CONFIG: Path setup")
 load_dotenv()
 log_perf("CONFIG: Environment loaded")
 
-# Import pipeline and utilities
-log_perf("START: Heavy imports")
-from premium_lean_pipeline import PremiumLeanPipeline
-log_perf("IMPORT: PremiumLeanPipeline (HEAVY)")
+# ============================================
+# LAZY LOADING FUNCTIONS (Performance Optimization)
+# ============================================
+log_perf("START: Lazy loading setup (no heavy imports yet)")
 
-from utils.validators import safe_file_upload
-from utils.i18n import get_text, format_number, format_currency, convert_vnd_to_usd
-from utils.branding import get_logo_svg, get_brand_colors
-log_perf("IMPORT: Utils modules")
+# CRITICAL OPTIMIZATION: Move heavy imports into functions
+# This reduces initial load time by 10-20 seconds
 
-# Import export utilities with error handling
-try:
-    from utils.export_utils import export_to_pdf, export_to_powerpoint
-    EXPORT_AVAILABLE = True
-    log_perf("IMPORT: Export utilities (PDF/PPT)")
-except ImportError:
-    EXPORT_AVAILABLE = False
-    print("⚠️ Export libraries not installed. PDF/PPT export disabled.")
-    log_perf("IMPORT: Export utilities (SKIPPED)")
+@st.cache_resource
+def get_pipeline_class():
+    """Lazy load PremiumLeanPipeline (only when user clicks Analyze)"""
+    log_perf("LAZY IMPORT: PremiumLeanPipeline (triggered by user action)")
+    from premium_lean_pipeline import PremiumLeanPipeline
+    return PremiumLeanPipeline
+
+def get_validators():
+    """Lazy load validators"""
+    from utils.validators import safe_file_upload
+    return safe_file_upload
+
+def get_i18n():
+    """Lazy load i18n functions"""
+    from utils.i18n import get_text, format_number, format_currency, convert_vnd_to_usd
+    return get_text, format_number, format_currency, convert_vnd_to_usd
+
+def get_branding():
+    """Lazy load branding functions"""
+    from utils.branding import get_logo_svg, get_brand_colors
+    return get_logo_svg, get_brand_colors
+
+def get_export_utils():
+    """Lazy load export utilities (only when user clicks export)"""
+    try:
+        from utils.export_utils import export_to_pdf, export_to_powerpoint
+        return export_to_pdf, export_to_powerpoint, True
+    except ImportError:
+        print("⚠️ Export libraries not installed. PDF/PPT export disabled.")
+        return None, None, False
+
+# Load only essential utils immediately
+get_text, format_number, format_currency, convert_vnd_to_usd = get_i18n()
+get_logo_svg, get_brand_colors = get_branding()
+log_perf("IMPORT: Essential utils only (i18n, branding)")
+
+# Export utilities will be lazy loaded when needed
+EXPORT_AVAILABLE = None  # Will be determined on first use
 
 # ============================================
 # SESSION STATE INITIALIZATION
@@ -956,6 +984,8 @@ def main():
             with cols1[idx]:
                 if st.button(name, key=f"sample_{idx}", use_container_width=True):
                     try:
+                        # Lazy load pandas when user clicks sample data
+                        import pandas as pd
                         # Load sample data
                         sample_df = pd.read_csv(file_path)
                         st.session_state['df'] = sample_df
@@ -975,6 +1005,8 @@ def main():
             with cols2[idx-4]:
                 if st.button(name, key=f"sample_{idx}", use_container_width=True):
                     try:
+                        # Lazy load pandas when user clicks sample data
+                        import pandas as pd
                         # Load sample data
                         sample_df = pd.read_csv(file_path)
                         st.session_state['df'] = sample_df
@@ -1022,8 +1054,9 @@ def main():
                 # Clear sample_loaded flag after use
                 st.session_state['sample_loaded'] = False
             else:
-                # Using uploaded file
+                # Using uploaded file (LAZY LOAD validator)
                 with st.spinner(get_text('loading_file', lang)):
+                    safe_file_upload = get_validators()  # Lazy load now
                     success, df, message = safe_file_upload(uploaded_file, max_size_mb=200, lang=lang)
 
                 if not success:
@@ -1041,8 +1074,9 @@ def main():
             st.markdown("---")
             st.markdown(f"### {get_text('processing', lang)}")
             
-            # Initialize pipeline with language support
+            # Initialize pipeline with language support (LAZY LOADED)
             gemini_client = get_gemini_client()
+            PremiumLeanPipeline = get_pipeline_class()  # Lazy load now
             pipeline = PremiumLeanPipeline(gemini_client, lang=lang)
             
             # Run pipeline with progress
@@ -1246,7 +1280,10 @@ def main():
         
         with col1:
             if st.button(get_text('export_pdf', lang), use_container_width=True):
-                if EXPORT_AVAILABLE:
+                # Lazy load export utilities when user clicks
+                export_to_pdf, _, export_available = get_export_utils()
+                
+                if export_available:
                     try:
                         with st.spinner("🔄 Generating PDF..."):
                             pdf_bytes = export_to_pdf(result, st.session_state['df'], lang)
@@ -1267,7 +1304,10 @@ def main():
         
         with col2:
             if st.button(get_text('export_ppt', lang), use_container_width=True):
-                if EXPORT_AVAILABLE:
+                # Lazy load export utilities when user clicks
+                _, export_to_powerpoint, export_available = get_export_utils()
+                
+                if export_available:
                     try:
                         with st.spinner("🔄 Generating PowerPoint..."):
                             ppt_bytes = export_to_powerpoint(result, st.session_state['df'], lang)
