@@ -1,0 +1,51 @@
+employee_id,ho_ten,department,position,luong_thang,start_date,age,experience_years,gender,education,performance_rating,bonus_2024,days_absent,resignation_risk
+EMP001,Nguyen Van A,Technology,Senior Developer,28000000,2020-03-15,32,8,Male,Bachelor,4.5,5600000,3,Low
+EMP002,Tran Thi B,Marketing,Marketing Manager,32000000,2019-01-10,35,12,Female,Master,4.8,8000000,1,Low
+EMP003,Le Van C,Sales,Sales Executive,18000000,2022-06-01,28,4,Male,Bachelor,4.2,4500000,5,Medium
+EMP004,Pham Thi D,HR,HR Specialist,22000000,2021-09-20,30,6,Female,Bachelor,4.6,5000000,2,Low
+EMP005,Hoang Van E,Technology,Junior Developer,15000000,2023-02-14,25,2,Male,Bachelor,4.0,2000000,4,Medium
+EMP006,Vo Thi F,Finance,Accountant,20000000,2020-11-05,29,7,Female,Bachelor,4.4,4000000,3,Low
+EMP007,Nguyen Van G,Operations,Operations Manager,35000000,2018-05-12,38,15,Male,Master,4.9,10000000,0,Low
+EMP008,Tran Van H,Technology,Tech Lead,45000000,2017-08-20,40,18,Male,Master,4.7,12000000,1,Low
+EMP009,Le Thi I,Marketing,Content Writer,16000000,2023-01-05,26,3,Female,Bachelor,4.1,3000000,6,High
+EMP010,Pham Van K,Sales,Sales Manager,38000000,2019-07-15,36,13,Male,Bachelor,4.8,9500000,2,Low
+EMP011,Nguyen Thi L,Customer Service,CS Team Lead,25000000,2020-08-10,31,9,Female,Bachelor,4.5,6000000,4,Medium
+EMP012,Tran Van M,Technology,DevOps Engineer,30000000,2021-03-25,33,10,Male,Bachelor,4.6,7000000,2,Low
+EMP013,Le Van N,Finance,Financial Analyst,24000000,2022-01-18,29,5,Male,Master,4.3,5000000,3,Low
+EMP014,Vo Van O,Marketing,Digital Marketing,19000000,2022-09-30,27,4,Male,Bachelor,4.2,4000000,5,Medium
+EMP015,Hoang Thi P,HR,Recruiter,18000000,2023-04-12,26,2,Female,Bachelor,3.9,2500000,7,High
+EMP016,,Technology,QA Engineer,21000000,2021-11-08,30,7,Female,Bachelor,4.4,4500000,3,Low
+EMP017,Nguyen Van R,Sales,Account Executive,17000000,2023-03-20,25,3,Male,Bachelor,4.0,3500000,6,Medium
+EMP018,Tran Thi S,Operations,Logistics Coordinator,16000000,2022-12-01,27,4,Female,Bachelor,4.1,3000000,4,Medium
+EMP019,Le Van T,Technology,,40000000,2018-11-15,37,16,Male,Master,4.8,11000000,1,Low
+EMP020,Pham Thi U,Customer Service,CS Representative,14000000,2023-06-05,24,1,Female,Bachelor,3.8,1500000,8,High
+EMP021,Vo Van V,Finance,Senior Accountant,27000000,2020-04-22,32,10,Male,Bachelor,4.5,6500000,2,Low
+EMP022,Nguyen Thi W,Marketing,Brand Manager,29000000,2021-02-18,34,11,Female,Master,4.7,7500000,1,Low
+EMP023,Tran Van X,Technology,Backend Developer,26000000,2021-07-30,31,8,Male,Bachelor,4.4,6000000,3,Low
+EMP024,Le Thi Y,HR,HR Manager,36000000,2019-10-05,37,14,Female,Master,4.9,9000000,0,Low
+EMP025,Pham Van Z,Sales,,19000000,2022-08-14,28,5,Male,Bachelor,4.2,4800000,4,Medium
+EMP026,Hoang Van AA,Technology,Frontend Developer,24000000,2022-03-10,29,6,Male,Bachelor,4.3,5500000,3,Low
+EMP027,Nguyen Thi BB,Operations,Supply Chain Manager,33000000,2020-01-20,35,12,Female,Master,4.8,8500000,1,Low
+EMP028,Tran Van CC,Customer Service,,13000000,2023-08-15,23,1,Male,Bachelor,3.7,1000000,9,High
+EMP029,Le Van DD,Finance,Tax Specialist,26000000,2021-05-12,32,9,Male,Bachelor,4.5,6200000,2,Low
+EMP030,Vo Thi EE,Marketing,SEO Specialist,20000000,2022-11-25,28,5,Female,Bachelor,4.2,4500000,4,Medium
+EMP031,Pham Van FF,Technology,Database Admin,31000000,2020-09-18,34,11,Male,Bachelor,4.6,7500000,2,Low
+EMP032,Nguyen Van GG,Sales,Business Development,22000000,2023-02-08,27,4,Male,Bachelor,4.1,5000000,5,Medium
+EMP033,Tran Thi HH,HR,Training Coordinator,19000000,2022-07-20,28,5,Female,Bachelor,4.3,4000000,3,Low
+EMP034,Le Van II,Technology,Mobile Developer,27000000,2021-10-30,31,9,Male,Bachelor,4.5,6500000,2,Low
+EMP035,Vo Van KK,Operations,Warehouse Manager,23000000,2021-12-15,30,8,Male,Bachelor,4.4,5500000,3,Low
+EMP036,Hoang Thi LL,Customer Service,CS Manager,30000000,2020-06-10,33,10,Female,Master,4.7,7500000,1,Low
+EMP037,Nguyen Van MM,Finance,,25000000,2022-04-18,30,7,Male,Bachelor,4.4,5800000,3,Low
+EMP038,Tran Van NN,Marketing,Social Media Manager,21000000,2022-10-05,29,6,Male,Bachelor,4.3,4800000,4,Medium
+EMP039,Le Thi OO,Technology,UI/UX Designer,23000000,2021-08-22,30,7,Female,Bachelor,4.4,5500000,2,Low
+EMP040,Pham Van PP,Sales,Key Account Manager,34000000,2019-12-01,36,13,Male,Bachelor,4.8,8800000,1,Low
+EMP041,Vo Thi QQ,HR,,17000000,2023-05-10,26,3,Female,Bachelor,3.9,2800000,6,High
+EMP042,Nguyen Van RR,Technology,Security Engineer,32000000,2020-07-14,33,11,Male,Master,4.6,8000000,2,Low
+EMP043,Tran Thi SS,Operations,Process Improvement,28000000,2021-04-08,32,10,Female,Master,4.7,7000000,1,Low
+EMP044,Le Van TT,Customer Service,Customer Success,18000000,2022-09-12,27,4,Male,Bachelor,4.1,3800000,5,Medium
+EMP045,Pham Thi UU,Finance,Budget Analyst,24000000,2021-11-28,30,8,Female,Bachelor,4.4,5600000,3,Low
+EMP046,Hoang Van VV,Marketing,,20000000,2023-01-22,28,5,Male,Bachelor,4.2,4300000,4,Medium
+EMP047,Nguyen Thi WW,Technology,Data Analyst,26000000,2021-09-05,31,8,Female,Master,4.5,6300000,2,Low
+EMP048,Tran Van XX,Sales,Regional Manager,42000000,2018-03-18,39,16,Male,Master,4.9,11500000,0,Low
+EMP049,Le Thi YY,HR,Payroll Specialist,21000000,2022-06-15,29,6,Female,Bachelor,4.3,4700000,3,Low
+EMP050,Vo Van ZZ,Technology,Cloud Architect,48000000,2017-12-10,41,19,Male,Master,4.9,13000000,1,Low

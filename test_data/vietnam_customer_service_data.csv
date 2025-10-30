@@ -1,0 +1,21 @@
+ticket_id,customer_id,customer_name,issue_category,issue_description,priority,status,created_date,resolved_date,response_time_hours,resolution_time_hours,satisfaction_score,agent_name,channel,product_category,refund_amount,notes
+TICKET001,CUST15678,Nguyen Van A,Delivery Delay,Đơn hàng chậm 5 ngày so với dự kiến,High,Resolved,2024-10-20 09:15:00,2024-10-20 14:30:00,1,5,4,Tran Thi B,Phone,Electronics,0,Compensated with voucher 200K
+TICKET002,CUST24589,Le Thi C,Product Defect,Tai nghe bị hỏng mic sau 1 tuần,Critical,Resolved,2024-10-21 10:30:00,2024-10-22 16:45:00,2,30,5,Pham Van D,Email,Electronics,1200000,Full refund + exchange
+TICKET003,CUST35890,Hoang Van E,Wrong Item,Nhận sai màu sản phẩm (đặt đen nhận trắng),High,Resolved,2024-10-22 14:20:00,2024-10-23 11:00:00,1,21,5,Vo Thi F,Chat,Fashion,0,Exchange processed
+TICKET004,CUST46701,Nguyen Thi G,Payment Issue,Thanh toán bị trừ tiền nhưng đơn hàng không tạo,Critical,Resolved,2024-10-23 08:45:00,2024-10-23 17:20:00,0.5,9,3,Tran Van H,Phone,System,850000,Refund in 3-5 days
+TICKET005,CUST57812,Le Van I,Missing Items,Thiếu 1 sản phẩm trong đơn hàng (đặt 3 chỉ nhận 2),High,Resolved,2024-10-24 11:10:00,2024-10-25 09:30:00,2,22,4,Pham Thi K,Email,Home & Living,0,Sent missing item
+TICKET006,CUST68923,Vo Van L,,Sản phẩm không như mô tả trên website,Medium,Pending,2024-10-25 15:30:00,,3,,0,Nguyen Van M,Chat,Beauty,0,Awaiting photos
+TICKET007,CUST79034,Tran Thi N,Account Access,Không thể đăng nhập vào tài khoản,Medium,Resolved,2024-10-26 09:00:00,2024-10-26 10:15:00,0.5,1,5,Le Van O,Chat,System,0,Password reset
+TICKET008,CUST80145,Pham Van P,Refund Delay,Chưa nhận được tiền hoàn sau 10 ngày,High,In Progress,2024-10-27 13:45:00,,1,,0,Hoang Thi Q,Phone,System,580000,Escalated to finance
+TICKET009,CUST91256,Nguyen Van R,Product Quality,Chất lượng sản phẩm kém hơn mong đợi,Medium,Resolved,2024-10-28 10:20:00,2024-10-29 14:00:00,4,28,3,Tran Van S,Email,Fashion,320000,Partial refund 50%
+TICKET010,CUST02367,Le Thi T,Delivery Address,Giao sai địa chỉ (giao cho hàng xóm),Medium,Resolved,2024-10-22 16:40:00,2024-10-23 08:15:00,1,16,4,Vo Van U,Phone,Food & Beverage,0,Re-delivered correct address
+TICKET011,CUST13478,Pham Van V,Promo Code Error,Mã giảm giá không áp dụng được,Low,Resolved,2024-10-23 11:50:00,2024-10-23 13:20:00,0.5,2,5,Nguyen Thi W,Chat,System,0,Applied code manually
+TICKET012,CUST24589,Tran Van X,Damaged Package,Hộp bị móp méo khi giao hàng,Medium,Resolved,2024-10-24 14:15:00,2024-10-25 10:45:00,2,20,4,Le Van Y,Email,Electronics,0,Replacement sent
+TICKET013,CUST35690,Pham Thi Z,Order Cancellation,Muốn hủy đơn hàng đã xác nhận,Medium,Resolved,2024-10-25 09:30:00,2024-10-25 11:00:00,1,2,5,Hoang Van AA,Chat,Fashion,450000,Cancelled & refunded
+TICKET014,,Nguyen Van BB,Warranty Claim,Sản phẩm hỏng trong thời gian bảo hành,High,In Progress,2024-10-26 15:20:00,,2,,0,Tran Thi CC,Phone,Electronics,0,Sent to service center
+TICKET015,CUST57802,Le Van DD,Late Response,Không nhận được phản hồi từ CSKH sau 2 ngày,High,Resolved,2024-10-27 08:40:00,2024-10-27 16:30:00,1,8,2,Vo Thi EE,Email,System,0,Apology + 300K voucher
+TICKET016,CUST68913,Pham Van FF,Size Issue,Sản phẩm không vừa size (quần áo),Low,Resolved,2024-10-28 12:10:00,2024-10-29 09:20:00,3,21,5,Nguyen Van GG,Chat,Fashion,0,Exchange for correct size
+TICKET017,CUST79024,Tran Van HH,Invoice Request,Cần xuất hóa đơn VAT cho công ty,Low,Resolved,2024-10-21 10:45:00,2024-10-22 14:00:00,2,27,5,Le Thi II,Email,System,0,VAT invoice issued
+TICKET018,CUST80135,Pham Van KK,Out of Stock,Sản phẩm hết hàng sau khi đặt,Medium,Resolved,2024-10-22 17:30:00,2024-10-23 10:15:00,1,17,3,Hoang Van LL,Phone,Electronics,2100000,Refunded + 200K voucher
+TICKET019,CUST91246,Nguyen Thi MM,App Bug,Ứng dụng bị crash khi thanh toán,Critical,Resolved,2024-10-23 13:20:00,2024-10-24 11:45:00,1,22,4,Tran Van NN,Chat,System,0,Bug fixed in update
+TICKET020,CUST02357,Le Van OO,Shipping Cost,Phí ship cao hơn thông báo ban đầu,Low,Resolved,2024-10-24 16:00:00,2024-10-25 09:10:00,2,17,4,Vo Van PP,Email,System,0,Explained + 50K voucher

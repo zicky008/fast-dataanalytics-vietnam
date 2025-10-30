@@ -1,0 +1,21 @@
+deal_id,deal_name,company_name,contact_person,industry,deal_value_vnd,stage,probability_percent,expected_close_date,created_date,days_in_stage,last_activity,next_step,sales_rep,source,competitors,notes
+DEAL001,ERP System Upgrade,Vinamilk JSC,Nguyen Van A - IT Director,Food & Beverage,850000000,Negotiation,75,2024-12-15,2024-09-01,45,2024-10-25,Send final proposal,Tran Van B,Referral,SAP,Large enterprise client
+DEAL002,CRM Implementation,FPT Corporation,Le Thi C - CIO,Technology,1200000000,Proposal,60,2024-12-30,2024-10-01,28,2024-10-27,Technical demo scheduled,Pham Van D,Website,Salesforce,Fortune 500 client
+DEAL003,Marketing Automation,Grab Vietnam,Hoang Van E - Marketing Head,Transportation,450000000,Discovery,40,2025-01-20,2024-10-15,14,2024-10-28,Needs assessment meeting,Vo Thi F,LinkedIn,HubSpot,Unicorn startup
+DEAL004,Data Analytics Platform,Vietcombank,Nguyen Thi G - Head of Data,Banking,,Qualification,30,2025-02-15,2024-10-20,9,2024-10-27,Budget approval pending,Tran Van H,Cold Call,,Major bank opportunity
+DEAL005,Cloud Migration,Petrolimex,Le Van I - CTO,Energy,950000000,Proposal,65,2024-12-20,2024-09-15,44,2024-10-26,Contract review,Pham Thi K,Event,AWS,State enterprise
+DEAL006,E-commerce Platform,Thế Giới Di Động,Vo Van L - E-com Director,Retail,680000000,Negotiation,80,2024-11-30,2024-08-01,89,2024-10-29,Legal review final stage,Nguyen Van M,Partner,Magento,Top retailer
+DEAL007,HR Management System,Vingroup,Tran Thi N - CHRO,Conglomerate,1500000000,Discovery,35,2025-03-01,2024-10-25,4,2024-10-28,Initial presentation,Le Van O,Inbound,Workday,Largest private company
+DEAL008,,VNG Corporation,Pham Van P - Product Lead,Gaming,380000000,Qualification,25,2025-02-28,2024-10-22,7,2024-10-27,Follow-up call scheduled,Hoang Thi Q,LinkedIn,,Gaming giant
+DEAL009,Cybersecurity Solution,Viettel Group,Nguyen Van R - Security Head,Telecom,1100000000,Proposal,70,2024-12-10,2024-09-10,49,2024-10-28,POC in progress,Tran Van S,RFP,Cisco,Telecom leader
+DEAL010,Business Intelligence,Masan Group,Le Thi T - CFO,Consumer Goods,520000000,Negotiation,75,2024-11-25,2024-08-20,70,2024-10-26,Pricing negotiation,Vo Van U,Referral,Tableau,Conglomerate
+DEAL011,Warehouse Management,TH True Milk,Pham Van V - Ops Director,Food & Beverage,420000000,Proposal,55,2025-01-15,2024-10-05,24,2024-10-27,Site visit next week,Nguyen Thi W,Event,Oracle,Dairy leader
+DEAL012,Customer Service Platform,Vietnam Airlines,Tran Van X - Service Head,Aviation,780000000,Discovery,45,2025-01-30,2024-10-18,11,2024-10-28,Requirements gathering,Le Van Y,Cold Call,Zendesk,National carrier
+DEAL013,Supply Chain Optimization,Hoa Phat Group,Pham Thi Z - Supply Chain VP,Manufacturing,,Qualification,20,2025-03-15,2024-10-28,1,2024-10-28,Initial inquiry,Hoang Van AA,Website,,Steel manufacturer
+DEAL014,Mobile App Development,ShopeeVN,Nguyen Van BB - Tech Lead,E-commerce,650000000,Proposal,60,2024-12-28,2024-09-25,34,2024-10-27,Technical specs review,Tran Thi CC,Partner,Internal,E-com unicorn
+DEAL015,Financial Software,Techcombank,Le Van DD - Head of Digital,Banking,980000000,Negotiation,85,2024-11-28,2024-08-15,75,2024-10-29,Final approval meeting,Vo Thi EE,RFP,FIS,Leading digital bank
+DEAL016,IoT Platform,Trung Nguyen Coffee,Pham Van FF - Innovation Head,Food & Beverage,340000000,Discovery,30,2025-02-20,2024-10-21,8,2024-10-27,Pilot discussion,Nguyen Van GG,Event,ThingsBoard,Coffee chain
+DEAL017,Learning Management,RMIT Vietnam,Tran Van HH - Dean,Education,280000000,Qualification,40,2025-01-25,2024-10-12,17,2024-10-26,Budget committee review,Le Thi II,Cold Call,Moodle,International university
+DEAL018,Logistics Software,,Pham Van KK - Logistics Manager,Logistics,460000000,Proposal,50,2025-01-10,2024-10-08,21,2024-10-28,Demo completed,Hoang Van LL,LinkedIn,SAP,Major freight company
+DEAL019,POS System,Highlands Coffee,Nguyen Thi MM - Operations Director,F&B,320000000,Negotiation,70,2024-12-05,2024-09-01,58,2024-10-27,Implementation timeline discussion,Tran Van NN,Referral,Square,Coffee chain leader
+DEAL020,Document Management,PetroVietnam,Le Van OO - Admin Director,Energy,580000000,Proposal,55,2024-12-22,2024-09-20,39,2024-10-26,Compliance review,Vo Van PP,RFP,SharePoint,State oil company
