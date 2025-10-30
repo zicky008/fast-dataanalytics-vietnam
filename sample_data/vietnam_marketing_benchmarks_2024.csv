@@ -1,0 +1,79 @@
+metric,channel,industry,audience_segment,value,unit,benchmark_type,quartile_25,median,quartile_75,sample_size,source,last_updated,vietnam_context_notes
+Cost Per Click (CPC),Facebook Ads,E-commerce,25-34 Female,3500,VND,Average,2800,3500,4200,5000,DataReportal Vietnam 2024,2024-12,"Lower than Google but higher competition during sale seasons (11.11, 12.12)"
+Cost Per Click (CPC),Google Ads,E-commerce,All,8500,VND,Average,6500,8500,11000,3200,WordStream Vietnam 2024,2024-11,Search intent higher quality but more expensive
+Cost Per Click (CPC),TikTok Ads,Fashion,18-24 Female,2800,VND,Average,2200,2800,3500,4500,DataReportal Vietnam 2024,2024-12,Gen Z audience dominates TikTok
+Cost Per Click (CPC),Google Ads,B2B Software,Decision Makers,15000,VND,Average,12000,15000,18000,800,HubSpot Vietnam Data 2024,2024-10,B2B keywords competitive
+Cost Per Mille (CPM),Facebook Ads,E-commerce,All,45000,VND,Average,38000,45000,55000,6000,DataReportal Vietnam 2024,2024-12,Peak during shopping festivals
+Cost Per Mille (CPM),TikTok Ads,Beauty,18-34 Female,38000,VND,Average,32000,38000,48000,3500,DataReportal Vietnam 2024,2024-12,Video ads perform best
+Cost Per Mille (CPM),YouTube Ads,Technology,25-44 Male,52000,VND,Average,45000,52000,62000,2200,Google Vietnam Mobile 2024,2024-11,Pre-roll vs in-stream varies
+Cost Per Mille (CPM),Instagram Ads,Fashion,18-34 Female,48000,VND,Average,42000,48000,58000,2800,DataReportal Vietnam 2024,2024-12,Stories + Reels cheaper than feed
+Cost Per Acquisition (CPA),Facebook Ads,E-commerce,First-time Buyers,85000,VND,Average,65000,85000,110000,4200,DataReportal Vietnam 2024,2024-12,Multiple touchpoints needed (3-5 avg)
+Cost Per Acquisition (CPA),Google Ads,E-commerce,All,120000,VND,Average,95000,120000,150000,2800,WordStream Vietnam 2024,2024-11,Search intent = higher conversion but costlier
+Cost Per Acquisition (CPA),TikTok Ads,Fashion,18-24,75000,VND,Average,60000,75000,95000,3200,DataReportal Vietnam 2024,2024-12,Impulse buying behavior strong
+Cost Per Acquisition (CPA),Facebook Ads,Financial Services,25-44,180000,VND,Average,150000,180000,220000,1500,HubSpot Vietnam Data 2024,2024-10,Higher consideration purchase
+Cost Per Acquisition (CPA),Google Ads,B2B Software,SME,2500000,VND,Average,2000000,2500000,3200000,400,HubSpot Vietnam Data 2024,2024-10,Long sales cycle (30-90 days avg)
+Cost Per Acquisition (CPA),Email Marketing,E-commerce,Existing Customers,25000,VND,Average,18000,25000,35000,3800,Mailchimp Vietnam Data 2024,2024-11,Remarketing performs well
+Cost Per Lead (CPL),Facebook Lead Ads,Real Estate,30-45,45000,VND,Average,35000,45000,58000,2200,DataReportal Vietnam 2024,2024-12,Form submissions (phone + name)
+Cost Per Lead (CPL),Google Ads,Education,18-25 Parents,38000,VND,Average,30000,38000,48000,1800,WordStream Vietnam 2024,2024-11,Course inquiries
+Cost Per Lead (CPL),LinkedIn Ads,B2B Software,Decision Makers,280000,VND,Average,220000,280000,350000,600,HubSpot Vietnam Data 2024,2024-10,Quality leads but expensive
+Cost Per Lead (CPL),Landing Page,Technology,All,32000,VND,Average,25000,32000,42000,2500,Unbounce Vietnam Data 2024,2024-11,Organic + paid traffic combined
+Click-Through Rate (CTR),Facebook Ads,E-commerce,All,1.2,%,Average,0.9,1.2,1.6,5500,DataReportal Vietnam 2024,2024-12,Creative fatigue happens fast (7-10 days)
+Click-Through Rate (CTR),Google Search Ads,E-commerce,All,3.8,%,Average,2.8,3.8,5.2,3200,WordStream Vietnam 2024,2024-11,Branded keywords 8-12% CTR
+Click-Through Rate (CTR),TikTok Ads,Fashion,18-24,2.4,%,Average,1.8,2.4,3.2,4000,DataReportal Vietnam 2024,2024-12,Native video content performs better
+Click-Through Rate (CTR),Email Marketing,E-commerce,All,2.8,%,Average,2.1,2.8,3.8,4200,Mailchimp Vietnam Data 2024,2024-11,Subject line + timing critical
+Click-Through Rate (CTR),YouTube Ads,Technology,All,1.5,%,Average,1.1,1.5,2.1,1800,Google Vietnam Mobile 2024,2024-11,Skippable ads lower CTR
+Click-Through Rate (CTR),Instagram Stories,Beauty,18-34 Female,3.2,%,Average,2.4,3.2,4.2,2600,DataReportal Vietnam 2024,2024-12,Swipe-up call-to-action
+Click-Through Rate (CTR),Zalo Ads,E-commerce,35-55,1.8,%,Average,1.3,1.8,2.5,1200,DataReportal Vietnam 2024,2024-12,Older demographic still uses Zalo heavily
+Conversion Rate,E-commerce Website,Fashion,Mobile,1.8,%,Average,1.3,1.8,2.4,3800,VECOM EBI 2024,2024-12,Mobile-first market (75% traffic mobile)
+Conversion Rate,E-commerce Website,Electronics,Desktop,2.6,%,Average,1.9,2.6,3.5,2200,VECOM EBI 2024,2024-12,Higher consideration = desktop research
+Conversion Rate,E-commerce Website,Beauty,All,2.1,%,Average,1.5,2.1,2.9,3200,VECOM EBI 2024,2024-12,COD payment preference reduces cart abandonment
+Conversion Rate,Landing Page,Lead Gen,All,8.5,%,Average,6.2,8.5,11.5,2800,Unbounce Vietnam Data 2024,2024-11,Single clear CTA performs best
+Conversion Rate,Facebook Lead Form,Services,All,12.5,%,Average,9.2,12.5,16.8,2400,DataReportal Vietnam 2024,2024-12,In-platform forms reduce friction
+Conversion Rate,Email Campaign,E-commerce,Engaged Subscribers,4.2,%,Average,3.1,4.2,5.8,3600,Mailchimp Vietnam Data 2024,2024-11,Personalization increases 30-40%
+Bounce Rate,E-commerce Website,Fashion,Mobile,58.5,%,Average,52.0,58.5,65.0,3200,Google Vietnam Mobile 2024,2024-11,Slow loading = higher bounce
+Bounce Rate,E-commerce Website,Electronics,Desktop,42.5,%,Average,36.0,42.5,50.0,1800,VECOM EBI 2024,2024-12,Product comparison behavior
+Bounce Rate,Landing Page,Lead Gen,All,38.2,%,Average,32.0,38.2,46.0,2600,Unbounce Vietnam Data 2024,2024-11,Mobile optimization critical
+Average Session Duration,E-commerce Website,Fashion,All,3.2,minutes,Average,2.5,3.2,4.1,3400,Google Vietnam Mobile 2024,2024-11,Short attention spans
+Average Session Duration,E-commerce Website,Home Decor,All,5.8,minutes,Average,4.2,5.8,7.5,1600,VECOM EBI 2024,2024-12,Higher consideration category
+Average Session Duration,Content Website,Media/News,All,2.1,minutes,Average,1.6,2.1,2.8,2800,DataReportal Vietnam 2024,2024-12,Mobile news consumption quick
+Return on Ad Spend (ROAS),Facebook Ads,E-commerce,All,3.2,ratio,Average,2.4,3.2,4.2,4200,DataReportal Vietnam 2024,2024-12,"Sale seasons (11.11, 12.12) achieve 5-8x ROAS"
+Return on Ad Spend (ROAS),Google Shopping,E-commerce,All,4.5,ratio,Average,3.2,4.5,6.0,2400,WordStream Vietnam 2024,2024-11,Bottom-funnel intent higher ROAS
+Return on Ad Spend (ROAS),TikTok Ads,Fashion,18-24,2.8,ratio,Average,2.1,2.8,3.8,2800,DataReportal Vietnam 2024,2024-12,Viral content can spike to 10x+
+Return on Ad Spend (ROAS),Email Marketing,E-commerce,Loyalty Program,6.5,ratio,Average,4.8,6.5,8.5,2600,Mailchimp Vietnam Data 2024,2024-11,Existing customers = best ROAS
+Return on Ad Spend (ROAS),Influencer Marketing,Beauty,18-34 Female,4.2,ratio,Average,3.1,4.2,5.6,1800,DataReportal Vietnam 2024,2024-12,Micro-influencers (10k-100k) best ROI
+Customer Acquisition Cost (CAC),E-commerce,Fashion,All,125000,VND,Average,95000,125000,165000,3600,VECOM EBI 2024,2024-12,Includes marketing + ops costs
+Customer Acquisition Cost (CAC),E-commerce,Electronics,All,180000,VND,Average,140000,180000,230000,2200,VECOM EBI 2024,2024-12,Higher AOV category = higher CAC acceptable
+Customer Acquisition Cost (CAC),SaaS B2B,Software,SME,3500000,VND,Average,2800000,3500000,4500000,400,HubSpot Vietnam Data 2024,2024-10,Long sales cycle increases CAC
+Customer Acquisition Cost (CAC),Services,Education,Students,95000,VND,Average,75000,95000,120000,1200,WordStream Vietnam 2024,2024-11,Course enrollments
+Customer Lifetime Value (CLV),E-commerce,Fashion,Repeat Customers,2800000,VND,Average,1800000,2800000,4200000,2800,VECOM EBI 2024,2024-12,Avg 6-8 purchases over 18 months
+Customer Lifetime Value (CLV),E-commerce,Beauty,Subscription,4500000,VND,Average,3200000,4500000,6200000,1400,VECOM EBI 2024,2024-12,Monthly subscription models growing
+Customer Lifetime Value (CLV),SaaS B2B,Software,SME,18000000,VND,Average,12000000,18000000,28000000,350,HubSpot Vietnam Data 2024,2024-10,Annual contracts typical
+Email Open Rate,E-commerce,Fashion,All,18.5,%,Average,15.2,18.5,22.8,4200,Mailchimp Vietnam Data 2024,2024-11,Tuesday-Thursday 9-11am best time
+Email Open Rate,E-commerce,Technology,All,22.3,%,Average,18.5,22.3,27.2,2400,Mailchimp Vietnam Data 2024,2024-11,B2B higher open rates
+Email Open Rate,Services,Finance,All,25.8,%,Average,21.2,25.8,31.5,1600,Mailchimp Vietnam Data 2024,2024-11,Trust factor = higher engagement
+Email Click Rate,E-commerce,Fashion,All,2.8,%,Average,2.1,2.8,3.6,4200,Mailchimp Vietnam Data 2024,2024-11,Clear CTA + mobile optimization
+Email Click Rate,E-commerce,Technology,All,3.2,%,Average,2.5,3.2,4.1,2400,Mailchimp Vietnam Data 2024,2024-11,Product launch emails perform best
+Email Unsubscribe Rate,E-commerce,All,All,0.3,%,Average,0.2,0.3,0.5,5600,Mailchimp Vietnam Data 2024,2024-11,>1% = review email frequency
+Social Media Engagement Rate,Facebook,E-commerce,All,2.1,%,Average,1.5,2.1,3.1,4800,DataReportal Vietnam 2024,2024-12,Video content 3-5x higher engagement
+Social Media Engagement Rate,Instagram,Fashion,18-34,3.8,%,Average,2.8,3.8,5.2,3200,DataReportal Vietnam 2024,2024-12,Stories + Reels drive engagement
+Social Media Engagement Rate,TikTok,Beauty,18-24,8.5,%,Average,6.2,8.5,11.8,2800,DataReportal Vietnam 2024,2024-12,Highest engagement platform for Gen Z
+Social Media Engagement Rate,LinkedIn,B2B,Professionals,1.2,%,Average,0.8,1.2,1.8,1200,HubSpot Vietnam Data 2024,2024-10,Thought leadership content works
+Video Completion Rate,Facebook,E-commerce,15 seconds,65,%,Average,58,65,72,3600,DataReportal Vietnam 2024,2024-12,First 3 seconds critical for hook
+Video Completion Rate,TikTok,Fashion,30 seconds,48,%,Average,42,48,55,2800,DataReportal Vietnam 2024,2024-12,Faster pacing keeps attention
+Video Completion Rate,YouTube,Technology,5 minutes,35,%,Average,28,35,42,1800,Google Vietnam Mobile 2024,2024-11,Tutorial content higher completion
+Influencer Post Engagement,Micro (10k-100k),Beauty,18-34 Female,4.5,%,Average,3.2,4.5,6.2,2400,DataReportal Vietnam 2024,2024-12,Higher trust than macro influencers
+Influencer Post Engagement,Macro (100k-1M),Fashion,18-34,2.8,%,Average,2.1,2.8,3.8,1600,DataReportal Vietnam 2024,2024-12,Brand awareness campaigns
+Influencer Post Engagement,Nano (<10k),Food & Beverage,All,6.2,%,Average,4.5,6.2,8.5,1800,DataReportal Vietnam 2024,2024-12,Local communities very engaged
+Mobile Traffic Share,E-commerce,All,All,75,%,Average,70,75,80,4200,Google Vietnam Mobile 2024,2024-11,Mobile-first absolutely critical
+Mobile Conversion Rate,E-commerce,Fashion,All,1.6,%,Average,1.2,1.6,2.2,3800,VECOM EBI 2024,2024-12,15-20% lower than desktop
+App Downloads Cost,Mobile App,E-commerce,All,28000,VND,Average,22000,28000,36000,1800,Google Vietnam Mobile 2024,2024-11,iOS typically 50% more expensive than Android
+App Retention Rate (Day 30),Mobile App,E-commerce,All,18,%,Average,14,18,24,1200,Google Vietnam Mobile 2024,2024-11,Push notifications increase retention 2-3x
+Organic Search Traffic Share,E-commerce,All,All,42,%,Average,35,42,50,3200,WordStream Vietnam 2024,2024-11,SEO investment pays long-term
+Paid Search Traffic Share,E-commerce,All,All,28,%,Average,22,28,35,3200,WordStream Vietnam 2024,2024-11,Seasonal fluctuation significant
+Social Traffic Share,E-commerce,All,All,18,%,Average,14,18,24,3200,DataReportal Vietnam 2024,2024-12,Facebook + TikTok drive most social traffic
+Direct Traffic Share,E-commerce,All,All,12,%,Average,8,12,16,3200,VECOM EBI 2024,2024-12,Brand awareness + loyalty
+Average Order Value (AOV),E-commerce,Fashion,All,650000,VND,Average,450000,650000,900000,4200,VECOM EBI 2024,2024-12,Lower than global due to price sensitivity
+Cart Abandonment Rate,E-commerce,Fashion,All,72,%,Average,68,72,77,3800,VECOM EBI 2024,2024-12,"High due to: browsing behavior, COD preference, comparison shopping"
+Cart Abandonment Rate,E-commerce,Electronics,All,68,%,Average,63,68,74,2400,VECOM EBI 2024,2024-12,Price comparison heavy in this category
+Payment Success Rate,E-commerce,Online Payment,All,82,%,Average,78,82,87,3600,VECOM EBI 2024,2024-12,Bank integration issues still common
+COD Success Rate,E-commerce,Cash on Delivery,All,88,%,Average,84,88,92,4200,VECOM EBI 2024,2024-12,"COD dominates (60-70% of orders), fake orders challenge"

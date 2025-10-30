@@ -1,0 +1,95 @@
+metric,category,platform,customer_segment,value,unit,benchmark_type,quartile_25,median,quartile_75,sample_size,source,last_updated,vietnam_reality_notes
+Average Order Value (AOV),Fashion,Shopee,18-34 Female,580000,VND,Average,420000,580000,780000,8500,VECOM EBI 2024,2024-12,"Flash sales drive volume, vouchers reduce AOV"
+Average Order Value (AOV),Fashion,Lazada,25-44 Female,720000,VND,Average,520000,720000,980000,5200,VECOM EBI 2024,2024-12,Slightly higher than Shopee demographic
+Average Order Value (AOV),Fashion,TikTok Shop,18-24 Female,450000,VND,Average,320000,450000,620000,6800,VECOM EBI 2024,2024-12,Impulse buying lower AOV
+Average Order Value (AOV),Fashion,Own Website,25-44,850000,VND,Average,620000,850000,1200000,2400,VECOM EBI 2024,2024-12,Higher quality perception = higher AOV
+Average Order Value (AOV),Electronics,Shopee,All,2800000,VND,Average,1800000,2800000,4200000,4200,VECOM EBI 2024,2024-12,"Phones, laptops drive high AOV"
+Average Order Value (AOV),Electronics,Lazada,All,3200000,VND,Average,2200000,3200000,4800000,3600,VECOM EBI 2024,2024-12,Brand store presence
+Average Order Value (AOV),Electronics,Tiki,25-44,3500000,VND,Average,2400000,3500000,5200000,2800,VECOM EBI 2024,2024-12,"Premium positioning, genuine products"
+Average Order Value (AOV),Beauty & Personal Care,Shopee,18-34 Female,320000,VND,Average,220000,320000,450000,7200,VECOM EBI 2024,2024-12,High frequency low value purchases
+Average Order Value (AOV),Beauty & Personal Care,Guardian/Watsons,25-44 Female,480000,VND,Average,340000,480000,650000,1800,VECOM EBI 2024,2024-12,O2O model higher trust
+Average Order Value (AOV),Home & Living,Shopee,25-44,680000,VND,Average,480000,680000,920000,3600,VECOM EBI 2024,2024-12,Furniture/decor higher ticket
+Average Order Value (AOV),Food & Beverage,GrabFood,All,145000,VND,Average,95000,145000,210000,12000,Google Vietnam Mobile 2024,2024-11,"Delivery fees impact, min order thresholds"
+Average Order Value (AOV),Food & Beverage,ShopeeFood,All,135000,VND,Average,88000,135000,195000,9500,Google Vietnam Mobile 2024,2024-11,Aggressive promotions lower AOV
+Average Order Value (AOV),Groceries,Bach Hoa Xanh App,30-55,280000,VND,Average,180000,280000,420000,5600,VECOM EBI 2024,2024-12,Weekly shopping habits
+Conversion Rate,Fashion,Shopee,Mobile,2.8,%,Average,2.1,2.8,3.6,8200,VECOM EBI 2024,2024-12,In-app experience optimized
+Conversion Rate,Fashion,Lazada,Mobile,2.4,%,Average,1.8,2.4,3.2,5000,VECOM EBI 2024,2024-12,Competition with Shopee
+Conversion Rate,Fashion,TikTok Shop,Mobile,3.2,%,Average,2.5,3.2,4.1,6500,VECOM EBI 2024,2024-12,Video commerce drives impulse buying
+Conversion Rate,Fashion,Own Website,Mobile,1.6,%,Average,1.2,1.6,2.2,2200,VECOM EBI 2024,2024-12,Trust barrier vs marketplaces
+Conversion Rate,Fashion,Own Website,Desktop,2.4,%,Average,1.8,2.4,3.2,1800,VECOM EBI 2024,2024-12,Research behavior on desktop
+Conversion Rate,Electronics,Shopee,All,1.8,%,Average,1.3,1.8,2.5,4000,VECOM EBI 2024,2024-12,Higher consideration category
+Conversion Rate,Electronics,Tiki,All,2.2,%,Average,1.6,2.2,3.0,2600,VECOM EBI 2024,2024-12,Genuine product guarantee increases conversion
+Conversion Rate,Beauty,Shopee,18-34 Female,3.5,%,Average,2.7,3.5,4.5,7000,VECOM EBI 2024,2024-12,Social proof (reviews) critical
+Conversion Rate,Home & Living,Shopee,All,1.5,%,Average,1.1,1.5,2.1,3400,VECOM EBI 2024,2024-12,Visualization challenges lower conversion
+Cart Abandonment Rate,Fashion,Shopee,All,68,%,Average,63,68,74,8000,VECOM EBI 2024,2024-12,"Browsing behavior, voucher hunting, comparison"
+Cart Abandonment Rate,Fashion,Lazada,All,72,%,Average,67,72,78,4800,VECOM EBI 2024,2024-12,Higher than Shopee due to UX friction
+Cart Abandonment Rate,Fashion,Own Website,All,78,%,Average,73,78,84,2000,VECOM EBI 2024,2024-12,"Trust issues, payment concerns, high shipping costs"
+Cart Abandonment Rate,Electronics,Shopee,All,75,%,Average,70,75,81,3800,VECOM EBI 2024,2024-12,Price comparison heavy
+Cart Abandonment Rate,Electronics,Tiki,All,71,%,Average,66,71,77,2400,VECOM EBI 2024,2024-12,Better checkout UX than competitors
+Cart Abandonment Rate,Beauty,Shopee,All,66,%,Average,61,66,72,6800,VECOM EBI 2024,2024-12,Lower consideration = lower abandonment
+Payment Method Share,COD (Cash on Delivery),All Platforms,All,62,%,Average,58,62,67,15000,VECOM EBI 2024,2024-12,"Trust issues, unbanked population, fake product concerns"
+Payment Method Share,E-Wallets (MoMo/ZaloPay),All Platforms,18-34,22,%,Average,18,22,27,15000,VECOM EBI 2024,2024-12,"Cashback incentives, convenience for young users"
+Payment Method Share,Bank Transfer,All Platforms,35-55,10,%,Average,7,10,14,15000,VECOM EBI 2024,2024-12,Online banking adoption growing
+Payment Method Share,Credit/Debit Card,All Platforms,25-44,6,%,Average,4,6,9,15000,VECOM EBI 2024,2024-12,"Low credit card penetration, security concerns"
+Payment Success Rate,COD,All,All,88,%,Average,84,88,92,12000,VECOM EBI 2024,2024-12,"Fake orders 10-15%, customer not home, changed mind"
+Payment Success Rate,E-Wallets,All,All,94,%,Average,91,94,97,8500,VECOM EBI 2024,2024-12,Pre-authorized payment reduces failures
+Payment Success Rate,Bank Transfer,All,All,82,%,Average,78,82,87,4200,VECOM EBI 2024,2024-12,Manual reconciliation delays
+Payment Success Rate,Credit/Debit Card,All,All,86,%,Average,82,86,91,3600,VECOM EBI 2024,2024-12,"OTP issues, insufficient funds, security blocks"
+Delivery Time,Standard,Ho Chi Minh inner city,All,2.5,days,Average,2,2.5,3,18000,VECOM EBI 2024,2024-12,Same-day in some districts
+Delivery Time,Standard,Hanoi inner city,All,2.8,days,Average,2,2.8,4,14000,VECOM EBI 2024,2024-12,Northern logistics slightly slower
+Delivery Time,Standard,Provincial cities,All,4.5,days,Average,3,4.5,6,8500,VECOM EBI 2024,2024-12,Da Nang/Can Tho faster than remote provinces
+Delivery Time,Standard,Remote provinces,All,6.5,days,Average,5,6.5,9,4200,VECOM EBI 2024,2024-12,Infrastructure challenges
+Delivery Time,Express,Ho Chi Minh,All,1.2,days,Average,1,1.2,2,6500,VECOM EBI 2024,2024-12,"Same-day possible for premium, +15-25k VND"
+Delivery Time,Express,Hanoi,All,1.5,days,Average,1,1.5,2,5200,VECOM EBI 2024,2024-12,Same-day premium service
+Delivery Cost,Standard,Inner city,Order <200k VND,25000,VND,Average,20000,25000,30000,15000,VECOM EBI 2024,2024-12,Free shipping vouchers common
+Delivery Cost,Standard,Inner city,Order >500k VND,0,VND,Average,0,0,15000,15000,VECOM EBI 2024,2024-12,Most platforms free shipping threshold 200-500k
+Delivery Cost,Standard,Provincial,Order <200k VND,35000,VND,Average,28000,35000,45000,8000,VECOM EBI 2024,2024-12,Distance-based pricing
+Delivery Cost,Express,Inner city,All,45000,VND,Average,35000,45000,60000,6000,VECOM EBI 2024,2024-12,Customer pays premium for speed
+Delivery Success Rate (First Attempt),Ho Chi Minh,All,All,82,%,Average,78,82,87,18000,VECOM EBI 2024,2024-12,"Customer not home, wrong address, phone off"
+Delivery Success Rate (First Attempt),Hanoi,All,All,80,%,Average,76,80,85,14000,VECOM EBI 2024,2024-12,Similar challenges as HCM
+Delivery Success Rate (First Attempt),Provincial,All,All,75,%,Average,70,75,81,8500,VECOM EBI 2024,2024-12,Address accuracy issues in rural areas
+Return Rate,Fashion,All,All,8.5,%,Average,6.5,8.5,11.5,12000,VECOM EBI 2024,2024-12,"Size mismatch, color difference, quality issues"
+Return Rate,Electronics,All,All,4.2,%,Average,3.1,4.2,5.8,6500,VECOM EBI 2024,2024-12,"DOA (dead on arrival), defects, wrong specs"
+Return Rate,Beauty,All,All,3.8,%,Average,2.8,3.8,5.2,8200,VECOM EBI 2024,2024-12,"Skin reactions, fake products, wrong shade"
+Return Rate,Home & Living,All,All,6.5,%,Average,4.8,6.5,8.8,4800,VECOM EBI 2024,2024-12,"Damaged in transit, size mismatch, quality issues"
+Return Rate,Groceries,All,All,2.1,%,Average,1.5,2.1,3.2,5600,VECOM EBI 2024,2024-12,"Expired products, damaged, wrong items"
+Customer Service Response Time,Shopee,Chat,All,2.5,minutes,Average,1.5,2.5,4,12000,VECOM EBI 2024,2024-12,24/7 chatbot + human handoff
+Customer Service Response Time,Lazada,Chat,All,3.8,minutes,Average,2,3.8,6,8500,VECOM EBI 2024,2024-12,Peak hours slower response
+Customer Service Response Time,Own Website,Chat,Business hours,8.5,minutes,Average,5,8.5,15,2400,VECOM EBI 2024,2024-12,Limited resources for SMEs
+Customer Service Response Time,Phone,All,Business hours,12,minutes,Average,8,12,18,4200,VECOM EBI 2024,2024-12,"Wait time + IVR, customers prefer chat"
+Customer Service Resolution Rate,First Contact,All,All,68,%,Average,62,68,75,15000,VECOM EBI 2024,2024-12,"Common issues: delivery, refund, product info"
+Customer Service Satisfaction,Shopee,All,All,4.2,rating (1-5),Average,3.8,4.2,4.6,12000,VECOM EBI 2024,2024-12,Shopee Guarantee builds trust
+Customer Service Satisfaction,Lazada,All,All,3.8,rating (1-5),Average,3.4,3.8,4.3,8500,VECOM EBI 2024,2024-12,Improvement needed vs Shopee
+Customer Service Satisfaction,Own Website,All,All,3.5,rating (1-5),Average,3.0,3.5,4.1,2400,VECOM EBI 2024,2024-12,Variable quality across merchants
+Review Rate,Fashion,Shopee,All,12.5,%,Average,9,12.5,17,15000,VECOM EBI 2024,2024-12,Incentivized reviews (coins/vouchers)
+Review Rate,Electronics,Shopee,All,8.5,%,Average,6,8.5,12,8000,VECOM EBI 2024,2024-12,Higher consideration = lower review rate
+Review Rate,Beauty,Shopee,All,15.2,%,Average,11,15.2,20,10000,VECOM EBI 2024,2024-12,Community-driven category
+Average Review Rating,Fashion,All,All,4.3,rating (1-5),Average,4.0,4.3,4.6,25000,VECOM EBI 2024,2024-12,Positive bias (satisfied customers review)
+Average Review Rating,Electronics,All,All,4.1,rating (1-5),Average,3.7,4.1,4.5,15000,VECOM EBI 2024,2024-12,Quality issues surface in reviews
+Photo/Video Review Rate,Fashion,Shopee,All,35,%,Average,28,35,43,12000,VECOM EBI 2024,2024-12,Coins/vouchers incentivize media reviews
+Photo/Video Review Rate,Beauty,Shopee,All,42,%,Average,35,42,50,10000,VECOM EBI 2024,2024-12,Visual proof important in beauty
+Repeat Purchase Rate (30 days),Fashion,Shopee,All,18.5,%,Average,14,18.5,24,15000,VECOM EBI 2024,2024-12,"Frequent promotions, flash sales drive repeat"
+Repeat Purchase Rate (30 days),Beauty,Shopee,All,24.2,%,Average,19,24.2,31,12000,VECOM EBI 2024,2024-12,Consumables = higher repeat rate
+Repeat Purchase Rate (30 days),Groceries,Bach Hoa Xanh,All,48.5,%,Average,42,48.5,56,8500,VECOM EBI 2024,2024-12,Weekly shopping habits
+Repeat Purchase Rate (90 days),Fashion,All,All,35,%,Average,28,35,43,18000,VECOM EBI 2024,2024-12,Seasonal purchases affect rate
+Repeat Purchase Rate (90 days),Electronics,All,All,8.5,%,Average,6,8.5,12,10000,VECOM EBI 2024,2024-12,Low frequency category
+Customer Lifetime Value (12 months),Fashion,Shopee,Repeat Customers,2800000,VND,Average,1800000,2800000,4200000,8500,VECOM EBI 2024,2024-12,~6-8 orders per year
+Customer Lifetime Value (12 months),Beauty,Shopee,Repeat Customers,3500000,VND,Average,2400000,3500000,5200000,7200,VECOM EBI 2024,2024-12,Monthly repurchase habits
+Customer Lifetime Value (12 months),Electronics,All,All,4800000,VND,Average,3200000,4800000,7500000,5600,VECOM EBI 2024,2024-12,"1-2 big purchases, accessories"
+Mobile App Usage,Shopping Apps,All,Daily Active Users,45,%,Average,38,45,53,25000,Google Vietnam Mobile 2024,2024-11,"Shopee/Lazada apps very sticky, push notifications"
+Mobile App Session Duration,Shopee,All,All,8.5,minutes,Average,6,8.5,12,15000,Google Vietnam Mobile 2024,2024-11,"Browse mode, entertainment"
+Mobile App Session Duration,Lazada,All,All,6.2,minutes,Average,4.5,6.2,9,10000,Google Vietnam Mobile 2024,2024-11,More transactional
+Mobile App Session Duration,Tiki,All,All,5.8,minutes,Average,4,5.8,8,6500,Google Vietnam Mobile 2024,2024-11,Purpose-driven shopping
+Live Stream Commerce Conversion,Fashion,Shopee Live,18-34 Female,4.5,%,Average,3.2,4.5,6.2,8500,VECOM EBI 2024,2024-12,Flash deals during live
+Live Stream Commerce Conversion,Beauty,TikTok Shop,18-24,5.8,%,Average,4.2,5.8,8,6800,VECOM EBI 2024,2024-12,Influencer-driven high conversion
+Live Stream Average View Duration,Fashion,Shopee Live,All,12,minutes,Average,8,12,18,8000,VECOM EBI 2024,2024-12,Engaging hosts keep viewers
+Live Stream Average Order Value,Fashion,Shopee Live,All,420000,VND,Average,320000,420000,580000,8500,VECOM EBI 2024,2024-12,Flash deal pricing lowers AOV
+Voucher Redemption Rate,Platform Vouchers,Shopee,All,68,%,Average,62,68,75,20000,VECOM EBI 2024,2024-12,"Coins system, gamification works"
+Voucher Redemption Rate,Seller Vouchers,Shopee,All,45,%,Average,38,45,54,15000,VECOM EBI 2024,2024-12,Minimum order thresholds
+Voucher Redemption Rate,Free Shipping,All,All,82,%,Average,77,82,88,25000,VECOM EBI 2024,2024-12,Most important voucher type for VN users
+Platform Fee,Shopee,Commission,Fashion,3-5,%,Range,3,4,5,N/A,Shopee Seller Policy 2024,2024-12,Category-dependent
+Platform Fee,Lazada,Commission,Fashion,2-4,%,Range,2,3,4,N/A,Lazada Seller Policy 2024,2024-12,Competitive with Shopee
+Platform Fee,TikTok Shop,Commission,Fashion,1-5,%,Range,1,2,5,N/A,TikTok Shop Policy 2024,2024-12,Growth phase aggressive pricing
+Transaction Fee,Payment Processing,COD,All,3,%,Fixed,3,3,3,N/A,VECOM EBI 2024,2024-12,Flat 3% for COD handling
+Transaction Fee,Payment Processing,E-Wallet,All,1.5,%,Fixed,1.5,1.5,1.5,N/A,VECOM EBI 2024,2024-12,Lower than COD
+Transaction Fee,Payment Processing,Bank Transfer,All,0.8,%,Fixed,0.8,0.8,0.8,N/A,VECOM EBI 2024,2024-12,Lowest cost option
