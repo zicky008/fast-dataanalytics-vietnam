@@ -1,0 +1,156 @@
+# Human Resources Analytics - Semantic Layer
+# Industry Benchmarks: Turnover <15%, Productivity $200K+ per employee, Satisfaction 4.0+
+
+catalog: hr_analytics
+schema: main
+dataSource: LOCAL_FILE
+version: "1.0"
+
+models:
+  - name: employees
+    tableReference: hr_data.csv
+    description: Employee records and metrics
+    columns:
+      - name: employee_id
+        type: STRING
+        description: Unique employee identifier
+      - name: hire_date
+        type: DATE
+        description: Date of hire
+      - name: termination_date
+        type: DATE
+        description: Termination date (NULL if active)
+      - name: department
+        type: STRING
+        description: Department name
+      - name: job_title
+        type: STRING
+        description: Job title/position
+      - name: employment_status
+        type: STRING
+        description: Employment status (Active, Terminated, On Leave)
+      - name: salary
+        type: FLOAT
+        description: Annual salary (VND)
+      - name: performance_rating
+        type: INTEGER
+        description: Performance rating (1-5 scale)
+      - name: satisfaction_score
+        type: INTEGER
+        description: Employee satisfaction score (1-5 scale)
+      - name: training_hours
+        type: INTEGER
+        description: Training hours completed
+      - name: days_absent
+        type: INTEGER
+        description: Days absent in period
+      - name: revenue_generated
+        type: FLOAT
+        description: Revenue attributed to employee (VND)
+      - name: is_voluntary_termination
+        type: BOOLEAN
+        description: Voluntary termination (TRUE/FALSE)
+      - name: tenure_months
+        type: INTEGER
+        description: Tenure in months
+    primaryKey: employee_id
+
+relationships: []
+
+metrics:
+  - name: hr_performance_kpis
+    baseObject: employees
+    description: Human capital performance indicators
+    dimension:
+      - department
+      - job_title
+      - employment_status
+    measure:
+      - name: total_employees
+        type: MEASURE
+        operator: COUNT
+        expression: COUNT(*)
+        description: Total employee headcount
+      
+      - name: active_employees
+        type: CALCULATED_MEASURE
+        expression: SUM(CASE WHEN employment_status = 'Active' THEN 1 ELSE 0 END)
+        description: Active employee count
+      
+      - name: terminated_employees
+        type: CALCULATED_MEASURE
+        expression: SUM(CASE WHEN employment_status = 'Terminated' THEN 1 ELSE 0 END)
+        description: Terminated employee count
+      
+      - name: turnover_rate
+        type: CALCULATED_MEASURE
+        expression: |
+          SUM(CASE WHEN employment_status = 'Terminated' THEN 1 ELSE 0 END) * 100.0 /
+          NULLIF(SUM(CASE WHEN employment_status = 'Active' THEN 1 ELSE 0 END), 0)
+        description: Employee turnover rate (Industry benchmark <15%)
+      
+      - name: voluntary_turnover_rate
+        type: CALCULATED_MEASURE
+        expression: |
+          SUM(CASE WHEN is_voluntary_termination THEN 1 ELSE 0 END) * 100.0 /
+          NULLIF(SUM(CASE WHEN employment_status = 'Active' THEN 1 ELSE 0 END), 0)
+        description: Voluntary turnover rate
+      
+      - name: avg_tenure_months
+        type: MEASURE
+        operator: AVG
+        expression: AVG(tenure_months)
+        description: Average employee tenure (months)
+      
+      - name: avg_salary
+        type: MEASURE
+        operator: AVG
+        expression: AVG(salary)
+        description: Average annual salary (VND)
+      
+      - name: total_payroll
+        type: MEASURE
+        operator: SUM
+        expression: SUM(salary)
+        description: Total annual payroll (VND)
+      
+      - name: avg_performance_rating
+        type: MEASURE
+        operator: AVG
+        expression: AVG(performance_rating)
+        description: Average performance rating (1-5 scale)
+      
+      - name: avg_satisfaction_score
+        type: MEASURE
+        operator: AVG
+        expression: AVG(satisfaction_score)
+        description: Average employee satisfaction (Industry benchmark 4.0+)
+      
+      - name: revenue_per_employee
+        type: CALCULATED_MEASURE
+        expression: SUM(revenue_generated) / NULLIF(COUNT(*), 0)
+        description: Revenue per employee (Productivity benchmark $200K+ or ₫4.8B+)
+      
+      - name: total_training_hours
+        type: MEASURE
+        operator: SUM
+        expression: SUM(training_hours)
+        description: Total training hours
+      
+      - name: avg_training_hours
+        type: MEASURE
+        operator: AVG
+        expression: AVG(training_hours)
+        description: Average training hours per employee
+      
+      - name: absenteeism_rate
+        type: CALCULATED_MEASURE
+        expression: AVG(days_absent) * 100.0 / 22
+        description: Absenteeism rate (assuming 22 working days/month)
+    
+    timeGrain:
+      - name: by_hire_date
+        refColumn: hire_date
+        dateParts: [YEAR, QUARTER, MONTH]
+    
+    benchmark: "Industry Standard: Turnover <15%, Productivity ₫4.8B+ per employee, Satisfaction 4.0+, Absenteeism <3%"

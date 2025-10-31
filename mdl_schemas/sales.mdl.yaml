@@ -1,0 +1,98 @@
+# Sales Analytics - Semantic Layer
+# Industry Benchmarks: Win Rate 20-30%, Conversion 2-5%, ASP growth 10%+ YoY
+
+catalog: sales_analytics
+schema: main
+dataSource: LOCAL_FILE
+version: "1.0"
+
+models:
+  - name: opportunities
+    tableReference: sales_data.csv
+    description: Sales pipeline opportunities
+    columns:
+      - name: opportunity_id
+        type: STRING
+        description: Unique opportunity identifier
+      - name: created_date
+        type: DATE
+        description: Opportunity creation date
+      - name: close_date
+        type: DATE
+        description: Expected/actual close date
+      - name: stage
+        type: STRING
+        description: Pipeline stage (Lead, Qualified, Proposal, Negotiation, Closed Won, Closed Lost)
+      - name: amount
+        type: FLOAT
+        description: Deal value in VND
+      - name: probability
+        type: INTEGER
+        description: Win probability percentage (0-100)
+      - name: lead_source
+        type: STRING
+        description: Lead source channel
+      - name: account_id
+        type: STRING
+        description: Customer account identifier
+      - name: owner_id
+        type: STRING
+        description: Sales rep identifier
+      - name: product_category
+        type: STRING
+        description: Product/service category
+      - name: is_won
+        type: BOOLEAN
+        description: Deal won (TRUE/FALSE)
+    primaryKey: opportunity_id
+
+relationships: []
+
+metrics:
+  - name: sales_performance_kpis
+    baseObject: opportunities
+    description: Sales team performance metrics
+    dimension:
+      - stage
+      - lead_source
+      - product_category
+    measure:
+      - name: total_opportunities
+        type: MEASURE
+        operator: COUNT
+        expression: COUNT(*)
+        description: Total number of opportunities
+      
+      - name: total_pipeline_value
+        type: MEASURE
+        operator: SUM
+        expression: SUM(amount)
+        description: Total pipeline value (VND)
+      
+      - name: avg_deal_size
+        type: MEASURE
+        operator: AVG
+        expression: AVG(amount)
+        description: Average deal size (ASP - Average Sales Price)
+      
+      - name: win_rate
+        type: CALCULATED_MEASURE
+        expression: SUM(CASE WHEN is_won THEN 1 ELSE 0 END) * 100.0 / COUNT(*)
+        description: Opportunity win rate (Industry benchmark 20-30%)
+      
+      - name: conversion_rate
+        type: CALCULATED_MEASURE
+        expression: SUM(CASE WHEN stage = 'Closed Won' THEN 1 ELSE 0 END) * 100.0 / COUNT(*)
+        description: Lead to customer conversion rate (Industry benchmark 2-5%)
+      
+      - name: weighted_pipeline
+        type: CALCULATED_MEASURE
+        expression: SUM(amount * probability / 100.0)
+        description: Probability-weighted pipeline value
+    
+    timeGrain:
+      - name: by_close_date
+        refColumn: close_date
+        dateParts: [YEAR, QUARTER, MONTH]
+    
+    benchmark: "Industry Standard: Win Rate 20-30%, Conversion 2-5%, ASP growth 10%+ YoY"

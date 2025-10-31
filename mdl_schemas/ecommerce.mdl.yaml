@@ -1,0 +1,131 @@
+# E-commerce Analytics - Semantic Layer
+# Industry Benchmarks: AOV $50-100, Cart Abandonment <70%, CLV/CAC >3:1
+
+catalog: ecommerce_analytics
+schema: main
+dataSource: LOCAL_FILE
+version: "1.0"
+
+models:
+  - name: orders
+    tableReference: ecommerce_data.csv
+    description: E-commerce order transactions
+    columns:
+      - name: order_id
+        type: STRING
+        description: Unique order identifier
+      - name: order_date
+        type: DATE
+        description: Order placement date
+      - name: customer_id
+        type: STRING
+        description: Customer identifier
+      - name: order_value
+        type: FLOAT
+        description: Order total value (VND)
+      - name: product_category
+        type: STRING
+        description: Primary product category
+      - name: quantity
+        type: INTEGER
+        description: Total items in order
+      - name: shipping_cost
+        type: FLOAT
+        description: Shipping cost (VND)
+      - name: discount_amount
+        type: FLOAT
+        description: Discount applied (VND)
+      - name: payment_method
+        type: STRING
+        description: Payment method used
+      - name: channel
+        type: STRING
+        description: Sales channel (Web, Mobile, Marketplace)
+      - name: is_first_purchase
+        type: BOOLEAN
+        description: First purchase for customer (TRUE/FALSE)
+      - name: cart_abandonment
+        type: BOOLEAN
+        description: Cart was abandoned before purchase (TRUE/FALSE)
+      - name: delivery_time_days
+        type: INTEGER
+        description: Delivery time in days
+    primaryKey: order_id
+
+relationships: []
+
+metrics:
+  - name: ecommerce_performance_kpis
+    baseObject: orders
+    description: E-commerce business performance metrics
+    dimension:
+      - product_category
+      - channel
+      - payment_method
+    measure:
+      - name: total_orders
+        type: MEASURE
+        operator: COUNT
+        expression: COUNT(*)
+        description: Total number of orders
+      
+      - name: total_revenue
+        type: MEASURE
+        operator: SUM
+        expression: SUM(order_value)
+        description: Total revenue (VND)
+      
+      - name: aov
+        type: CALCULATED_MEASURE
+        expression: SUM(order_value) / NULLIF(COUNT(*), 0)
+        description: Average Order Value - AOV (Industry benchmark $50-100 / ₫1.2M-2.4M)
+      
+      - name: total_units_sold
+        type: MEASURE
+        operator: SUM
+        expression: SUM(quantity)
+        description: Total units sold
+      
+      - name: avg_units_per_order
+        type: CALCULATED_MEASURE
+        expression: SUM(quantity) * 1.0 / NULLIF(COUNT(*), 0)
+        description: Average units per order
+      
+      - name: cart_abandonment_rate
+        type: CALCULATED_MEASURE
+        expression: SUM(CASE WHEN cart_abandonment THEN 1 ELSE 0 END) * 100.0 / COUNT(*)
+        description: Cart abandonment rate (Industry benchmark <70%)
+      
+      - name: first_time_customer_rate
+        type: CALCULATED_MEASURE
+        expression: SUM(CASE WHEN is_first_purchase THEN 1 ELSE 0 END) * 100.0 / COUNT(*)
+        description: First-time customer percentage
+      
+      - name: repeat_customer_rate
+        type: CALCULATED_MEASURE
+        expression: SUM(CASE WHEN NOT is_first_purchase THEN 1 ELSE 0 END) * 100.0 / COUNT(*)
+        description: Repeat customer percentage
+      
+      - name: avg_delivery_time
+        type: MEASURE
+        operator: AVG
+        expression: AVG(delivery_time_days)
+        description: Average delivery time (days)
+      
+      - name: total_discounts
+        type: MEASURE
+        operator: SUM
+        expression: SUM(discount_amount)
+        description: Total discounts given (VND)
+      
+      - name: discount_rate
+        type: CALCULATED_MEASURE
+        expression: SUM(discount_amount) * 100.0 / NULLIF(SUM(order_value), 0)
+        description: Discount rate as percentage of revenue
+    
+    timeGrain:
+      - name: by_order_date
+        refColumn: order_date
+        dateParts: [YEAR, QUARTER, MONTH, DAY]
+    
+    benchmark: "Industry Standard: AOV ₫1.2M-2.4M, Cart Abandonment <70%, Repeat Rate 30%+, Delivery <5 days"

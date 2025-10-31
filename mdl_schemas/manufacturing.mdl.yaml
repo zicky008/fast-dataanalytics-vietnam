@@ -1,0 +1,130 @@
+# Manufacturing Analytics - Semantic Layer
+# Industry Benchmarks: OEE 85%+, Defect Rate <1%, On-time Delivery 95%+
+
+catalog: manufacturing_analytics
+schema: main
+dataSource: LOCAL_FILE
+version: "1.0"
+
+models:
+  - name: production_runs
+    tableReference: manufacturing_data.csv
+    description: Production line execution records
+    columns:
+      - name: run_id
+        type: STRING
+        description: Unique production run identifier
+      - name: production_date
+        type: DATE
+        description: Production date
+      - name: product_code
+        type: STRING
+        description: Product identifier
+      - name: line_id
+        type: STRING
+        description: Production line identifier
+      - name: shift
+        type: STRING
+        description: Work shift (Morning, Afternoon, Night)
+      - name: planned_quantity
+        type: INTEGER
+        description: Planned production quantity
+      - name: actual_quantity
+        type: INTEGER
+        description: Actual production quantity
+      - name: defect_quantity
+        type: INTEGER
+        description: Defective units
+      - name: planned_runtime_minutes
+        type: INTEGER
+        description: Planned runtime (minutes)
+      - name: actual_runtime_minutes
+        type: INTEGER
+        description: Actual runtime (minutes)
+      - name: downtime_minutes
+        type: INTEGER
+        description: Unplanned downtime (minutes)
+      - name: cycle_time_seconds
+        type: FLOAT
+        description: Cycle time per unit (seconds)
+      - name: scrap_cost
+        type: FLOAT
+        description: Cost of scrap/waste (VND)
+    primaryKey: run_id
+
+relationships: []
+
+metrics:
+  - name: manufacturing_efficiency_kpis
+    baseObject: production_runs
+    description: OEE and production efficiency metrics
+    dimension:
+      - product_code
+      - line_id
+      - shift
+    measure:
+      - name: total_planned_quantity
+        type: MEASURE
+        operator: SUM
+        expression: SUM(planned_quantity)
+        description: Total planned production units
+      
+      - name: total_actual_quantity
+        type: MEASURE
+        operator: SUM
+        expression: SUM(actual_quantity)
+        description: Total actual production units
+      
+      - name: total_defects
+        type: MEASURE
+        operator: SUM
+        expression: SUM(defect_quantity)
+        description: Total defective units
+      
+      - name: availability
+        type: CALCULATED_MEASURE
+        expression: (SUM(actual_runtime_minutes) * 100.0) / NULLIF(SUM(planned_runtime_minutes), 0)
+        description: Equipment availability percentage (OEE component)
+      
+      - name: performance
+        type: CALCULATED_MEASURE
+        expression: (SUM(actual_quantity) * 100.0) / NULLIF(SUM(planned_quantity), 0)
+        description: Performance efficiency percentage (OEE component)
+      
+      - name: quality
+        type: CALCULATED_MEASURE
+        expression: ((SUM(actual_quantity) - SUM(defect_quantity)) * 100.0) / NULLIF(SUM(actual_quantity), 0)
+        description: Quality rate percentage (OEE component)
+      
+      - name: oee
+        type: CALCULATED_MEASURE
+        expression: |
+          (
+            (SUM(actual_runtime_minutes) / NULLIF(SUM(planned_runtime_minutes), 0)) *
+            (SUM(actual_quantity) / NULLIF(SUM(planned_quantity), 0)) *
+            ((SUM(actual_quantity) - SUM(defect_quantity)) / NULLIF(SUM(actual_quantity), 0))
+          ) * 100.0
+        description: Overall Equipment Effectiveness - OEE (Industry benchmark 85%+)
+      
+      - name: defect_rate
+        type: CALCULATED_MEASURE
+        expression: SUM(defect_quantity) * 100.0 / NULLIF(SUM(actual_quantity), 0)
+        description: Defect rate percentage (Industry benchmark <1%)
+      
+      - name: avg_cycle_time
+        type: MEASURE
+        operator: AVG
+        expression: AVG(cycle_time_seconds)
+        description: Average cycle time per unit (seconds)
+      
+      - name: total_downtime_hours
+        type: CALCULATED_MEASURE
+        expression: SUM(downtime_minutes) / 60.0
+        description: Total unplanned downtime (hours)
+    
+    timeGrain:
+      - name: by_production_date
+        refColumn: production_date
+        dateParts: [YEAR, MONTH, DAY]
+    
+    benchmark: "Industry Standard: OEE 85%+, Defect Rate <1%, Availability 90%+, Performance 95%+, Quality 99%+"
