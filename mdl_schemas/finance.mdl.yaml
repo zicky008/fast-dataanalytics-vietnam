@@ -1,0 +1,134 @@
+# Finance Analytics - Semantic Layer
+# Industry Benchmarks: Gross Margin 40%+, Operating Margin 15%+, Current Ratio >1.5
+
+catalog: finance_analytics
+schema: main
+dataSource: LOCAL_FILE
+version: "1.0"
+
+models:
+  - name: transactions
+    tableReference: finance_data.csv
+    description: Financial transactions and GL entries
+    columns:
+      - name: transaction_id
+        type: STRING
+        description: Unique transaction identifier
+      - name: transaction_date
+        type: DATE
+        description: Transaction date
+      - name: account_code
+        type: STRING
+        description: Chart of accounts code
+      - name: account_name
+        type: STRING
+        description: Account name
+      - name: account_type
+        type: STRING
+        description: Account type (Asset, Liability, Equity, Revenue, Expense)
+      - name: category
+        type: STRING
+        description: Transaction category
+      - name: debit
+        type: FLOAT
+        description: Debit amount (VND)
+      - name: credit
+        type: FLOAT
+        description: Credit amount (VND)
+      - name: department
+        type: STRING
+        description: Department/cost center
+      - name: vendor_customer
+        type: STRING
+        description: Vendor or customer name
+      - name: description
+        type: STRING
+        description: Transaction description
+      - name: payment_status
+        type: STRING
+        description: Payment status (Paid, Pending, Overdue)
+    primaryKey: transaction_id
+
+relationships: []
+
+metrics:
+  - name: financial_performance_kpis
+    baseObject: transactions
+    description: Core financial performance indicators
+    dimension:
+      - account_type
+      - category
+      - department
+    measure:
+      - name: total_revenue
+        type: CALCULATED_MEASURE
+        expression: SUM(CASE WHEN account_type = 'Revenue' THEN credit ELSE 0 END)
+        description: Total revenue (VND)
+      
+      - name: total_cogs
+        type: CALCULATED_MEASURE
+        expression: SUM(CASE WHEN category = 'Cost of Goods Sold' THEN debit ELSE 0 END)
+        description: Total Cost of Goods Sold (VND)
+      
+      - name: gross_profit
+        type: CALCULATED_MEASURE
+        expression: |
+          SUM(CASE WHEN account_type = 'Revenue' THEN credit ELSE 0 END) -
+          SUM(CASE WHEN category = 'Cost of Goods Sold' THEN debit ELSE 0 END)
+        description: Gross Profit (Revenue - COGS)
+      
+      - name: gross_margin
+        type: CALCULATED_MEASURE
+        expression: |
+          (
+            SUM(CASE WHEN account_type = 'Revenue' THEN credit ELSE 0 END) -
+            SUM(CASE WHEN category = 'Cost of Goods Sold' THEN debit ELSE 0 END)
+          ) * 100.0 / NULLIF(SUM(CASE WHEN account_type = 'Revenue' THEN credit ELSE 0 END), 0)
+        description: Gross Margin percentage (Industry benchmark 40%+)
+      
+      - name: total_operating_expenses
+        type: CALCULATED_MEASURE
+        expression: SUM(CASE WHEN account_type = 'Expense' AND category != 'Cost of Goods Sold' THEN debit ELSE 0 END)
+        description: Total operating expenses (VND)
+      
+      - name: operating_profit
+        type: CALCULATED_MEASURE
+        expression: |
+          SUM(CASE WHEN account_type = 'Revenue' THEN credit ELSE 0 END) -
+          SUM(CASE WHEN category = 'Cost of Goods Sold' THEN debit ELSE 0 END) -
+          SUM(CASE WHEN account_type = 'Expense' AND category != 'Cost of Goods Sold' THEN debit ELSE 0 END)
+        description: Operating Profit (EBIT)
+      
+      - name: operating_margin
+        type: CALCULATED_MEASURE
+        expression: |
+          (
+            SUM(CASE WHEN account_type = 'Revenue' THEN credit ELSE 0 END) -
+            SUM(CASE WHEN category = 'Cost of Goods Sold' THEN debit ELSE 0 END) -
+            SUM(CASE WHEN account_type = 'Expense' AND category != 'Cost of Goods Sold' THEN debit ELSE 0 END)
+          ) * 100.0 / NULLIF(SUM(CASE WHEN account_type = 'Revenue' THEN credit ELSE 0 END), 0)
+        description: Operating Margin percentage (Industry benchmark 15%+)
+      
+      - name: total_assets
+        type: CALCULATED_MEASURE
+        expression: SUM(CASE WHEN account_type = 'Asset' THEN debit - credit ELSE 0 END)
+        description: Total assets (VND)
+      
+      - name: total_liabilities
+        type: CALCULATED_MEASURE
+        expression: SUM(CASE WHEN account_type = 'Liability' THEN credit - debit ELSE 0 END)
+        description: Total liabilities (VND)
+      
+      - name: current_ratio
+        type: CALCULATED_MEASURE
+        expression: |
+          SUM(CASE WHEN account_type = 'Asset' AND category = 'Current Asset' THEN debit - credit ELSE 0 END) /
+          NULLIF(SUM(CASE WHEN account_type = 'Liability' AND category = 'Current Liability' THEN credit - debit ELSE 0 END), 0)
+        description: Current Ratio (Current Assets / Current Liabilities, benchmark >1.5)
+    
+    timeGrain:
+      - name: by_transaction_date
+        refColumn: transaction_date
+        dateParts: [YEAR, QUARTER, MONTH]
+    
+    benchmark: "Industry Standard: Gross Margin 40%+, Operating Margin 15%+, Current Ratio >1.5, ROA 5%+"

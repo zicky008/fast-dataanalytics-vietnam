@@ -1,0 +1,106 @@
+# Customer Service Analytics - Semantic Layer
+# Industry Benchmarks: FCR 70-75%, SLA Compliance 85%+, Avg Resolution <24h
+
+catalog: customer_service_analytics
+schema: main
+dataSource: LOCAL_FILE
+version: "1.0"
+
+models:
+  - name: tickets
+    tableReference: customer_service.csv
+    description: Customer support ticket records
+    columns:
+      - name: ticket_id
+        type: STRING
+        description: Unique ticket identifier
+      - name: created_date
+        type: DATE
+        description: Ticket creation timestamp
+      - name: resolved_date
+        type: DATE
+        description: Ticket resolution timestamp
+      - name: status
+        type: STRING
+        description: Current status (Open, In Progress, Resolved, Closed)
+      - name: priority
+        type: STRING
+        description: Priority level (Low, Medium, High, Critical)
+      - name: category
+        type: STRING
+        description: Issue category
+      - name: response_time_minutes
+        type: INTEGER
+        description: Time to first response in minutes
+      - name: resolution_time_minutes
+        type: INTEGER
+        description: Total resolution time in minutes
+      - name: first_contact_resolved
+        type: BOOLEAN
+        description: Resolved on first contact (TRUE/FALSE)
+      - name: agent_id
+        type: STRING
+        description: Assigned agent identifier
+      - name: customer_id
+        type: STRING
+        description: Customer identifier
+      - name: channel
+        type: STRING
+        description: Contact channel (Phone, Email, Chat, Portal)
+      - name: satisfaction_score
+        type: INTEGER
+        description: Customer satisfaction rating (1-5)
+    primaryKey: ticket_id
+
+relationships: []
+
+metrics:
+  - name: customer_service_kpis
+    baseObject: tickets
+    description: Core customer service performance indicators
+    dimension:
+      - status
+      - priority
+      - category
+      - channel
+    measure:
+      - name: total_tickets
+        type: MEASURE
+        operator: COUNT
+        expression: COUNT(*)
+        description: Total number of tickets
+      
+      - name: avg_response_time
+        type: MEASURE
+        operator: AVG
+        expression: AVG(response_time_minutes)
+        description: Average time to first response (minutes)
+      
+      - name: avg_resolution_time
+        type: MEASURE
+        operator: AVG
+        expression: AVG(resolution_time_minutes)
+        description: Average time to resolution (minutes)
+      
+      - name: fcr_rate
+        type: CALCULATED_MEASURE
+        expression: SUM(CASE WHEN first_contact_resolved THEN 1 ELSE 0 END) * 100.0 / COUNT(*)
+        description: First Contact Resolution Rate (Industry benchmark 70-75%)
+      
+      - name: sla_compliance_rate
+        type: CALCULATED_MEASURE
+        expression: SUM(CASE WHEN resolution_time_minutes <= 1440 THEN 1 ELSE 0 END) * 100.0 / COUNT(*)
+        description: Tickets resolved within 24 hours (Industry benchmark 85%+)
+      
+      - name: avg_satisfaction
+        type: MEASURE
+        operator: AVG
+        expression: AVG(satisfaction_score)
+        description: Average customer satisfaction score (1-5 scale)
+    
+    timeGrain:
+      - name: by_date
+        refColumn: created_date
+        dateParts: [YEAR, MONTH, DAY]
+    
+    benchmark: "Industry Standard: FCR 70-75%, SLA Compliance 85%, Satisfaction 4.0+"

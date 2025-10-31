@@ -71,6 +71,15 @@ log_perf("CONFIG: Path setup")
 load_dotenv()
 log_perf("CONFIG: Environment loaded")
 
+# Import MDL Loader (Week 1 Integration - WrenAI Semantic Layer)
+from mdl_loader import (
+    load_mdl_for_domain,
+    get_measure_expression,
+    format_kpi_with_benchmark,
+    get_all_measures_metadata
+)
+log_perf("IMPORT: MDL Loader (Semantic Layer)")
+
 # ============================================
 # ACCESSIBILITY FIXES (Phase 1 - WCAG AA Compliance)
 # ============================================
@@ -276,6 +285,13 @@ def initialize_session_state():
 
     if 'onboarding_dismissed' not in st.session_state:
         st.session_state['onboarding_dismissed'] = False
+    
+    # MDL Semantic Layer cache
+    if 'mdl' not in st.session_state:
+        st.session_state['mdl'] = None
+    
+    if 'mdl_parser' not in st.session_state:
+        st.session_state['mdl_parser'] = None
 
 # ============================================
 # THEME MANAGEMENT
@@ -1285,6 +1301,22 @@ def main():
             st.session_state['result'] = result
             st.session_state['df'] = df
             
+            # 🎯 WEEK 1: Load MDL Semantic Layer for detected domain
+            detected_domain = result.get('domain_info', {}).get('domain', '').lower()
+            if detected_domain:
+                st.info(f"📊 Loading industry benchmarks for {detected_domain}...")
+                mdl = load_mdl_for_domain(detected_domain)
+                
+                if mdl:
+                    st.session_state['mdl'] = mdl
+                    st.session_state['domain'] = detected_domain
+                    
+                    # Count measures for display
+                    measure_count = sum(len(metric.measure) for metric in mdl.metrics)
+                    st.success(f"✅ Loaded {measure_count} industry-standard measures with formulas & benchmarks")
+                else:
+                    st.warning(f"⚠️ No MDL schema found for '{detected_domain}'. Using calculated KPIs without benchmarks.")
+            
             # Success message
             st.balloons()
             
@@ -1445,6 +1477,53 @@ def main():
                     if benchmark_source:
                         source_text = f"📚 Source: {benchmark_source}" if lang == "en" else f"📚 Nguồn: {benchmark_source}"
                         st.caption(source_text)
+            
+            # 🎯 WEEK 1 INTEGRATION: Formula Transparency (Trust Builder!)
+            # Show formulas from MDL Semantic Layer
+            mdl = st.session_state.get('mdl')
+            domain = st.session_state.get('domain')
+            
+            if mdl and domain:
+                st.markdown("---")
+                transparency_title = "🔍 How are these KPIs calculated?" if lang == "en" else "🔍 Các KPI này được tính như thế nào?"
+                
+                with st.expander(transparency_title, expanded=False):
+                    if lang == "vi":
+                        st.markdown("**📊 Công thức tính toán (từ Industry Standards):**")
+                        st.caption("Transparency = Trust. Chúng tôi hiển thị 100% công thức để bạn kiểm chứng.")
+                    else:
+                        st.markdown("**📊 Calculation Formulas (from Industry Standards):**")
+                        st.caption("Transparency = Trust. We show 100% of formulas so you can verify.")
+                    
+                    # Get all measures from MDL
+                    measures = get_all_measures_metadata(domain)
+                    
+                    # Create a mapping: measure_name -> measure_data
+                    measure_map = {m['name'].lower(): m for m in measures}
+                    
+                    # Match KPIs with MDL measures
+                    for kpi_name, kpi_data in kpis.items():
+                        # Try to match KPI name with measure name
+                        # Handle variations: "ROAS" -> "roas", "CTR (%)" -> "ctr"
+                        kpi_key = kpi_name.lower().replace(' (%)', '').replace(' ', '_').strip()
+                        
+                        if kpi_key in measure_map:
+                            measure = measure_map[kpi_key]
+                            
+                            st.markdown(f"**{kpi_name}**")
+                            
+                            # Show formula in code block (SQL-like)
+                            st.code(measure['expression'], language='sql')
+                            
+                            # Show description from MDL
+                            if measure['description']:
+                                st.caption(f"ℹ️ {measure['description']}")
+                            
+                            st.markdown("")  # Spacing
+                    
+                    # Show overall benchmark
+                    if mdl.metrics and mdl.metrics[0].benchmark:
+                        st.info(f"📚 **Industry Benchmark Context:**\n\n{mdl.metrics[0].benchmark}")
         
         # Display charts
         st.markdown("---")
@@ -1455,6 +1534,56 @@ def main():
         if len(charts) == 0:
             st.warning(get_text('no_charts', lang))
         else:
+            # 🎯 WEEK 1 INTEGRATION: Add benchmark lines to charts (if MDL available)
+            mdl = st.session_state.get('mdl')
+            domain = st.session_state.get('domain')
+            
+            if mdl and domain:
+                # Get measures for benchmark mapping
+                measures = get_all_measures_metadata(domain)
+                
+                # Create benchmark map (measure_name -> benchmark_value)
+                # Extract from descriptions like "Industry benchmark 4:1+" -> 4.0
+                benchmark_map = {}
+                for measure in measures:
+                    desc = measure.get('description', '')
+                    
+                    # Try to extract numeric benchmark
+                    if 'benchmark' in desc.lower():
+                        import re
+                        # Match patterns like "4:1+", "4.5+", ">85%", "70-75%"
+                        match = re.search(r'(\d+(?:\.\d+)?)[:\+]', desc)
+                        if match:
+                            benchmark_map[measure['name']] = float(match.group(1))
+                        else:
+                            # Try percentage patterns
+                            match = re.search(r'>?(\d+(?:\.\d+)?)%', desc)
+                            if match:
+                                benchmark_map[measure['name']] = float(match.group(1))
+                
+                # Enhance charts with benchmark lines
+                for chart_data in charts:
+                    fig = chart_data.get('figure')
+                    chart_title = chart_data.get('title', '').lower()
+                    
+                    # Try to match chart title with measure name
+                    for measure_name, benchmark_value in benchmark_map.items():
+                        if measure_name in chart_title or measure_name.replace('_', ' ') in chart_title:
+                            # Add horizontal benchmark line
+                            fig.add_hline(
+                                y=benchmark_value,
+                                line_dash="dash",
+                                line_color="rgba(34, 197, 94, 0.6)",  # Green
+                                annotation_text=f"Industry Benchmark: {benchmark_value}",
+                                annotation_position="top right",
+                                annotation=dict(
+                                    font=dict(size=10, color="rgba(34, 197, 94, 0.9)"),
+                                    bgcolor="rgba(34, 197, 94, 0.1)",
+                                    borderpad=4
+                                )
+                            )
+                            break
+            
             # Display charts in 2 columns
             for i in range(0, len(charts), 2):
                 col1, col2 = st.columns(2)

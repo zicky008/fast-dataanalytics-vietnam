@@ -1,0 +1,122 @@
+# Marketing Analytics - Semantic Layer
+# Industry Benchmarks: CAC/LTV <0.33, ROAS 4:1+, Email CTR 2-3%
+
+catalog: marketing_analytics
+schema: main
+dataSource: LOCAL_FILE
+version: "1.0"
+
+models:
+  - name: campaigns
+    tableReference: marketing_data.csv
+    description: Marketing campaign performance data
+    columns:
+      - name: campaign_id
+        type: STRING
+        description: Unique campaign identifier
+      - name: campaign_name
+        type: STRING
+        description: Campaign name
+      - name: start_date
+        type: DATE
+        description: Campaign start date
+      - name: end_date
+        type: DATE
+        description: Campaign end date
+      - name: channel
+        type: STRING
+        description: Marketing channel (Email, Social, PPC, SEO, Content)
+      - name: spend
+        type: FLOAT
+        description: Campaign spend in VND
+      - name: impressions
+        type: INTEGER
+        description: Total impressions
+      - name: clicks
+        type: INTEGER
+        description: Total clicks
+      - name: conversions
+        type: INTEGER
+        description: Total conversions
+      - name: revenue
+        type: FLOAT
+        description: Revenue attributed to campaign (VND)
+      - name: leads
+        type: INTEGER
+        description: Leads generated
+      - name: customers
+        type: INTEGER
+        description: New customers acquired
+    primaryKey: campaign_id
+
+relationships: []
+
+metrics:
+  - name: marketing_roi_kpis
+    baseObject: campaigns
+    description: Marketing ROI and efficiency metrics
+    dimension:
+      - channel
+      - campaign_name
+    measure:
+      - name: total_spend
+        type: MEASURE
+        operator: SUM
+        expression: SUM(spend)
+        description: Total marketing spend (VND)
+      
+      - name: total_revenue
+        type: MEASURE
+        operator: SUM
+        expression: SUM(revenue)
+        description: Total attributed revenue (VND)
+      
+      - name: total_impressions
+        type: MEASURE
+        operator: SUM
+        expression: SUM(impressions)
+        description: Total ad impressions
+      
+      - name: total_clicks
+        type: MEASURE
+        operator: SUM
+        expression: SUM(clicks)
+        description: Total ad clicks
+      
+      - name: total_conversions
+        type: MEASURE
+        operator: SUM
+        expression: SUM(conversions)
+        description: Total conversions
+      
+      - name: ctr
+        type: CALCULATED_MEASURE
+        expression: SUM(clicks) * 100.0 / NULLIF(SUM(impressions), 0)
+        description: Click-Through Rate (Industry benchmark 2-3% for email)
+      
+      - name: conversion_rate
+        type: CALCULATED_MEASURE
+        expression: SUM(conversions) * 100.0 / NULLIF(SUM(clicks), 0)
+        description: Conversion rate (clicks to conversions)
+      
+      - name: roas
+        type: CALCULATED_MEASURE
+        expression: SUM(revenue) / NULLIF(SUM(spend), 0)
+        description: Return on Ad Spend (Industry benchmark 4:1+)
+      
+      - name: cac
+        type: CALCULATED_MEASURE
+        expression: SUM(spend) / NULLIF(SUM(customers), 0)
+        description: Customer Acquisition Cost
+      
+      - name: cpl
+        type: CALCULATED_MEASURE
+        expression: SUM(spend) / NULLIF(SUM(leads), 0)
+        description: Cost per Lead
+    
+    timeGrain:
+      - name: by_start_date
+        refColumn: start_date
+        dateParts: [YEAR, QUARTER, MONTH]
+    
+    benchmark: "Industry Standard: CAC/LTV <0.33, ROAS 4:1+, Email CTR 2-3%, Conversion 2-5%"
