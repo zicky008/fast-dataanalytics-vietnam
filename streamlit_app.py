@@ -1631,7 +1631,29 @@ def main():
                 success_rate = (success_count / total_count * 100) if total_count > 0 else 0
                 
                 if success_rate >= 80:
-                    icon, color, msg = \"\ud83d\udfe2\", \"green\", \"Hi\u1ec7u su\u1ea5t t\u1ed1t\" if lang == 'vi' else \"Good Performance\"\n                elif success_rate >= 60:\n                    icon, color, msg = \"\ud83d\udd35\", \"blue\", \"Hi\u1ec7u su\u1ea5t \u1ed5n \u0111\u1ecbnh\" if lang == 'vi' else \"Stable Performance\"\n                elif success_rate >= 40:\n                    icon, color, msg = \"\ud83d\udfe1\", \"orange\", \"C\u1ea7n ch\u00fa \u00fd\" if lang == 'vi' else \"Needs Attention\"\n                else:\n                    icon, color, msg = \"\ud83d\udd34\", \"red\", \"C\u1ea7n h\u00e0nh \u0111\u1ed9ng\" if lang == 'vi' else \"Action Required\"\n                \n                st.markdown(f\"\"\"\n                <div style=\"padding: 1rem; background: linear-gradient(135deg, {color}15 0%, {color}05 100%); \n                            border-left: 4px solid {color}; border-radius: 8px; margin-bottom: 1.5rem;\">\n                    <div style=\"font-size: 32px; text-align: center; margin-bottom: 0.5rem;\">{icon}</div>\n                    <div style=\"font-size: 20px; font-weight: 600; text-align: center;\">{msg}</div>\n                    <div style=\"font-size: 14px; text-align: center; opacity: 0.8; margin-top: 0.5rem;\">\n                        {success_count}/{total_count} KPIs \u0111\u1ea1t chu\u1ea9n ({success_rate:.0f}%)\n                    </div>\n                </div>\n                \"\"\", unsafe_allow_html=True)
+                    icon, color = "🟢", "green"
+                    msg = "Hiệu suất tốt" if lang == 'vi' else "Good Performance"
+                elif success_rate >= 60:
+                    icon, color = "🔵", "blue"
+                    msg = "Hiệu suất ổn định" if lang == 'vi' else "Stable Performance"
+                elif success_rate >= 40:
+                    icon, color = "🟡", "orange"
+                    msg = "Cần chú ý" if lang == 'vi' else "Needs Attention"
+                else:
+                    icon, color = "🔴", "red"
+                    msg = "Cần hành động" if lang == 'vi' else "Action Required"
+                
+                banner_html = f"""
+                <div style="padding: 1rem; background: linear-gradient(135deg, {color}15 0%, {color}05 100%); 
+                            border-left: 4px solid {color}; border-radius: 8px; margin-bottom: 1.5rem;">
+                    <div style="font-size: 32px; text-align: center; margin-bottom: 0.5rem;">{icon}</div>
+                    <div style="font-size: 20px; font-weight: 600; text-align: center;">{msg}</div>
+                    <div style="font-size: 14px; text-align: center; opacity: 0.8; margin-top: 0.5rem;">
+                        {success_count}/{total_count} KPIs đạt chuẩn ({success_rate:.0f}%)
+                    </div>
+                </div>
+                """
+                st.markdown(banner_html, unsafe_allow_html=True)
             
             # ============================================
             # STEP 3: Progressive Disclosure KPIs (10 seconds)
