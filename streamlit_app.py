@@ -149,6 +149,29 @@ viewport_fix_js = """
 """
 st.markdown(viewport_fix_js, unsafe_allow_html=True)
 
+# ============================================
+# MICROSOFT CLARITY INTEGRATION (Week 1, Day 1 - UX Testing)
+# ============================================
+# Purpose: Real user behavior tracking for 5-star UX validation
+# - Session recordings (unlimited free)
+# - Heatmaps (click patterns)
+# - Analytics (bounce rate, engagement)
+# - AI insights (automatic issue detection)
+# Cost: ₫0 forever | Project ID: tybfgieemx
+log_perf("START: Microsoft Clarity tracking")
+
+clarity_tracking_code = """
+<script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "tybfgieemx");
+</script>
+"""
+st.markdown(clarity_tracking_code, unsafe_allow_html=True)
+log_perf("COMPLETE: Microsoft Clarity tracking initialized")
+
 # Fix #2: High contrast colors for WCAG AA compliance (WCAG 1.4.3)
 # Issue: Buttons have contrast ratio < 4.5:1 (need ≥4.5:1)
 # Impact: 20-30% of Vietnamese users (low vision, colorblind)
