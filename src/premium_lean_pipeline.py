@@ -1202,6 +1202,30 @@ OUTPUT JSON:
         ⭐ CRITICAL: Calculate KPIs from REAL DATA (not AI estimation)
         This ensures "cực kỳ chuẩn xác, uy tín, tin cậy" requirement
         """
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        # 🔴 HOTFIX #9: Defensive type checking
+        logger.info(f"🐛 _calculate_real_kpis: domain_info type={type(domain_info)}, value={domain_info if not isinstance(domain_info, (list, tuple)) or len(str(domain_info)) < 200 else str(domain_info)[:200]}")
+        
+        if not isinstance(domain_info, dict):
+            logger.error(f"❌ domain_info is {type(domain_info).__name__}, not dict! Converting...")
+            # Try to handle tuple/list case
+            if isinstance(domain_info, (tuple, list)) and len(domain_info) > 0:
+                # Maybe it's (domain_name, other_data) tuple?
+                if isinstance(domain_info[0], str):
+                    domain_info = {'domain': domain_info[0], 'domain_name': domain_info[0]}
+                    logger.info(f"✅ Converted tuple to dict: {domain_info}")
+                elif isinstance(domain_info[0], dict):
+                    domain_info = domain_info[0]
+                    logger.info(f"✅ Extracted dict from tuple: {domain_info}")
+                else:
+                    domain_info = {'domain': 'general', 'domain_name': 'general'}
+                    logger.warning(f"⚠️ Fallback to general domain")
+            else:
+                domain_info = {'domain': 'general', 'domain_name': 'general'}
+                logger.warning(f"⚠️ Invalid domain_info, using general")
+        
         kpis = {}
         # Support both 'domain' and 'domain_name' keys for backward compatibility
         domain = domain_info.get('domain', domain_info.get('domain_name', 'general')).lower()
