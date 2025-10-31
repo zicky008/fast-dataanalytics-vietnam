@@ -3333,9 +3333,15 @@ OUTPUT JSON:
         then passes to AI for INTERPRETATION only (not calculation)
         """
         
+        # 🐛 HOTFIX #7: EXTENSIVE DEBUG LOGGING
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"🐛 DEBUG: domain_info type={type(domain_info)}, keys={list(domain_info.keys()) if isinstance(domain_info, dict) else 'NOT A DICT'}")
+        
         # 🐛 FIX: Ensure domain_context is always string (handle potential dict/object returns)
         try:
             domain_context = get_domain_specific_prompt_context(domain_info)
+            logger.info(f"🐛 DEBUG: domain_context type={type(domain_context)}, len={len(domain_context) if isinstance(domain_context, str) else 'NOT STRING'}")
             if not isinstance(domain_context, str):
                 # If not string, convert to string representation
                 domain_context = str(domain_context)
@@ -3351,7 +3357,9 @@ OUTPUT JSON:
         all_cols = df.columns.tolist()
         
         # ⭐ NEW: Calculate KPIs from REAL DATA first
+        logger.info("🐛 DEBUG: Calling _calculate_real_kpis...")
         kpis_calculated = self._calculate_real_kpis(df, domain_info)
+        logger.info(f"🐛 DEBUG: kpis_calculated type={type(kpis_calculated)}, keys={list(kpis_calculated.keys())[:5] if isinstance(kpis_calculated, dict) else 'NOT DICT'}")
         
         # 🐛 HOTFIX #4: Validate kpis_calculated is a dict before using in f-string
         if not isinstance(kpis_calculated, dict):
@@ -3362,11 +3370,15 @@ OUTPUT JSON:
         
         # 🐛 HOTFIX #4: Safely convert kpis to JSON string to avoid f-string concatenation issues
         try:
+            logger.info("🐛 DEBUG: Serializing KPIs to JSON...")
             kpis_json = json.dumps(kpis_calculated, indent=2, ensure_ascii=False)
             kpis_json_compact = json.dumps(kpis_calculated, ensure_ascii=False)
+            logger.info(f"🐛 DEBUG: JSON serialization SUCCESS, kpis_json length={len(kpis_json)}")
         except Exception as e:
+            logger.error(f"🐛 DEBUG: JSON serialization FAILED: {type(e).__name__}: {str(e)}")
             return {'success': False, 'error': f"❌ Failed to serialize KPIs to JSON: {type(e).__name__}: {str(e)}"}
         
+        logger.info("🐛 DEBUG: Building prompt f-string...")
         prompt = f"""
 {domain_context}
 
