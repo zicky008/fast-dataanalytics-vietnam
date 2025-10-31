@@ -1376,7 +1376,7 @@ OUTPUT JSON:
                 kpis['Marketing ROI (Revenue/Spend)'] = {
                     'value': float(avg_roi),
                     'benchmark': 3.0,  # Conservative estimate based on ROAS data (no standard exists)
-                    'benchmark_source': BENCHMARK_SOURCES['marketing_roi'],
+                    'benchmark_source': BENCHMARK_SOURCES['marketing_roi']['name'],
                     'status': 'Above' if avg_roi >= 3.0 else 'Below',
                     'column': roi_col,
                     'insight': '⚠️ ROI varies by business model and attribution window'
@@ -1393,7 +1393,7 @@ OUTPUT JSON:
                     kpis['ROAS'] = {
                         'value': float(roas),
                         'benchmark': 2.5,  # ✅ WordStream 2025: avg 2.26, median 3.08 - use conservative 2.5
-                        'benchmark_source': BENCHMARK_SOURCES['marketing_roas'],
+                        'benchmark_source': BENCHMARK_SOURCES['marketing_roas']['name'],
                         'status': 'Above' if roas >= 2.5 else 'Below',
                         'column': f"{rev_col}/{cost_col}"
                     }
@@ -1420,7 +1420,7 @@ OUTPUT JSON:
                     kpis['CTR (%)'] = {
                         'value': float(ctr),
                         'benchmark': benchmark_ctr,  # ✅ WordStream 2025: 6.66% search, 1.71% social
-                        'benchmark_source': BENCHMARK_SOURCES['marketing_ctr'],
+                        'benchmark_source': BENCHMARK_SOURCES['marketing_ctr']['name'],
                         'status': 'Above' if ctr >= benchmark_ctr else 'Below',
                         'column': f"{click_col}/{impression_col}",
                         'insight': f'{channel_type} ads benchmark'
@@ -1452,7 +1452,7 @@ OUTPUT JSON:
                     kpis['Conversion Rate (%)'] = {
                         'value': float(conv_rate),
                         'benchmark': 6.6,  # ✅ Unbounce 2025: 6.6% overall average (WordStream: 7.52% search)
-                        'benchmark_source': BENCHMARK_SOURCES['marketing_conversion'],
+                        'benchmark_source': BENCHMARK_SOURCES['marketing_conversion']['name'],
                         'status': 'Above' if conv_rate >= 6.6 else 'Below',
                         'column': f"{conversion_col}/{click_col}"
                     }
@@ -1508,7 +1508,7 @@ OUTPUT JSON:
                         currency = 'VND'
                     else:
                         benchmark_cpa = 70  # $70 USD - WordStream 2025 average
-                        benchmark_source = BENCHMARK_SOURCES['marketing_cpa']
+                        benchmark_source = BENCHMARK_SOURCES['marketing_cpa']['name']
                         currency = 'USD'
 
                     kpis['Cost Per Acquisition (CPA)'] = {
@@ -1610,7 +1610,7 @@ OUTPUT JSON:
                         benchmark_source = vietnam_benchmark.get('benchmark_source', BENCHMARK_SOURCES['ecommerce_conversion']['name'])
                     else:
                         benchmark_conv = 2.3  # ~2.3% - realistic Vietnam average from CSV
-                        benchmark_source = BENCHMARK_SOURCES['ecommerce_conversion']
+                        benchmark_source = BENCHMARK_SOURCES['ecommerce_conversion']['name']
 
                     kpis['Conversion Rate (%)'] = {
                         'value': float(conversion_rate),
@@ -1675,11 +1675,11 @@ OUTPUT JSON:
                         currency = 'VND'
                     elif is_vnd:
                         benchmark_aov = 385000  # ~385K VND - realistic Vietnam average from CSV
-                        benchmark_source = BENCHMARK_SOURCES['ecommerce_aov']
+                        benchmark_source = BENCHMARK_SOURCES['ecommerce_aov']['name']
                         currency = 'VND'
                     else:
                         benchmark_aov = 81.49  # $81.49 USD (Shopify global avg)
-                        benchmark_source = BENCHMARK_SOURCES['ecommerce_aov']
+                        benchmark_source = BENCHMARK_SOURCES['ecommerce_aov']['name']
                         currency = 'USD'
 
                     kpis['Average Order Value (AOV)'] = {
@@ -1739,7 +1739,7 @@ OUTPUT JSON:
                         benchmark_source = vietnam_benchmark.get('benchmark_source', BENCHMARK_SOURCES['ecommerce_cart_abandonment']['name'])
                     else:
                         benchmark_abandon = 68.0  # ~68% - realistic Vietnam average from CSV
-                        benchmark_source = BENCHMARK_SOURCES['ecommerce_cart_abandonment']
+                        benchmark_source = BENCHMARK_SOURCES['ecommerce_cart_abandonment']['name']
 
                     kpis['Cart Abandonment Rate (%)'] = {
                         'value': float(abandonment_rate),
@@ -1941,7 +1941,7 @@ OUTPUT JSON:
                         benchmark_source = vietnam_benchmark.get('benchmark_source', BENCHMARK_SOURCES['sales_win_rate']['name'])
                     else:
                         benchmark_win = 25.0  # ~25% - realistic Vietnam B2B average from CSV
-                        benchmark_source = BENCHMARK_SOURCES['sales_win_rate']
+                        benchmark_source = BENCHMARK_SOURCES['sales_win_rate']['name']
 
                     kpis['Win Rate (%)'] = {
                         'value': float(win_rate),
@@ -2089,7 +2089,7 @@ OUTPUT JSON:
                                 benchmark_source = vietnam_benchmark.get('benchmark_source', BENCHMARK_SOURCES['sales_cycle']['name'])
                             else:
                                 benchmark_cycle = 45.0  # ~45 days - realistic Vietnam B2B average from CSV
-                                benchmark_source = BENCHMARK_SOURCES['sales_cycle']
+                                benchmark_source = BENCHMARK_SOURCES['sales_cycle']['name']
 
                             kpis['Sales Cycle (days)'] = {
                                 'value': float(avg_cycle),
@@ -4585,3 +4585,4 @@ Your response must be parseable by json.loads() immediately."""
             'error': error_msg,
             'audit_trail': self.pipeline_state['audit_trail']
         }
+      }
