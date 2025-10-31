@@ -230,7 +230,7 @@ Sau khi deploy xong, bạn sẽ được redirect đến app URL:
 1. **Production URL**: `https://[your-app-name].streamlit.app`
 2. **Streamlit Dashboard**: https://share.streamlit.io/
 3. **GitHub Repo**: https://github.com/zicky008/fast-dataanalytics-vietnam
-4. **Microsoft Clarity**: https://clarity.microsoft.com/projects/view/o96oq1crvv/dashboard
+4. **Microsoft Clarity**: https://clarity.microsoft.com/projects/view/tybfgieemx/dashboard
 
 ### **Share With:**
 

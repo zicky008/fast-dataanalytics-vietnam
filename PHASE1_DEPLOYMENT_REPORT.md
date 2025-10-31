@@ -364,7 +364,7 @@ ef8ed6a - docs: Add visual pipeline flows documentation
 ### Key URLs:
 - **Repository**: https://github.com/zicky008/fast-dataanalytics-vietnam
 - **Streamlit Cloud**: https://share.streamlit.io/
-- **Microsoft Clarity**: https://clarity.microsoft.com/projects/view/o96oq1crvv/dashboard
+- **Microsoft Clarity**: https://clarity.microsoft.com/projects/view/tybfgieemx/dashboard
 - **Production URL**: (TBD after deployment)
 
 ### Key Contacts:

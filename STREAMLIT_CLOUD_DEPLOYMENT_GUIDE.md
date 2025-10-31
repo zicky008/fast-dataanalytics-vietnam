@@ -96,7 +96,7 @@ GITHUB_TOKEN=<your_github_token>
 - [ ] Confirm Clarity script is present
 - [ ] Perform some interactions (click, scroll, navigate)
 - [ ] Wait 2-4 hours for Clarity data to process
-- [ ] Check https://clarity.microsoft.com/projects/view/o96oq1crvv/dashboard
+- [ ] Check https://clarity.microsoft.com/projects/view/tybfgieemx/dashboard
 
 ---
 
@@ -157,7 +157,7 @@ Once deployed, your production URL will be:
 
 **Solution**:
 1. Verify Clarity script in page source
-2. Confirm project ID is correct: `o96oq1crvv`
+2. Confirm project ID is correct: `tybfgieemx`
 3. Wait 2-4 hours for initial data processing
 4. Check if ad-blockers are blocking Clarity
 5. Test in incognito/private browsing mode
@@ -214,7 +214,7 @@ Once deployed, your production URL will be:
 - Troubleshooting: https://docs.streamlit.io/knowledge-base/deploy
 
 ### Microsoft Clarity
-- Dashboard: https://clarity.microsoft.com/projects/view/o96oq1crvv/dashboard
+- Dashboard: https://clarity.microsoft.com/projects/view/tybfgieemx/dashboard
 - Docs: https://docs.microsoft.com/en-us/clarity/
 
 ### GitHub Repository

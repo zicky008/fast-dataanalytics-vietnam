@@ -91,8 +91,8 @@
 - [ ] Check Clarity dashboard for session recordings
 - [ ] Verify heatmaps captured
 
-**Clarity Project**: o96oq1crvv  
-**Dashboard**: https://clarity.microsoft.com/projects/view/o96oq1crvv/dashboard
+**Clarity Project**: tybfgieemx  
+**Dashboard**: https://clarity.microsoft.com/projects/view/tybfgieemx/dashboard
 
 ---
 
