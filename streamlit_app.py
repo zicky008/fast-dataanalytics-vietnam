@@ -1469,25 +1469,20 @@ def main():
         # ⭐ NEW: KPI Status Definitions (addresses real user feedback for clarity)
         with st.expander("ℹ️ Understanding KPI Status / Hiểu về trạng thái KPI", expanded=False):
             st.markdown("**How to interpret KPI performance status:**")
-            status_definitions = {
-                "Status / Trạng thái": [
-                    "✅ Above / Trên chuẩn",
-                    "➡️ Competitive / Cạnh tranh",
-                    "⚠️ Below / Dưới chuẩn"
-                ],
-                "Threshold / Ngưỡng": [
-                    "+10% or more vs benchmark",
-                    "Within ±10% of benchmark",
-                    "-10% or more vs benchmark"
-                ],
-                "Meaning / Ý nghĩa": [
-                    "Performing significantly better than industry standard",
-                    "Performing at industry standard level",
-                    "Performing below industry standard - improvement needed"
-                ]
-            }
-            st.table(status_definitions)
-            st.caption("⚠️ Note: Thresholds may vary by KPI type. Lower is better for costs/time, higher is better for revenue/quality.")
+            st.markdown("""
+            | Icon | Status / Trạng thái | Meaning / Ý nghĩa |
+            |------|---------------------|--------------------|
+            | 🔼 | **Above** / Trên chuẩn | Performing better than benchmark (higher is better metrics) |
+            | 🔽 | **Below** / Dưới chuẩn | Performing below benchmark (needs improvement) |
+            | ⬇️ | **Below** / Dưới chuẩn | Performing better than benchmark (lower is better metrics like costs) |
+            | ⬆️ | **Above** / Trên chuẩn | Performing worse than benchmark (higher costs/time) |
+            
+            **Note / Lưu ý**: 
+            - For revenue, quality, satisfaction → Higher is better → 🔼 Above is good
+            - For costs, time, churn rate → Lower is better → 🔽 Below is good
+            - Icons automatically adjust based on metric type
+            """)
+            st.caption("⚠️ Benchmark sources: Industry data from Shopify, Nielsen, McKinsey")
 
         kpis = result['dashboard'].get('kpis', {})
         
@@ -1553,15 +1548,42 @@ def main():
                 else:
                     benchmark_formatted = benchmark_value
                 
-                # Determine if performance is good
+                # Determine if performance is good and format delta text
                 status = kpi_data.get('status', '')
-                if is_lower_better:
-                    is_good = (status != 'Above')  # Lower is better, so "Above" is bad
-                else:
-                    is_good = (status == 'Above')  # Higher is better, so "Above" is good
                 
-                # Create KPI dict for progressive disclosure
-                vs_benchmark_text = f"{status} (vs {benchmark_formatted})" if status else benchmark_formatted
+                # Calculate proper delta with icon and sign
+                if status == 'Above':
+                    if is_lower_better:
+                        # Above is BAD for lower-is-better metrics (costs, time)
+                        is_good = False
+                        delta_icon = "⬆️"  # Up arrow (bad)
+                        delta_text = f"{delta_icon} Above vs {benchmark_formatted}"
+                    else:
+                        # Above is GOOD for higher-is-better metrics (revenue, quality)
+                        is_good = True
+                        delta_icon = "🔼"  # Up triangle (good)
+                        delta_text = f"{delta_icon} Above vs {benchmark_formatted}"
+                elif status == 'Below':
+                    if is_lower_better:
+                        # Below is GOOD for lower-is-better metrics
+                        is_good = True
+                        delta_icon = "⬇️"  # Down arrow (good)
+                        delta_text = f"{delta_icon} Below vs {benchmark_formatted}"
+                    else:
+                        # Below is BAD for higher-is-better metrics
+                        is_good = False
+                        delta_icon = "🔽"  # Down triangle (bad)
+                        delta_text = f"{delta_icon} Below vs {benchmark_formatted}"
+                elif status == 'Competitive':
+                    is_good = True  # Competitive is neutral/good
+                    delta_icon = "➡️"
+                    delta_text = f"{delta_icon} Competitive vs {benchmark_formatted}"
+                else:
+                    is_good = True
+                    delta_icon = ""
+                    delta_text = f"vs {benchmark_formatted}" if benchmark_formatted != 'N/A' else ""
+                
+                vs_benchmark_text = delta_text
                 
                 kpi_list.append({
                     'display_name': kpi_name,
@@ -1579,27 +1601,18 @@ def main():
             # Prepare KPI results for health calculation
             kpi_results_for_health = []
             for kpi in kpi_list:
-                raw_data = kpi.get('raw_data', {})
-                
-                # Extract vs_benchmark percentage if available
-                vs_benchmark_pct = None
-                if 'status' in raw_data and 'benchmark' in raw_data:
-                    try:
-                        value = float(raw_data['value'])
-                        benchmark = float(raw_data['benchmark'])
-                        if benchmark > 0:
-                            vs_benchmark_pct = ((value - benchmark) / benchmark) * 100
-                    except (ValueError, TypeError, ZeroDivisionError):
-                        vs_benchmark_pct = None
-                
+                # Use is_good flag directly (already calculated based on status + metric type)
+                # If is_good = True → KPI meets/exceeds benchmark
+                # If is_good = False → KPI below benchmark
                 kpi_results_for_health.append({
                     'name': kpi['display_name'],
-                    'vs_benchmark': vs_benchmark_pct,
+                    'vs_benchmark': 1.0 if kpi['is_good'] else -1.0,  # Simplified for health calc
                     'is_good': kpi['is_good']
                 })
             
-            # Calculate overall health (only if At-a-Glance available)
-            if at_a_glance_available:
+            # Calculate overall health and render status banner
+            # Force enable even if module not fully loaded (graceful degradation)
+            try:
                 health_status = calculate_overall_health(kpi_results_for_health, lang)
                 
                 # ============================================
@@ -1608,7 +1621,16 @@ def main():
                 render_status_banner(health_status, lang)
                 
                 # Validate McKinsey 5s rule
-                validate_5_30_rule(start_time, 'status_banner')
+                if at_a_glance_available:
+                    validate_5_30_rule(start_time, 'status_banner')
+            except Exception as e:
+                # Fallback: Show simple status indicator if At-a-Glance fails
+                success_count = sum(1 for kpi in kpi_results_for_health if kpi['is_good'])
+                total_count = len(kpi_results_for_health)
+                success_rate = (success_count / total_count * 100) if total_count > 0 else 0
+                
+                if success_rate >= 80:
+                    icon, color, msg = \"\ud83d\udfe2\", \"green\", \"Hi\u1ec7u su\u1ea5t t\u1ed1t\" if lang == 'vi' else \"Good Performance\"\n                elif success_rate >= 60:\n                    icon, color, msg = \"\ud83d\udd35\", \"blue\", \"Hi\u1ec7u su\u1ea5t \u1ed5n \u0111\u1ecbnh\" if lang == 'vi' else \"Stable Performance\"\n                elif success_rate >= 40:\n                    icon, color, msg = \"\ud83d\udfe1\", \"orange\", \"C\u1ea7n ch\u00fa \u00fd\" if lang == 'vi' else \"Needs Attention\"\n                else:\n                    icon, color, msg = \"\ud83d\udd34\", \"red\", \"C\u1ea7n h\u00e0nh \u0111\u1ed9ng\" if lang == 'vi' else \"Action Required\"\n                \n                st.markdown(f\"\"\"\n                <div style=\"padding: 1rem; background: linear-gradient(135deg, {color}15 0%, {color}05 100%); \n                            border-left: 4px solid {color}; border-radius: 8px; margin-bottom: 1.5rem;\">\n                    <div style=\"font-size: 32px; text-align: center; margin-bottom: 0.5rem;\">{icon}</div>\n                    <div style=\"font-size: 20px; font-weight: 600; text-align: center;\">{msg}</div>\n                    <div style=\"font-size: 14px; text-align: center; opacity: 0.8; margin-top: 0.5rem;\">\n                        {success_count}/{total_count} KPIs \u0111\u1ea1t chu\u1ea9n ({success_rate:.0f}%)\n                    </div>\n                </div>\n                \"\"\", unsafe_allow_html=True)
             
             # ============================================
             # STEP 3: Progressive Disclosure KPIs (10 seconds)

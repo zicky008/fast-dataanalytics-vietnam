@@ -140,7 +140,7 @@ def render_progressive_kpis(
                     label=kpi.get('display_name', 'N/A'),
                     value=kpi.get('formatted_value', 'N/A'),
                     delta=kpi.get('vs_benchmark'),
-                    delta_color="normal" if kpi.get('is_good', True) else "inverse"
+                    delta_color="off"  # Use our custom icons instead
                 )
                 st.markdown('</div>', unsafe_allow_html=True)
     
@@ -174,7 +174,8 @@ def render_progressive_kpis(
                         st.metric(
                             label=kpi.get('display_name', 'N/A'),
                             value=kpi.get('formatted_value', 'N/A'),
-                            delta=kpi.get('vs_benchmark')
+                            delta=kpi.get('vs_benchmark'),
+                            delta_color="off"  # Use our custom icons instead
                         )
                         st.markdown('</div>', unsafe_allow_html=True)
             
