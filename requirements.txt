@@ -48,3 +48,4 @@ python-pptx>=0.6.21
 # pytest-cov>=4.1.0
 # black>=23.0.0
 # flake8>=6.0.0
+# Updated: 2025-10-31_19:38:22 - Force rebuild for PR #34 deployment
