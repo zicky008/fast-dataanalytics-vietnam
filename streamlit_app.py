@@ -1292,28 +1292,27 @@ def main():
             # Run pipeline with progress
             result = pipeline.run_pipeline(df, dataset_description)
             
-            # 🐛 FIX: Handle both dict and tuple returns from pipeline
+            # 🐛 HOTFIX #5: CRITICAL - Validate result BEFORE saving to session state
+            # Problem: Hotfix #3 checked tuple and stopped, but SAVED tuple to session_state first!
+            # This caused crashes when other code reads from session_state later
+            
             if isinstance(result, tuple):
-                # Pipeline returned (success, error_message) tuple
+                # Pipeline returned tuple (error case) - DO NOT SAVE TO SESSION STATE
                 success, error_msg = result
-                if not success:
-                    st.error(f"❌ {get_text('error', lang) if lang == 'en' else 'Lỗi'}: {error_msg}")
-                    st.stop()
-                else:
-                    # Should not happen (tuple with success=True)
-                    st.error(f"❌ Unexpected pipeline response format")
-                    st.stop()
-            elif isinstance(result, dict):
-                # Normal dict response
-                if not result.get('success', False):
-                    st.error(f"❌ {get_text('error', lang) if lang == 'en' else 'Lỗi'}: {result.get('error', 'Unknown error')}")
-                    st.stop()
-            else:
-                # Unknown response type
-                st.error(f"❌ Pipeline error: Invalid response type ({type(result).__name__})")
+                st.error(f"❌ {get_text('error', lang) if lang == 'en' else 'Lỗi'}: Pipeline returned tuple: {error_msg}")
                 st.stop()
             
-            # Save to session state
+            if not isinstance(result, dict):
+                # Not dict - DO NOT SAVE TO SESSION STATE
+                st.error(f"❌ {get_text('error', lang) if lang == 'en' else 'Lỗi'}: Pipeline returned invalid type: {type(result).__name__}")
+                st.stop()
+            
+            if not result.get('success', False):
+                # Dict but not successful - DO NOT SAVE TO SESSION STATE
+                st.error(f"❌ {get_text('error', lang) if lang == 'en' else 'Lỗi'}: {result.get('error', 'Unknown error')}")
+                st.stop()
+            
+            # ✅ ONLY save to session state if result is dict AND successful
             st.session_state['result'] = result
             st.session_state['df'] = df
             
