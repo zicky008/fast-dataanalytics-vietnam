@@ -1672,9 +1672,16 @@ def main():
                DARK THEME: Enhanced Contrast
                ============================================== */
             
-            /* Hide Streamlit default delta arrows (we use custom icons) */
-            [data-testid="stMetricDelta"] {
+            /* Hide ONLY Streamlit default arrow SVGs (keep text + our icons) */
+            [data-testid="stMetricDelta"] svg {
                 display: none !important;
+            }
+            
+            /* Ensure delta text is visible and readable */
+            [data-testid="stMetricDelta"] {
+                font-size: 1rem !important;
+                font-weight: 600 !important;
+                opacity: 1 !important;
             }
             
             /* Enhanced tooltip readability */
@@ -1759,7 +1766,8 @@ def main():
                 
                 /* KPI labels and values in dark theme */
                 [data-testid="stMetricLabel"],
-                [data-testid="stMetricValue"] {
+                [data-testid="stMetricValue"],
+                [data-testid="stMetricDelta"] {
                     color: rgba(255, 255, 255, 0.95) !important;
                 }
                 
