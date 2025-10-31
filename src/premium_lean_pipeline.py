@@ -3377,7 +3377,7 @@ DATA PROFILE:
 - ALL Columns: {', '.join(all_cols)}
 - Numeric Columns: {', '.join(numeric_cols[:10])}
 - Categorical Columns: {', '.join(categorical_cols[:5])}
-- Sample Data: {df.head(3).to_dict('records')}
+- Sample Data: {json.dumps(df.head(3).to_dict('records'), ensure_ascii=False)}
 
 ⭐ ACTUAL CALCULATED KPIs (from real data - DO NOT RECALCULATE):
 {kpis_json}
