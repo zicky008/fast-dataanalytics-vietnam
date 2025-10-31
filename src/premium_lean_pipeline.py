@@ -1043,7 +1043,15 @@ class PremiumLeanPipeline:
         Step 1: ISO 8000 data cleaning (15s)
         """
         
-        domain_context = get_domain_specific_prompt_context(domain_info)
+        # 🐛 FIX: Ensure domain_context is always string (handle potential dict/object returns)
+        try:
+            domain_context = get_domain_specific_prompt_context(domain_info)
+            if not isinstance(domain_context, str):
+                domain_context = str(domain_context)
+        except Exception as e:
+            domain_name = domain_info.get('domain_name', domain_info.get('domain', 'General'))
+            expert_role = domain_info.get('expert_role', 'Data Analyst')
+            domain_context = f"Domain: {domain_name}\nExpert Role: {expert_role}"
         
         # Check for protected fields in dataset
         protected_cols = [col for col in df.columns if is_never_impute_field(col)]
@@ -3325,7 +3333,17 @@ OUTPUT JSON:
         then passes to AI for INTERPRETATION only (not calculation)
         """
         
-        domain_context = get_domain_specific_prompt_context(domain_info)
+        # 🐛 FIX: Ensure domain_context is always string (handle potential dict/object returns)
+        try:
+            domain_context = get_domain_specific_prompt_context(domain_info)
+            if not isinstance(domain_context, str):
+                # If not string, convert to string representation
+                domain_context = str(domain_context)
+        except Exception as e:
+            # Fallback to basic context if function fails
+            domain_name = domain_info.get('domain_name', domain_info.get('domain', 'General'))
+            expert_role = domain_info.get('expert_role', 'Data Analyst')
+            domain_context = f"Domain: {domain_name}\nExpert Role: {expert_role}"
         
         # Get data statistics
         numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
@@ -3335,8 +3353,20 @@ OUTPUT JSON:
         # ⭐ NEW: Calculate KPIs from REAL DATA first
         kpis_calculated = self._calculate_real_kpis(df, domain_info)
         
+        # 🐛 HOTFIX #4: Validate kpis_calculated is a dict before using in f-string
+        if not isinstance(kpis_calculated, dict):
+            return {'success': False, 'error': f"❌ _calculate_real_kpis returned {type(kpis_calculated).__name__}, expected dict"}
+        
         # Combined prompt with STRICT chart requirements - BILINGUAL
         chart_title_lang = "Clear Vietnamese title" if self.lang == 'vi' else "Clear English title"
+        
+        # 🐛 HOTFIX #4: Safely convert kpis to JSON string to avoid f-string concatenation issues
+        try:
+            kpis_json = json.dumps(kpis_calculated, indent=2, ensure_ascii=False)
+            kpis_json_compact = json.dumps(kpis_calculated, ensure_ascii=False)
+        except Exception as e:
+            return {'success': False, 'error': f"❌ Failed to serialize KPIs to JSON: {type(e).__name__}: {str(e)}"}
+        
         prompt = f"""
 {domain_context}
 
@@ -3350,7 +3380,7 @@ DATA PROFILE:
 - Sample Data: {df.head(3).to_dict('records')}
 
 ⭐ ACTUAL CALCULATED KPIs (from real data - DO NOT RECALCULATE):
-{json.dumps(kpis_calculated, indent=2, ensure_ascii=False)}
+{kpis_json}
 
 REQUIREMENTS:
 1. USE the above calculated KPIs (already computed from real data)
@@ -3401,7 +3431,7 @@ REQUIREMENTS:
 
 OUTPUT JSON (strictly follow this structure):
 {{
-    "kpis_calculated": {json.dumps(kpis_calculated, ensure_ascii=False)},
+    "kpis_calculated": {kpis_json_compact},
     "objectives": [
         {{"id": "obj1", "title": "Optimize Marketing ROI", "priority": "high"}}
     ],
@@ -3717,7 +3747,15 @@ REMEMBER: Every chart MUST have x_axis and y_axis as actual column names from th
         Step 4: Domain expert insights (15s)
         """
         
-        domain_context = get_domain_specific_prompt_context(domain_info)
+        # 🐛 FIX: Ensure domain_context is always string (handle potential dict/object returns)
+        try:
+            domain_context = get_domain_specific_prompt_context(domain_info)
+            if not isinstance(domain_context, str):
+                domain_context = str(domain_context)
+        except Exception as e:
+            domain_name = domain_info.get('domain_name', domain_info.get('domain', 'General'))
+            expert_role = domain_info.get('expert_role', 'Data Analyst')
+            domain_context = f"Domain: {domain_name}\nExpert Role: {expert_role}"
         
         # Get KPIs summary
         kpis_summary = []
