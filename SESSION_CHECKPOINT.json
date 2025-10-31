@@ -5,15 +5,16 @@
   "project_name": "Fast Data Analytics Vietnam",
   "owner": "Introvert founder",
   "current_status": {
-    "phase": "Path C - Phase 1 (Post-Deployment)",
+    "phase": "Week 1 Complete - Ready for Week 2",
     "approach": "Deploy → Test 3 Domains → Deep Dive Winning Domain",
-    "week": "N/A (hybrid approach, not week-based)",
-    "day": "N/A",
-    "task": "User Testing & Feedback Collection",
-    "status": "DEPLOYMENT_COMPLETE",
-    "progress_percentage": 75,
+    "week": "1",
+    "day": "7",
+    "task": "At-a-Glance Dashboard - COMPLETE",
+    "status": "WEEK_1_COMPLETE",
+    "progress_percentage": 78,
     "deployment_url": "https://fast-nicedashboard.streamlit.app/",
-    "next_milestone": "3 user interviews → domain selection (Day 4)"
+    "next_milestone": "Week 2, Day 1-2: Semantic Layer YAML",
+    "latest_pr": "https://github.com/zicky008/fast-dataanalytics-vietnam/pull/31"
   },
   "core_constraints": {
     "financial_cost": "₫0 (zero)",
@@ -56,11 +57,14 @@
       "notes": "Integrated in production app, needs user validation"
     },
     "at_a_glance_dashboard": {
-      "status": "NOT_STARTED",
+      "status": "COMPLETE",
       "tech": "McKinsey 5-30s rule",
       "priority": "CRITICAL",
       "week": 1,
-      "expected_outcome": "Executive adoption +380%"
+      "expected_outcome": "Executive adoption +380%",
+      "git_commit": "95aa220",
+      "pr_url": "https://github.com/zicky008/fast-dataanalytics-vietnam/pull/31",
+      "notes": "4-tier health status (excellent/good/warning/critical), status banner, timing validation"
     }
   },
   "tech_stack_decisions": {
@@ -90,7 +94,7 @@
         {
           "day": "1-2",
           "name": "Visual Hierarchy CSS",
-          "status": "NOT_STARTED",
+          "status": "COMPLETE",
           "hours": 8,
           "deliverable": "utils/visual_hierarchy.py",
           "success_criteria": [
@@ -98,12 +102,13 @@
             "WCAG AA compliance",
             "Mobile readable (375x667)",
             "User feedback: 'Looks professional'"
-          ]
+          ],
+          "git_commit": "0b4e622"
         },
         {
           "day": "3-4",
           "name": "Progressive Disclosure",
-          "status": "NOT_STARTED",
+          "status": "COMPLETE",
           "hours": 8,
           "deliverable": "utils/progressive_disclosure.py",
           "success_criteria": [
@@ -111,20 +116,23 @@
             "'Xem thêm' button working",
             "Bounce rate 40% → 30%",
             "Mobile completion >70%"
-          ]
+          ],
+          "git_commit": "0b4e622"
         },
         {
           "day": "5-7",
           "name": "At-a-Glance Dashboard",
-          "status": "NOT_STARTED",
+          "status": "COMPLETE",
           "hours": 12,
-          "deliverable": "streamlit_app.py updates",
+          "deliverable": "utils/at_a_glance.py + streamlit_app.py updates",
           "success_criteria": [
             "Status banner <5s visible",
             "Top 3 KPIs scannable <10s",
             "Full context <30s",
             "User: 'I understand immediately'"
-          ]
+          ],
+          "git_commit": "95aa220",
+          "pr_url": "https://github.com/zicky008/fast-dataanalytics-vietnam/pull/31"
         },
         {
           "day": "8-10",
@@ -423,10 +431,13 @@
       "Research validated (3 documents, 88KB)",
       "Visual Hierarchy integrated (commit 0b4e622)",
       "Progressive Disclosure integrated (commit 0b4e622)",
+      "At-a-Glance Dashboard completed (commit 95aa220)",
       "Deployment docs created (8 documents, 160KB)",
       "Production deployed (fast-nicedashboard.streamlit.app)",
       "Automated testing (3/6 tests passed, non-critical failures)",
-      "Pull Request #30 merged to main branch"
+      "Pull Request #30 merged to main branch",
+      "Pull Request #31 created (At-a-Glance Dashboard)",
+      "Week 1 Complete (Day 1-7) - 78% roadmap progress"
     ],
     "pending_user_actions": [
       "Manual functional testing (30 min)",
