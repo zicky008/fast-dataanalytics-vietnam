@@ -1434,16 +1434,34 @@ def main():
         # ============================================
         
         # Initialize At-a-Glance state and timing
-        from utils.at_a_glance import (
-            init_at_a_glance_state,
-            calculate_overall_health,
-            render_status_banner,
-            validate_5_30_rule,
-            prioritize_kpis
-        )
-        init_at_a_glance_state()
         import time
         start_time = time.time()
+        
+        # Try to import At-a-Glance module (graceful fallback if not available)
+        try:
+            from utils.at_a_glance import (
+                init_at_a_glance_state,
+                calculate_overall_health,
+                render_status_banner,
+                validate_5_30_rule,
+                prioritize_kpis
+            )
+            init_at_a_glance_state()
+            at_a_glance_available = True
+        except ImportError:
+            # Fallback: At-a-Glance module not available yet
+            at_a_glance_available = False
+            # Define dummy functions for compatibility
+            def init_at_a_glance_state():
+                pass
+            def calculate_overall_health(kpi_results, lang='vi'):
+                return None
+            def render_status_banner(health_status, lang='vi'):
+                pass
+            def validate_5_30_rule(start_time, checkpoint):
+                return True
+            def prioritize_kpis(kpi_results):
+                return kpi_results
         
         # Display KPIs
         st.markdown(f"#### {get_text('kpis_title', lang)}")
@@ -1580,16 +1598,17 @@ def main():
                     'is_good': kpi['is_good']
                 })
             
-            # Calculate overall health
-            health_status = calculate_overall_health(kpi_results_for_health, lang)
-            
-            # ============================================
-            # STEP 2: Render Status Banner (5 seconds)
-            # ============================================
-            render_status_banner(health_status, lang)
-            
-            # Validate McKinsey 5s rule
-            validate_5_30_rule(start_time, 'status_banner')
+            # Calculate overall health (only if At-a-Glance available)
+            if at_a_glance_available:
+                health_status = calculate_overall_health(kpi_results_for_health, lang)
+                
+                # ============================================
+                # STEP 2: Render Status Banner (5 seconds)
+                # ============================================
+                render_status_banner(health_status, lang)
+                
+                # Validate McKinsey 5s rule
+                validate_5_30_rule(start_time, 'status_banner')
             
             # ============================================
             # STEP 3: Progressive Disclosure KPIs (10 seconds)
@@ -1607,8 +1626,9 @@ def main():
                 cols_per_row=3
             )
             
-            # Validate McKinsey 10s rule
-            validate_5_30_rule(start_time, 'top_kpis')
+            # Validate McKinsey 10s rule (only if At-a-Glance available)
+            if at_a_glance_available:
+                validate_5_30_rule(start_time, 'top_kpis')
             
             # Add benchmark source captions for visible KPIs
             st.markdown("")  # Spacing
@@ -1734,10 +1754,12 @@ def main():
                         st.plotly_chart(charts[i+1]['figure'], use_container_width=True, key=f"chart_{i+1}")
             
             # STEP 4: Validate chart rendering time (McKinsey 15s rule)
-            validate_5_30_rule(start_time, 'charts')
+            if at_a_glance_available:
+                validate_5_30_rule(start_time, 'charts')
         
         # STEP 5: Validate full context time (McKinsey 30s rule)
-        validate_5_30_rule(start_time, 'full_context')
+        if at_a_glance_available:
+            validate_5_30_rule(start_time, 'full_context')
         
         # Export options
         st.markdown("---")
