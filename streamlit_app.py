@@ -1427,6 +1427,24 @@ def main():
             completeness = (1 - df.isnull().sum().sum() / (len(df) * len(df.columns))) * 100
             st.metric("Completeness / Độ đầy", f"{completeness:.1f}%")
 
+        # ============================================
+        # 🎯 AT-A-GLANCE DASHBOARD (Week 1 Day 5-7)
+        # McKinsey 5-30 Second Rule Implementation
+        # Expected Impact: Decision time 3 min → 30s (-83%)
+        # ============================================
+        
+        # Initialize At-a-Glance state and timing
+        from utils.at_a_glance import (
+            init_at_a_glance_state,
+            calculate_overall_health,
+            render_status_banner,
+            validate_5_30_rule,
+            prioritize_kpis
+        )
+        init_at_a_glance_state()
+        import time
+        start_time = time.time()
+        
         # Display KPIs
         st.markdown(f"#### {get_text('kpis_title', lang)}")
 
@@ -1536,6 +1554,47 @@ def main():
                     'raw_data': kpi_data  # Keep original data for transparency section
                 })
             
+            # ============================================
+            # STEP 1: Calculate Overall Health (McKinsey 5s rule)
+            # ============================================
+            
+            # Prepare KPI results for health calculation
+            kpi_results_for_health = []
+            for kpi in kpi_list:
+                raw_data = kpi.get('raw_data', {})
+                
+                # Extract vs_benchmark percentage if available
+                vs_benchmark_pct = None
+                if 'status' in raw_data and 'benchmark' in raw_data:
+                    try:
+                        value = float(raw_data['value'])
+                        benchmark = float(raw_data['benchmark'])
+                        if benchmark > 0:
+                            vs_benchmark_pct = ((value - benchmark) / benchmark) * 100
+                    except (ValueError, TypeError, ZeroDivisionError):
+                        vs_benchmark_pct = None
+                
+                kpi_results_for_health.append({
+                    'name': kpi['display_name'],
+                    'vs_benchmark': vs_benchmark_pct,
+                    'is_good': kpi['is_good']
+                })
+            
+            # Calculate overall health
+            health_status = calculate_overall_health(kpi_results_for_health, lang)
+            
+            # ============================================
+            # STEP 2: Render Status Banner (5 seconds)
+            # ============================================
+            render_status_banner(health_status, lang)
+            
+            # Validate McKinsey 5s rule
+            validate_5_30_rule(start_time, 'status_banner')
+            
+            # ============================================
+            # STEP 3: Progressive Disclosure KPIs (10 seconds)
+            # ============================================
+            
             # Use progressive disclosure to render KPIs
             from progressive_disclosure import render_progressive_kpis
             
@@ -1547,6 +1606,9 @@ def main():
                 kpi_tier='primary',
                 cols_per_row=3
             )
+            
+            # Validate McKinsey 10s rule
+            validate_5_30_rule(start_time, 'top_kpis')
             
             # Add benchmark source captions for visible KPIs
             st.markdown("")  # Spacing
@@ -1670,6 +1732,12 @@ def main():
                 with col2:
                     if i + 1 < len(charts):
                         st.plotly_chart(charts[i+1]['figure'], use_container_width=True, key=f"chart_{i+1}")
+            
+            # STEP 4: Validate chart rendering time (McKinsey 15s rule)
+            validate_5_30_rule(start_time, 'charts')
+        
+        # STEP 5: Validate full context time (McKinsey 30s rule)
+        validate_5_30_rule(start_time, 'full_context')
         
         # Export options
         st.markdown("---")
