@@ -556,6 +556,10 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
         if kpis_preview:
             # Layer 1: Check for explicit currency indicators in KPI names
             for kpi_name, kpi_data in kpis_preview.items():
+                # 🐛 FIX: Ensure kpi_name is string (can be dict in some cases)
+                if not isinstance(kpi_name, str):
+                    kpi_name = str(kpi_name)
+                
                 kpi_name_lower = kpi_name.lower()
                 if 'vnd' in kpi_name_lower or 'vnđ' in kpi_name_lower or 'việt nam đồng' in kpi_name_lower:
                     currency_used = "VND"
@@ -568,6 +572,10 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
             if currency_used == "USD":  # Still default, no explicit indicator found
                 max_kpi_value = 0
                 for kpi_name, kpi_data in kpis_preview.items():
+                    # 🐛 FIX: Ensure kpi_name is string
+                    if not isinstance(kpi_name, str):
+                        kpi_name = str(kpi_name)
+                    
                     kpi_value = kpi_data.get('value', 0)
                     # Focus on cost/revenue/financial KPIs for currency detection
                     if any(keyword in kpi_name.lower() for keyword in ['cost', 'revenue', 'price', 'spend', 'salary', 'income', 'expense']):
@@ -771,7 +779,9 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
                     formatted_value = f"{value:.2f}"
 
                 # Add unit if it's a salary KPI
-                if 'salary' in kpi_name.lower() or 'compensation' in kpi_name.lower():
+                # 🐛 FIX: Ensure kpi_name is string
+                kpi_name_str = kpi_name if isinstance(kpi_name, str) else str(kpi_name)
+                if 'salary' in kpi_name_str.lower() or 'compensation' in kpi_name_str.lower():
                     formatted_value += f" {currency_used}/year"
 
                 # ✅ FIX #6: Enhanced benchmark formatting with context
@@ -782,7 +792,8 @@ def export_to_pdf(result: Dict[str, Any], df: Any, lang: str = "vi") -> bytes:
                     target_symbol = ""
                     
                     # Determine if higher or lower is better based on KPI context
-                    kpi_lower = clean_kpi_name.lower()
+                    # 🐛 FIX: Ensure clean_kpi_name is string
+                    kpi_lower = clean_kpi_name.lower() if isinstance(clean_kpi_name, str) else str(clean_kpi_name).lower()
                     if any(keyword in kpi_lower for keyword in ['cost', 'expense', 'defect', 'downtime', 'error', 'reject']):
                         # Lower is better
                         target_symbol = "≤" if status in ['Below', 'Good'] else ">"
