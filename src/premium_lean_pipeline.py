@@ -1277,13 +1277,13 @@ OUTPUT JSON:
                 avg_benchmark = vietnam_benchmark['benchmark_median']
                 median_benchmark = vietnam_benchmark['benchmark_median']
                 range_benchmark = vietnam_benchmark['benchmark_q3'] - vietnam_benchmark['benchmark_q1']
-                benchmark_source = vietnam_benchmark.get('benchmark_source', BENCHMARK_SOURCES['hr_salary'])
+                benchmark_source = vietnam_benchmark.get('benchmark_source', BENCHMARK_SOURCES['hr_salary']['name'])
             elif is_vnd:
                 # Vietnam market - VND fallback (if CSV not loaded)
                 avg_benchmark = 32500000  # ~32.5M VND/month - realistic median from CSV
                 median_benchmark = 32500000
                 range_benchmark = 25000000  # Q3-Q1 range
-                benchmark_source = BENCHMARK_SOURCES['hr_salary'] + ' (Estimated)'
+                benchmark_source = BENCHMARK_SOURCES['hr_salary']['name'] + ' (Estimated)'
             else:
                 # International market - USD
                 avg_benchmark = 18000
@@ -1474,11 +1474,11 @@ OUTPUT JSON:
                     # Set benchmark (use Vietnam data if available, else fallback)
                     if vietnam_benchmark:
                         benchmark_cpa = vietnam_benchmark['benchmark_median']
-                        benchmark_source = vietnam_benchmark.get('benchmark_source', BENCHMARK_SOURCES['marketing_cpa'])
+                        benchmark_source = vietnam_benchmark.get('benchmark_source', BENCHMARK_SOURCES['marketing_cpa']['name'])
                         currency = 'VND'
                     elif is_vnd:
                         benchmark_cpa = 85000  # ~85K VND - realistic Vietnam average from CSV
-                        benchmark_source = BENCHMARK_SOURCES['marketing_cpa'] + ' (Estimated)'
+                        benchmark_source = BENCHMARK_SOURCES['marketing_cpa']['name'] + ' (Estimated)'
                         currency = 'VND'
                     else:
                         benchmark_cpa = 70  # $70 USD - WordStream 2025 average
@@ -1581,7 +1581,7 @@ OUTPUT JSON:
                     # Set benchmark (use Vietnam data if available, else fallback)
                     if vietnam_benchmark:
                         benchmark_conv = vietnam_benchmark['benchmark_median']
-                        benchmark_source = vietnam_benchmark.get('benchmark_source', BENCHMARK_SOURCES['ecommerce_conversion'])
+                        benchmark_source = vietnam_benchmark.get('benchmark_source', BENCHMARK_SOURCES['ecommerce_conversion']['name'])
                     else:
                         benchmark_conv = 2.3  # ~2.3% - realistic Vietnam average from CSV
                         benchmark_source = BENCHMARK_SOURCES['ecommerce_conversion']
@@ -1645,7 +1645,7 @@ OUTPUT JSON:
                     # Set benchmark (use Vietnam data if available, else fallback)
                     if vietnam_benchmark:
                         benchmark_aov = vietnam_benchmark['benchmark_median']
-                        benchmark_source = vietnam_benchmark.get('benchmark_source', BENCHMARK_SOURCES['ecommerce_aov'])
+                        benchmark_source = vietnam_benchmark.get('benchmark_source', BENCHMARK_SOURCES['ecommerce_aov']['name'])
                         currency = 'VND'
                     elif is_vnd:
                         benchmark_aov = 385000  # ~385K VND - realistic Vietnam average from CSV
@@ -1710,7 +1710,7 @@ OUTPUT JSON:
                     # Set benchmark (use Vietnam data if available, else fallback)
                     if vietnam_benchmark:
                         benchmark_abandon = vietnam_benchmark['benchmark_median']
-                        benchmark_source = vietnam_benchmark.get('benchmark_source', BENCHMARK_SOURCES['ecommerce_cart_abandonment'])
+                        benchmark_source = vietnam_benchmark.get('benchmark_source', BENCHMARK_SOURCES['ecommerce_cart_abandonment']['name'])
                     else:
                         benchmark_abandon = 68.0  # ~68% - realistic Vietnam average from CSV
                         benchmark_source = BENCHMARK_SOURCES['ecommerce_cart_abandonment']
@@ -1912,7 +1912,7 @@ OUTPUT JSON:
                     # Set benchmark (use Vietnam data if available, else fallback)
                     if vietnam_benchmark:
                         benchmark_win = vietnam_benchmark['benchmark_median']
-                        benchmark_source = vietnam_benchmark.get('benchmark_source', BENCHMARK_SOURCES['sales_win_rate'])
+                        benchmark_source = vietnam_benchmark.get('benchmark_source', BENCHMARK_SOURCES['sales_win_rate']['name'])
                     else:
                         benchmark_win = 25.0  # ~25% - realistic Vietnam B2B average from CSV
                         benchmark_source = BENCHMARK_SOURCES['sales_win_rate']
@@ -1996,7 +1996,7 @@ OUTPUT JSON:
                     # Set benchmark (use Vietnam data if available, else fallback)
                     if vietnam_benchmark:
                         benchmark_deal = vietnam_benchmark['benchmark_median']
-                        benchmark_source = vietnam_benchmark.get('benchmark_source', BENCHMARK_SOURCES['sales_growth'])
+                        benchmark_source = vietnam_benchmark.get('benchmark_source', BENCHMARK_SOURCES['sales_growth']['name'])
                     else:
                         # Fallback: use 80% of current (conservative)
                         benchmark_deal = float(avg_deal_size * 0.8)
@@ -2060,7 +2060,7 @@ OUTPUT JSON:
                             # Set benchmark (use Vietnam data if available, else fallback)
                             if vietnam_benchmark:
                                 benchmark_cycle = vietnam_benchmark['benchmark_median']
-                                benchmark_source = vietnam_benchmark.get('benchmark_source', BENCHMARK_SOURCES['sales_cycle'])
+                                benchmark_source = vietnam_benchmark.get('benchmark_source', BENCHMARK_SOURCES['sales_cycle']['name'])
                             else:
                                 benchmark_cycle = 45.0  # ~45 days - realistic Vietnam B2B average from CSV
                                 benchmark_source = BENCHMARK_SOURCES['sales_cycle']
