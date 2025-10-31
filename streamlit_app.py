@@ -1292,9 +1292,25 @@ def main():
             # Run pipeline with progress
             result = pipeline.run_pipeline(df, dataset_description)
             
-            # Check result
-            if not result['success']:
-                st.error(f"❌ {get_text('error', lang) if lang == 'en' else 'Lỗi'}: {result['error']}")
+            # 🐛 FIX: Handle both dict and tuple returns from pipeline
+            if isinstance(result, tuple):
+                # Pipeline returned (success, error_message) tuple
+                success, error_msg = result
+                if not success:
+                    st.error(f"❌ {get_text('error', lang) if lang == 'en' else 'Lỗi'}: {error_msg}")
+                    st.stop()
+                else:
+                    # Should not happen (tuple with success=True)
+                    st.error(f"❌ Unexpected pipeline response format")
+                    st.stop()
+            elif isinstance(result, dict):
+                # Normal dict response
+                if not result.get('success', False):
+                    st.error(f"❌ {get_text('error', lang) if lang == 'en' else 'Lỗi'}: {result.get('error', 'Unknown error')}")
+                    st.stop()
+            else:
+                # Unknown response type
+                st.error(f"❌ Pipeline error: Invalid response type ({type(result).__name__})")
                 st.stop()
             
             # Save to session state
