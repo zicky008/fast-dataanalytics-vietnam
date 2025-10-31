@@ -1695,57 +1695,79 @@ def main():
             }
             
             /* ==============================================
-               LIGHT THEME: Text Contrast Fixes
+               LIGHT THEME: Enhanced Contrast for 5-Star UX
+               Target: WCAG AAA (7:1) for all text elements
                ============================================== */
             
-            /* Upload tab: Sample file names - increase contrast */
+            /* Upload tab: Sample file names - DARKER for clarity */
             [data-testid="stFileUploader"] label,
-            [data-testid="stFileUploader"] span {
-                color: rgba(0, 0, 0, 0.90) !important;
-                font-weight: 500 !important;
+            [data-testid="stFileUploader"] span,
+            .uploadedFileName {
+                color: rgba(0, 0, 0, 0.92) !important;  /* Was 0.90 - now darker */
+                font-weight: 600 !important;  /* Was 500 - now bolder */
             }
             
-            /* Upload tab: Processing status text */
-            .stSuccess, .stInfo {
-                color: rgba(0, 0, 0, 0.90) !important;
+            /* Upload tab: Processing status text - HIGH CONTRAST */
+            .stSuccess,
+            .stSuccess > div,
+            .stSuccess p,
+            .stInfo,
+            .stInfo > div,
+            .stInfo p {
+                color: rgba(0, 0, 0, 0.92) !important;  /* Was 0.90 - now darker */
+                font-weight: 600 !important;  /* Add weight */
             }
             
-            /* Upload tab: Captions and descriptions */
-            .stCaption, [data-testid="stCaption"] {
-                color: rgba(0, 0, 0, 0.75) !important;
-                font-weight: 450 !important;
+            /* Upload tab: Captions - CRITICAL FIX (user reported as "washed out") */
+            .stCaption,
+            [data-testid="stCaption"],
+            small {
+                color: rgba(0, 0, 0, 0.88) !important;  /* Was 0.75 - MUCH darker now */
+                font-weight: 500 !important;  /* Was 450 - stronger */
             }
             
-            /* Sidebar: Language and theme selector text */
+            /* Sidebar: Language and theme selector - CRITICAL FIX */
             [data-testid="stSidebar"] label,
             [data-testid="stSidebar"] span,
-            [data-testid="stSidebar"] p {
-                color: rgba(0, 0, 0, 0.90) !important;
-                font-weight: 500 !important;
+            [data-testid="stSidebar"] p,
+            [data-testid="stSidebar"] div[data-testid="stMarkdownContainer"],
+            [data-testid="stSidebar"] div[data-testid="stMarkdownContainer"] p {
+                color: rgba(0, 0, 0, 0.92) !important;  /* Was 0.90 - darker */
+                font-weight: 600 !important;  /* Was 500 - bolder */
             }
             
-            /* Dashboard tab: Section headers */
-            h1, h2, h3, h4 {
-                color: rgba(0, 0, 0, 0.95) !important;
-                font-weight: 700 !important;
+            /* Dashboard tab: Section headers - MAXIMUM CONTRAST */
+            h1, h2, h3, h4, h5, h6 {
+                color: rgba(0, 0, 0, 0.96) !important;  /* Was 0.95 - even darker */
+                font-weight: 700 !important;  /* Keep bold */
             }
             
-            /* Dashboard tab: Export button labels */
-            [data-testid="stButton"] button {
-                color: rgba(0, 0, 0, 0.90) !important;
-                font-weight: 600 !important;
+            /* Dashboard tab: Export button labels - ENHANCE */
+            [data-testid="stButton"] button,
+            [data-testid="stButton"] button p,
+            [data-testid="stDownloadButton"] button,
+            [data-testid="stDownloadButton"] button p {
+                color: rgba(0, 0, 0, 0.92) !important;  /* Was 0.90 - darker */
+                font-weight: 600 !important;  /* Keep bold */
             }
             
-            /* KPI metric labels - ensure visibility in both themes */
+            /* KPI metric labels - ENHANCE VISIBILITY */
             [data-testid="stMetricLabel"] {
-                color: rgba(0, 0, 0, 0.85) !important;
-                font-weight: 600 !important;
+                color: rgba(0, 0, 0, 0.90) !important;  /* Was 0.85 - darker */
+                font-weight: 600 !important;  /* Keep bold */
             }
             
-            /* KPI metric values - ensure visibility in both themes */
+            /* KPI metric values - MAXIMUM READABILITY */
             [data-testid="stMetricValue"] {
-                color: rgba(0, 0, 0, 0.95) !important;
-                font-weight: 700 !important;
+                color: rgba(0, 0, 0, 0.96) !important;  /* Was 0.95 - slightly darker */
+                font-weight: 700 !important;  /* Keep bold */
+            }
+            
+            /* KPI delta text (status icons) - ENSURE VISIBILITY */
+            [data-testid="stMetricDelta"],
+            [data-testid="stMetricDelta"] > div {
+                color: rgba(0, 0, 0, 0.88) !important;  /* Add for light theme */
+                font-weight: 600 !important;
             }
             
             /* ==============================================
