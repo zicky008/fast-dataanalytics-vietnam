@@ -63,13 +63,22 @@ st.set_page_config(
     }
 )
 
-# Add src to path
+# Add src and utils to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'utils'))
 log_perf("CONFIG: Path setup")
 
 # Load environment variables
 load_dotenv()
 log_perf("CONFIG: Environment loaded")
+
+# ============================================
+# VISUAL HIERARCHY CSS (Week 1, Day 1 - WrenAI Pattern)
+# ============================================
+log_perf("START: Visual hierarchy CSS injection")
+from visual_hierarchy import inject_visual_hierarchy_css
+inject_visual_hierarchy_css()
+log_perf("COMPLETE: Visual hierarchy CSS injected (36px/28px/20px)")
 
 # Import MDL Loader (Week 1 Integration - WrenAI Semantic Layer)
 from mdl_loader import (
