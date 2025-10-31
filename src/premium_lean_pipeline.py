@@ -4585,4 +4585,3 @@ Your response must be parseable by json.loads() immediately."""
             'error': error_msg,
             'audit_trail': self.pipeline_state['audit_trail']
         }
-      }
