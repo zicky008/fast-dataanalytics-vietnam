@@ -734,7 +734,9 @@ def add_benchmark_metadata(kpis: Dict, domain: str) -> Dict:
     """
     for kpi_name, kpi_data in kpis.items():
         if 'benchmark_source' not in kpi_data and 'benchmark' in kpi_data:
-            kpi_data['benchmark_source'] = get_benchmark_source(kpi_name, domain)
+            source_dict = get_benchmark_source(kpi_name, domain)
+            # ⚠️ CRITICAL FIX #10: Extract 'name' field for string display (not full dict)
+            kpi_data['benchmark_source'] = source_dict.get('name', 'Industry Standard') if isinstance(source_dict, dict) else str(source_dict)
     return kpis
 
 

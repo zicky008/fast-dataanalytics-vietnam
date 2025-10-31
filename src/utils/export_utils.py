@@ -197,6 +197,12 @@ def find_source_url(source_text: str) -> str:
     if not source_text:
         return None
     
+    # ⚠️ CRITICAL FIX #10: Handle dict benchmark_source (extract name first)
+    if isinstance(source_text, dict):
+        source_text = source_text.get('name', 'Industry Standard')
+    elif not isinstance(source_text, str):
+        source_text = str(source_text)
+    
     source_lower = source_text.lower()
     
     # Exact match first

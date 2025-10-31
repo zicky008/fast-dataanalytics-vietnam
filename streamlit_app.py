@@ -1550,54 +1550,56 @@ def main():
             st.warning(get_text('no_charts', lang))
         else:
             # 🎯 WEEK 1 INTEGRATION: Add benchmark lines to charts (if MDL available)
-            mdl = st.session_state.get('mdl')
-            domain = st.session_state.get('domain')
-            
-            if mdl and domain:
-                # Get measures for benchmark mapping
-                measures = get_all_measures_metadata(domain)
-                
-                # Create benchmark map (measure_name -> benchmark_value)
-                # Extract from descriptions like "Industry benchmark 4:1+" -> 4.0
-                benchmark_map = {}
-                for measure in measures:
-                    desc = measure.get('description', '')
-                    
-                    # Try to extract numeric benchmark
-                    if 'benchmark' in desc.lower():
-                        import re
-                        # Match patterns like "4:1+", "4.5+", ">85%", "70-75%"
-                        match = re.search(r'(\d+(?:\.\d+)?)[:\+]', desc)
-                        if match:
-                            benchmark_map[measure['name']] = float(match.group(1))
-                        else:
-                            # Try percentage patterns
-                            match = re.search(r'>?(\d+(?:\.\d+)?)%', desc)
-                            if match:
-                                benchmark_map[measure['name']] = float(match.group(1))
-                
-                # Enhance charts with benchmark lines
-                for chart_data in charts:
-                    fig = chart_data.get('figure')
-                    chart_title = chart_data.get('title', '').lower()
-                    
-                    # Try to match chart title with measure name
-                    for measure_name, benchmark_value in benchmark_map.items():
-                        if measure_name in chart_title or measure_name.replace('_', ' ') in chart_title:
-                            # Add horizontal benchmark line
-                            fig.add_hline(
-                                y=benchmark_value,
-                                line_dash="dash",
-                                line_color="rgba(34, 197, 94, 0.6)",  # Green
-                                annotation_text=f"Industry Benchmark: {benchmark_value}",
-                                annotation_position="top right",
-                                annotation=dict(
-                                    font=dict(size=10, color="rgba(34, 197, 94, 0.9)"),
-                                    bgcolor="rgba(34, 197, 94, 0.1)",
-                                    borderpad=4
-                                )
-                            )
-                            break
+            # ⚠️ DISABLED in Hotfix #10: premium_lean_pipeline already adds benchmark lines
+            # This was causing DUPLICATE benchmark lines on charts
+            # mdl = st.session_state.get('mdl')
+            # domain = st.session_state.get('domain')
+            # 
+            # if mdl and domain:
+            #     # Get measures for benchmark mapping
+            #     measures = get_all_measures_metadata(domain)
+            #     
+            #     # Create benchmark map (measure_name -> benchmark_value)
+            #     # Extract from descriptions like "Industry benchmark 4:1+" -> 4.0
+            #     benchmark_map = {}
+            #     for measure in measures:
+            #         desc = measure.get('description', '')
+            #         
+            #         # Try to extract numeric benchmark
+            #         if 'benchmark' in desc.lower():
+            #             import re
+            #             # Match patterns like "4:1+", "4.5+", ">85%", "70-75%"
+            #             match = re.search(r'(\d+(?:\.\d+)?)[:\+]', desc)
+            #             if match:
+            #                 benchmark_map[measure['name']] = float(match.group(1))
+            #             else:
+            #                 # Try percentage patterns
+            #                 match = re.search(r'>?(\d+(?:\.\d+)?)%', desc)
+            #                 if match:
+            #                     benchmark_map[measure['name']] = float(match.group(1))
+            #     
+            #     # Enhance charts with benchmark lines
+            #     for chart_data in charts:
+            #         fig = chart_data.get('figure')
+            #         chart_title = chart_data.get('title', '').lower()
+            #         
+            #         # Try to match chart title with measure name
+            #         for measure_name, benchmark_value in benchmark_map.items():
+            #             if measure_name in chart_title or measure_name.replace('_', ' ') in chart_title:
+            #                 # Add horizontal benchmark line
+            #                 fig.add_hline(
+            #                     y=benchmark_value,
+            #                     line_dash="dash",
+            #                     line_color="rgba(34, 197, 94, 0.6)",  # Green
+            #                     annotation_text=f"Industry Benchmark: {benchmark_value}",
+            #                     annotation_position="top right",
+            #                     annotation=dict(
+            #                         font=dict(size=10, color="rgba(34, 197, 94, 0.9)"),
+            #                         bgcolor="rgba(34, 197, 94, 0.1)",
+            #                         borderpad=4
+            #                     )
+            #                 )
+            #                 break
             
             # Display charts in 2 columns
             for i in range(0, len(charts), 2):
