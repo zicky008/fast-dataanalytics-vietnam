@@ -1557,32 +1557,37 @@ def main():
                     if is_lower_better:
                         # Above is BAD for lower-is-better metrics (costs, time)
                         is_good = False
-                        delta_icon = "⚠️"  # Warning (bad - costs/time above benchmark)
-                        delta_text = f"{delta_icon} Above vs {benchmark_formatted}"
+                        delta_icon = "⚠️"
+                        status_text = "Trên chuẩn" if lang == 'vi' else "Above"
+                        delta_text = f"{delta_icon} {status_text}"
                     else:
                         # Above is GOOD for higher-is-better metrics (revenue, quality)
                         is_good = True
-                        delta_icon = "✅"  # Check mark (good - revenue/quality above benchmark)
-                        delta_text = f"{delta_icon} Above vs {benchmark_formatted}"
+                        delta_icon = "✅"
+                        status_text = "Trên chuẩn" if lang == 'vi' else "Above"
+                        delta_text = f"{delta_icon} {status_text}"
                 elif status == 'Below':
                     if is_lower_better:
                         # Below is GOOD for lower-is-better metrics
                         is_good = True
-                        delta_icon = "✅"  # Check mark (good - costs/time below benchmark)
-                        delta_text = f"{delta_icon} Below vs {benchmark_formatted}"
+                        delta_icon = "✅"
+                        status_text = "Dưới chuẩn" if lang == 'vi' else "Below"
+                        delta_text = f"{delta_icon} {status_text}"
                     else:
                         # Below is BAD for higher-is-better metrics
                         is_good = False
-                        delta_icon = "⚠️"  # Warning (bad - revenue/quality below benchmark)
-                        delta_text = f"{delta_icon} Below vs {benchmark_formatted}"
+                        delta_icon = "⚠️"
+                        status_text = "Dưới chuẩn" if lang == 'vi' else "Below"
+                        delta_text = f"{delta_icon} {status_text}"
                 elif status == 'Competitive':
                     is_good = True  # Competitive is neutral/good
-                    delta_icon = "➡️"  # Right arrow (competitive/at benchmark)
-                    delta_text = f"{delta_icon} Competitive vs {benchmark_formatted}"
+                    delta_icon = "➡️"
+                    status_text = "Cạnh tranh" if lang == 'vi' else "Competitive"
+                    delta_text = f"{delta_icon} {status_text}"
                 else:
                     is_good = True
                     delta_icon = ""
-                    delta_text = f"vs {benchmark_formatted}" if benchmark_formatted != 'N/A' else ""
+                    delta_text = ""
                 
                 vs_benchmark_text = delta_text
                 
@@ -1590,6 +1595,7 @@ def main():
                     'display_name': kpi_name,
                     'formatted_value': formatted_value,
                     'vs_benchmark': vs_benchmark_text,
+                    'benchmark_value': benchmark_formatted,  # For caption display
                     'is_good': is_good,
                     'benchmark_source': kpi_data.get('benchmark_source', ''),
                     'raw_data': kpi_data  # Keep original data for transparency section
@@ -1658,6 +1664,28 @@ def main():
             # ============================================
             # STEP 3: Progressive Disclosure KPIs (10 seconds)
             # ============================================
+            
+            # Custom CSS for better delta text readability
+            st.markdown("""
+            <style>
+            /* Increase delta text size and contrast */
+            [data-testid="stMetricDelta"] {
+                font-size: 1rem !important;
+                font-weight: 600 !important;
+                opacity: 1 !important;
+            }
+            
+            /* Ensure good contrast on dark theme */
+            .st-emotion-cache-1wivap2, [data-testid="stMetricDelta"] > div {
+                color: rgba(250, 250, 250, 0.95) !important;
+            }
+            
+            /* Add spacing between icon and text */
+            [data-testid="stMetricDelta"] svg {
+                margin-right: 4px;
+            }
+            </style>
+            """, unsafe_allow_html=True)
             
             # Use progressive disclosure to render KPIs
             from progressive_disclosure import render_progressive_kpis
