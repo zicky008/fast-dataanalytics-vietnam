@@ -1665,24 +1665,118 @@ def main():
             # STEP 3: Progressive Disclosure KPIs (10 seconds)
             # ============================================
             
-            # Custom CSS for better delta text readability
+            # Custom CSS for comprehensive text visibility fixes (dark + light themes)
             st.markdown("""
             <style>
-            /* Increase delta text size and contrast */
+            /* ==============================================
+               DARK THEME: Enhanced Contrast
+               ============================================== */
+            
+            /* Hide Streamlit default delta arrows (we use custom icons) */
             [data-testid="stMetricDelta"] {
-                font-size: 1rem !important;
+                display: none !important;
+            }
+            
+            /* Enhanced tooltip readability */
+            [data-testid="stTooltipContent"] {
+                font-size: 14px !important;
+                font-weight: 500 !important;
+                background-color: rgba(0, 0, 0, 0.95) !important;
+                color: rgba(255, 255, 255, 0.95) !important;
+                padding: 8px 12px !important;
+                border-radius: 6px !important;
+            }
+            
+            /* ==============================================
+               LIGHT THEME: Text Contrast Fixes
+               ============================================== */
+            
+            /* Upload tab: Sample file names - increase contrast */
+            [data-testid="stFileUploader"] label,
+            [data-testid="stFileUploader"] span {
+                color: rgba(0, 0, 0, 0.90) !important;
+                font-weight: 500 !important;
+            }
+            
+            /* Upload tab: Processing status text */
+            .stSuccess, .stInfo {
+                color: rgba(0, 0, 0, 0.90) !important;
+            }
+            
+            /* Upload tab: Captions and descriptions */
+            .stCaption, [data-testid="stCaption"] {
+                color: rgba(0, 0, 0, 0.75) !important;
+                font-weight: 450 !important;
+            }
+            
+            /* Sidebar: Language and theme selector text */
+            [data-testid="stSidebar"] label,
+            [data-testid="stSidebar"] span,
+            [data-testid="stSidebar"] p {
+                color: rgba(0, 0, 0, 0.90) !important;
+                font-weight: 500 !important;
+            }
+            
+            /* Dashboard tab: Section headers */
+            h1, h2, h3, h4 {
+                color: rgba(0, 0, 0, 0.95) !important;
+                font-weight: 700 !important;
+            }
+            
+            /* Dashboard tab: Export button labels */
+            [data-testid="stButton"] button {
+                color: rgba(0, 0, 0, 0.90) !important;
                 font-weight: 600 !important;
-                opacity: 1 !important;
             }
             
-            /* Ensure good contrast on dark theme */
-            .st-emotion-cache-1wivap2, [data-testid="stMetricDelta"] > div {
-                color: rgba(250, 250, 250, 0.95) !important;
+            /* KPI metric labels - ensure visibility in both themes */
+            [data-testid="stMetricLabel"] {
+                color: rgba(0, 0, 0, 0.85) !important;
+                font-weight: 600 !important;
             }
             
-            /* Add spacing between icon and text */
-            [data-testid="stMetricDelta"] svg {
-                margin-right: 4px;
+            /* KPI metric values - ensure visibility in both themes */
+            [data-testid="stMetricValue"] {
+                color: rgba(0, 0, 0, 0.95) !important;
+                font-weight: 700 !important;
+            }
+            
+            /* ==============================================
+               DARK THEME OVERRIDES (for elements that need different treatment)
+               ============================================== */
+            @media (prefers-color-scheme: dark) {
+                /* Tooltip in dark theme */
+                [data-testid="stTooltipContent"] {
+                    background-color: rgba(50, 50, 50, 0.98) !important;
+                    color: rgba(255, 255, 255, 0.98) !important;
+                    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                }
+                
+                /* Text in dark theme */
+                h1, h2, h3, h4, p, span, label {
+                    color: rgba(255, 255, 255, 0.95) !important;
+                }
+                
+                /* KPI labels and values in dark theme */
+                [data-testid="stMetricLabel"],
+                [data-testid="stMetricValue"] {
+                    color: rgba(255, 255, 255, 0.95) !important;
+                }
+                
+                /* Buttons in dark theme */
+                [data-testid="stButton"] button {
+                    color: rgba(255, 255, 255, 0.90) !important;
+                }
+            }
+            
+            /* ==============================================
+               UNIVERSAL: Status Icons & Text
+               ============================================== */
+            
+            /* Custom status display below metrics */
+            div[style*="font-size: 16px"] {
+                line-height: 1.4 !important;
+                letter-spacing: 0.3px !important;
             }
             </style>
             """, unsafe_allow_html=True)

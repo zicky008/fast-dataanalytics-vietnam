@@ -139,10 +139,15 @@ def render_progressive_kpis(
                 st.metric(
                     label=kpi.get('display_name', 'N/A'),
                     value=kpi.get('formatted_value', 'N/A'),
-                    delta=kpi.get('vs_benchmark'),
-                    delta_color="off",  # Use our custom icons instead
                     help=f"Benchmark: {kpi.get('benchmark_value', 'N/A')}" if kpi.get('benchmark_value') else None
                 )
+                # Custom status display (no Streamlit arrows)
+                vs_benchmark = kpi.get('vs_benchmark', '')
+                if vs_benchmark:
+                    st.markdown(
+                        f'<div style="font-size: 16px; font-weight: 600; margin-top: -12px; opacity: 0.95;">{vs_benchmark}</div>',
+                        unsafe_allow_html=True
+                    )
                 st.markdown('</div>', unsafe_allow_html=True)
     
     # === TIER 2: Expandable (Remaining KPIs) ===
@@ -175,10 +180,15 @@ def render_progressive_kpis(
                         st.metric(
                             label=kpi.get('display_name', 'N/A'),
                             value=kpi.get('formatted_value', 'N/A'),
-                            delta=kpi.get('vs_benchmark'),
-                            delta_color="off",  # Use our custom icons instead
                             help=f"Benchmark: {kpi.get('benchmark_value', 'N/A')}" if kpi.get('benchmark_value') else None
                         )
+                        # Custom status display (no Streamlit arrows)
+                        vs_benchmark = kpi.get('vs_benchmark', '')
+                        if vs_benchmark:
+                            st.markdown(
+                                f'<div style="font-size: 16px; font-weight: 600; margin-top: -12px; opacity: 0.95;">{vs_benchmark}</div>',
+                                unsafe_allow_html=True
+                            )
                         st.markdown('</div>', unsafe_allow_html=True)
             
             # Show collapse button
