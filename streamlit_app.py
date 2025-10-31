@@ -1471,18 +1471,19 @@ def main():
             st.markdown("**How to interpret KPI performance status:**")
             st.markdown("""
             | Icon | Status / Trạng thái | Meaning / Ý nghĩa |
-            |------|---------------------|--------------------|
-            | 🔼 | **Above** / Trên chuẩn | Performing better than benchmark (higher is better metrics) |
-            | 🔽 | **Below** / Dưới chuẩn | Performing below benchmark (needs improvement) |
-            | ⬇️ | **Below** / Dưới chuẩn | Performing better than benchmark (lower is better metrics like costs) |
-            | ⬆️ | **Above** / Trên chuẩn | Performing worse than benchmark (higher costs/time) |
+            |------|---------------------|---------------------|
+            | ✅ | **Above** / Trên chuẩn | Performing better than benchmark (+10% or more) |
+            | ➡️ | **Competitive** / Cạnh tranh | Performing at benchmark level (within ±10%) |
+            | ⚠️ | **Below** / Dưới chuẩn | Performing below benchmark (needs improvement) |
             
-            **Note / Lưu ý**: 
-            - For revenue, quality, satisfaction → Higher is better → 🔼 Above is good
-            - For costs, time, churn rate → Lower is better → 🔽 Below is good
-            - Icons automatically adjust based on metric type
+            **Special cases / Trường hợp đặc biệt**:
+            - For costs/time metrics: **Below** (lower values) actually gets ✅ icon (good performance)
+            - For revenue/quality metrics: **Above** (higher values) gets ✅ icon (good performance)
+            - Icons automatically adjust to show ✅ for good results, ⚠️ for areas needing attention
+            
+            **Benchmark sources / Nguồn**: Shopify, Nielsen, McKinsey industry data
             """)
-            st.caption("⚠️ Benchmark sources: Industry data from Shopify, Nielsen, McKinsey")
+            st.caption("💡 Tip / Mẹo: Focus on ⚠️ metrics first - these need immediate action")
 
         kpis = result['dashboard'].get('kpis', {})
         
@@ -1556,27 +1557,27 @@ def main():
                     if is_lower_better:
                         # Above is BAD for lower-is-better metrics (costs, time)
                         is_good = False
-                        delta_icon = "⬆️"  # Up arrow (bad)
+                        delta_icon = "⚠️"  # Warning (bad - costs/time above benchmark)
                         delta_text = f"{delta_icon} Above vs {benchmark_formatted}"
                     else:
                         # Above is GOOD for higher-is-better metrics (revenue, quality)
                         is_good = True
-                        delta_icon = "🔼"  # Up triangle (good)
+                        delta_icon = "✅"  # Check mark (good - revenue/quality above benchmark)
                         delta_text = f"{delta_icon} Above vs {benchmark_formatted}"
                 elif status == 'Below':
                     if is_lower_better:
                         # Below is GOOD for lower-is-better metrics
                         is_good = True
-                        delta_icon = "⬇️"  # Down arrow (good)
+                        delta_icon = "✅"  # Check mark (good - costs/time below benchmark)
                         delta_text = f"{delta_icon} Below vs {benchmark_formatted}"
                     else:
                         # Below is BAD for higher-is-better metrics
                         is_good = False
-                        delta_icon = "🔽"  # Down triangle (bad)
+                        delta_icon = "⚠️"  # Warning (bad - revenue/quality below benchmark)
                         delta_text = f"{delta_icon} Below vs {benchmark_formatted}"
                 elif status == 'Competitive':
                     is_good = True  # Competitive is neutral/good
-                    delta_icon = "➡️"
+                    delta_icon = "➡️"  # Right arrow (competitive/at benchmark)
                     delta_text = f"{delta_icon} Competitive vs {benchmark_formatted}"
                 else:
                     is_good = True
