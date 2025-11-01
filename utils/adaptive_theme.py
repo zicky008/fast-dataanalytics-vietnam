@@ -207,10 +207,14 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: 0 4px 6px var(--shadow-tooltip) !important;
 }
 
-/* Captions - Adaptive */
+/* Captions - Adaptive (chú thích dưới KPIs, deltas) */
 .stCaption,
 [data-testid="stCaption"],
-small {
+[data-testid="stCaptionContainer"],
+[data-testid="stMetricDelta"],
+small,
+.element-container small,
+.stMarkdown small {
     color: var(--text-secondary) !important;
 }
 
@@ -221,6 +225,74 @@ a {
 
 a:hover {
     color: var(--link-hover) !important;
+}
+
+/* ==================== COMPREHENSIVE TEXT SELECTORS ==================== */
+/* Đảm bảo TẤT CẢ text đều visible trong cả 2 modes */
+
+/* ALL labels (file names, button names, form labels) */
+label,
+[data-testid="stWidgetLabel"],
+.stSelectbox label,
+.stTextInput label,
+.stNumberInput label {
+    color: var(--text-primary) !important;
+}
+
+/* ALL paragraphs */
+p,
+.stMarkdown p {
+    color: var(--text-primary) !important;
+}
+
+/* ALL spans (file list, inline text) */
+span:not([data-testid="stMetricDelta"]) {
+    color: var(--text-primary) !important;
+}
+
+/* File names in upload lists */
+[data-testid="stFileUploader"] [data-testid="stMarkdownContainer"],
+[data-testid="stFileUploader"] [data-testid="stText"],
+ul li,
+ol li {
+    color: var(--text-primary) !important;
+}
+
+/* Button text (name of buttons) */
+button,
+button span,
+button p,
+[data-testid="stButton"] button,
+[data-testid="stDownloadButton"] button,
+[data-testid="stButton"] button span {
+    color: var(--text-primary) !important;
+}
+
+/* Input fields text */
+input,
+textarea,
+select,
+input::placeholder,
+textarea::placeholder {
+    color: var(--text-primary) !important;
+}
+
+/* Tooltips khi hover (chú thích trong icons) */
+[role="tooltip"],
+[role="tooltip"] *,
+.tooltip,
+.tooltip *,
+[data-testid="stTooltipContent"],
+[data-testid="stTooltipContent"] * {
+    color: var(--text-tooltip) !important;
+}
+
+/* Expander content text */
+[data-testid="stExpander"] p,
+[data-testid="stExpander"] span,
+[data-testid="stExpander"] div:not([data-testid]),
+[data-testid="stExpander"] label {
+    color: var(--text-primary) !important;
 }
 
 /* Focus Ring - Adaptive (Accessibility) */
