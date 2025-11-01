@@ -1399,6 +1399,11 @@ def main():
             quality_score = result['quality_scores']['overall']
             
             st.markdown('<div class="success-box">', unsafe_allow_html=True)
+            # 🐛 HOTFIX #6: Safe access to insights and domain_info (prevent KeyError)
+            insights_count = len(result.get('insights', {}).get('key_insights', []))
+            expert_role = result.get('domain_info', {}).get('expert_role', 'Data Expert')[:50]
+            charts_count = len(result.get('dashboard', {}).get('charts', []))
+            
             st.markdown(f"""
             ### {get_text('success_title', lang)}
             
@@ -1406,9 +1411,9 @@ def main():
             
             {get_text('success_quality', lang).format(score=quality_score)}
             
-            {get_text('success_charts', lang).format(count=len(result['dashboard']['charts']))}
+            {get_text('success_charts', lang).format(count=charts_count)}
             
-            {get_text('success_insights', lang).format(count=len(result['insights']['key_insights']), expert=result['domain_info']['expert_role'][:50])}
+            {get_text('success_insights', lang).format(count=insights_count, expert=expert_role)}
             
             {get_text('success_next', lang)}
             """)
