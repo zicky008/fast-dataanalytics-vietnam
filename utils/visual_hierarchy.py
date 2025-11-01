@@ -209,10 +209,10 @@ button[kind="secondary"]:hover {
 }
 
 /* ==================== SECTION HEADERS ==================== */
+/* Font sizes and spacing only - colors managed by config.toml */
 h1 {
     font-size: 32px !important;
     font-weight: 700 !important;
-    color: #1E293B !important;
     margin-bottom: 16px !important;
     letter-spacing: -0.02em !important;
 }
@@ -220,7 +220,6 @@ h1 {
 h2 {
     font-size: 24px !important;
     font-weight: 600 !important;
-    color: #334155 !important;
     margin-bottom: 12px !important;
     letter-spacing: -0.01em !important;
 }
@@ -228,7 +227,6 @@ h2 {
 h3 {
     font-size: 20px !important;
     font-weight: 600 !important;
-    color: #475569 !important;
     margin-bottom: 8px !important;
 }
 
@@ -276,10 +274,40 @@ h3 {
 }
 
 /* ==================== TEXT THEMING - MANAGED BY config.toml ==================== */
-/* PR #45: Removed all text color overrides to let config.toml apply naturally */
+/* PR #45: Removed all LIGHT THEME text color overrides to let config.toml apply */
 /* Reason: CSS !important flags were overriding config.toml textColor=#050505 */
-/* Result: config.toml handles all text theming → RGB(5,5,5) → 9:1 contrast → 5 stars */
-/* Keep only visual hierarchy (font sizes) - no color overrides */
+/* Result: config.toml handles light theme text → RGB(5,5,5) → 9:1 contrast → 5 stars */
+/* BUT: Keep dark mode KPI colors for visual distinction */
+
+/* ==================== DARK MODE KPI COLORS ==================== */
+/* CRITICAL: KPI colors for dark theme - DO NOT REMOVE! */
+/* These provide visual hierarchy for primary/secondary/tertiary metrics */
+@media (prefers-color-scheme: dark) {
+    /* Primary KPIs - Blue (most important) */
+    .kpi-primary [data-testid="stMetricValue"] {
+        color: #60A5FA !important;
+    }
+    
+    /* Secondary KPIs - Gray-blue (supporting metrics) */
+    .kpi-secondary [data-testid="stMetricValue"] {
+        color: #94A3B8 !important;
+    }
+    
+    /* Tertiary KPIs - Light gray (additional details) */
+    .kpi-tertiary [data-testid="stMetricValue"] {
+        color: #64748B !important;
+    }
+    
+    /* Default KPI value color in dark mode */
+    [data-testid="stMetricValue"] {
+        color: #E2E8F0 !important;
+    }
+    
+    /* Headers in dark mode */
+    h1, h2, h3, h4, h5, h6 {
+        color: #F1F5F9 !important;
+    }
+}
 
 /* ==================== ACCESSIBILITY (WCAG AA Compliance) ==================== */
 /* Ensure minimum contrast ratio of 4.5:1 for normal text */
