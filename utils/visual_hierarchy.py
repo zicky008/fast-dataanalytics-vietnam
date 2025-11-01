@@ -281,12 +281,12 @@ h3 {
 /* APPLIES TO: Default (light theme) - NO media query needed! */
 /* CRITICAL FIX: Remove @media query because Streamlit default theme doesn't trigger prefers-color-scheme */
 
-/* Upload tab: Sample file names - ENHANCE CONTRAST */
+/* Upload tab: Sample file names - MAXIMUM CONTRAST (CRITICAL - User's #1 complaint) */
 [data-testid="stFileUploader"] label,
 [data-testid="stFileUploader"] span,
 .uploadedFileName {
-    color: rgba(0, 0, 0, 0.92) !important;  /* Was 0.90 - now darker */
-    font-weight: 600 !important;  /* Was 500 - now bolder */
+    color: rgba(0, 0, 0, 0.98) !important;  /* Was 0.92 - MUCH darker for 5-star UX */
+    font-weight: 700 !important;  /* Was 600 - bolder for readability */
 }
 
 /* Upload tab: Processing status text - HIGH CONTRAST */
@@ -314,14 +314,14 @@ small {
 [data-testid="stSidebar"] p,
 [data-testid="stSidebar"] div[data-testid="stMarkdownContainer"],
 [data-testid="stSidebar"] div[data-testid="stMarkdownContainer"] p {
-    color: rgba(0, 0, 0, 0.92) !important;  /* Was 0.90 - darker */
-    font-weight: 600 !important;  /* Was 500 - bolder */
+    color: rgba(0, 0, 0, 0.96) !important;  /* Was 0.92 - darker for WCAG AAA */
+    font-weight: 700 !important;  /* Was 600 - bolder for better readability */
 }
 
 /* Dashboard tab: Section headers - MAXIMUM CONTRAST */
 h1, h2, h3, h4, h5, h6 {
-    color: rgba(0, 0, 0, 0.96) !important;  /* Was 0.95 - even darker */
-    font-weight: 700 !important;  /* Was 600 - maximum boldness */
+    color: rgba(0, 0, 0, 0.98) !important;  /* Was 0.96 - near-black for perfect readability */
+    font-weight: 800 !important;  /* Was 700 - maximum boldness for 5-star quality */
 }
 
 /* Dashboard tab: Export button labels - ENHANCE */
@@ -329,8 +329,8 @@ h1, h2, h3, h4, h5, h6 {
 [data-testid="stButton"] button p,
 [data-testid="stDownloadButton"] button,
 [data-testid="stDownloadButton"] button p {
-    color: rgba(0, 0, 0, 0.92) !important;  /* Was 0.90 - darker */
-    font-weight: 600 !important;  /* Was 500 - bolder */
+    color: rgba(0, 0, 0, 0.96) !important;  /* Was 0.92 - darker for better visibility */
+    font-weight: 700 !important;  /* Was 600 - bolder for professional look */
 }
 
 /* Dashboard tab: KPI labels - STRONGER TEXT */
