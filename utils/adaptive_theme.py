@@ -92,10 +92,10 @@ def inject_adaptive_theme_css():
         --text-tertiary: #94A3B8;   /* Slate 400 - 5:1 contrast */
         --text-muted: #64748B;      /* Slate 500 - subtle text */
         
-        /* Border Colors - More visible borders for dark bg (Fix #2) */
-        --border-light: #475569;    /* Slate 600 - more visible than 700 */
-        --border-medium: #64748B;   /* Slate 500 - brighter */
-        --border-strong: #94A3B8;   /* Slate 400 - even more visible */
+        /* Border Colors - Lighter borders for dark bg */
+        --border-light: #334155;    /* Slate 700 */
+        --border-medium: #475569;   /* Slate 600 */
+        --border-strong: #64748B;   /* Slate 500 */
         
         /* Background Colors */
         --bg-primary: #0E1117;      /* Streamlit dark */
