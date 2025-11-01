@@ -81,6 +81,86 @@ inject_visual_hierarchy_css()
 log_perf("COMPLETE: Visual hierarchy CSS injected (36px/28px/20px)")
 
 # ============================================
+# INLINE CSS - 5-STAR UX FIX (CRITICAL)
+# ============================================
+# WHY INLINE: Bypass potential cache/load-order issues with visual_hierarchy.py
+# SCOPE: Only CRITICAL light theme contrast fixes (WCAG AAA 7:1 ratio)
+# PROTECTION: Dark mode @media query to prevent breaking dark theme
+log_perf("START: Inline critical CSS for 5-star light theme")
+
+st.markdown("""
+<style>
+/* ============================================================
+   CRITICAL 5-STAR UX FIXES - LIGHT THEME ONLY
+   User feedback: "không đạt yêu cầu" - text too faded
+   Solution: Increase opacity to 0.96-0.98 for WCAG AAA (7:1)
+   ============================================================ */
+
+/* 1. Sample file names - HIGHEST PRIORITY (User's #1 complaint) */
+[data-testid="stFileUploader"] label,
+[data-testid="stFileUploader"] span,
+.uploadedFileName {
+    color: rgba(0, 0, 0, 0.98) !important;
+    font-weight: 700 !important;
+}
+
+/* 2. Sidebar labels (Language/Theme selectors) - CRITICAL */
+[data-testid="stSidebar"] label,
+[data-testid="stSidebar"] span,
+[data-testid="stSidebar"] p,
+[data-testid="stSidebar"] div[data-testid="stMarkdownContainer"] p {
+    color: rgba(0, 0, 0, 0.96) !important;
+    font-weight: 700 !important;
+}
+
+/* 3. Section headers - MAXIMUM CONTRAST */
+h1, h2, h3, h4, h5, h6 {
+    color: rgba(0, 0, 0, 0.98) !important;
+    font-weight: 800 !important;
+}
+
+/* 4. Captions - USER COMPLAINT: "washed out" */
+.stCaption,
+[data-testid="stCaption"],
+small {
+    color: rgba(0, 0, 0, 0.88) !important;
+    font-weight: 500 !important;
+}
+
+/* 5. Drag & drop text - CRITICAL */
+[data-testid="stFileUploader"] [data-testid="stMarkdownContainer"] p {
+    color: rgba(0, 0, 0, 0.88) !important;
+    font-weight: 600 !important;
+}
+
+/* ============================================================
+   DARK MODE PROTECTION - CRITICAL!
+   Reset all above rules for dark theme to prevent breakage
+   ============================================================ */
+@media (prefers-color-scheme: dark) {
+    /* Reset all light theme overrides */
+    [data-testid="stFileUploader"] label,
+    [data-testid="stFileUploader"] span,
+    .uploadedFileName,
+    [data-testid="stSidebar"] label,
+    [data-testid="stSidebar"] span,
+    [data-testid="stSidebar"] p,
+    [data-testid="stSidebar"] div[data-testid="stMarkdownContainer"] p,
+    h1, h2, h3, h4, h5, h6,
+    .stCaption,
+    [data-testid="stCaption"],
+    small,
+    [data-testid="stFileUploader"] [data-testid="stMarkdownContainer"] p {
+        color: inherit !important;
+        font-weight: inherit !important;
+    }
+}
+</style>
+""", unsafe_allow_html=True)
+
+log_perf("COMPLETE: Inline critical CSS applied (5 elements, dark mode protected)")
+
+# ============================================
 # PROGRESSIVE DISCLOSURE (Week 1, Day 3-4 - WrenAI Pattern)
 # ============================================
 log_perf("START: Progressive disclosure initialization")
