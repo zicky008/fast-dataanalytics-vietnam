@@ -230,23 +230,29 @@ a:hover {
 /* ==================== COMPREHENSIVE TEXT SELECTORS ==================== */
 /* Đảm bảo TẤT CẢ text đều visible trong cả 2 modes */
 
-/* ALL labels (file names, button names, form labels) */
-label,
+/* Main content labels (file names, button names, form labels) */
+[data-testid="stAppViewContainer"] label,
+[data-testid="stMainBlockContainer"] label,
 [data-testid="stWidgetLabel"],
 .stSelectbox label,
 .stTextInput label,
-.stNumberInput label {
+.stNumberInput label,
+.stFileUploader label {
     color: var(--text-primary) !important;
 }
 
-/* ALL paragraphs */
-p,
-.stMarkdown p {
+/* Main content paragraphs ONLY (not all p tags!) */
+[data-testid="stAppViewContainer"] p,
+[data-testid="stMainBlockContainer"] p,
+.stMarkdown p,
+.element-container p {
     color: var(--text-primary) !important;
 }
 
-/* ALL spans (file list, inline text) */
-span:not([data-testid="stMetricDelta"]) {
+/* Main content spans ONLY (not all spans!) */
+[data-testid="stAppViewContainer"] span:not([data-testid="stMetricDelta"]),
+[data-testid="stMainBlockContainer"] span:not([data-testid="stMetricDelta"]),
+.element-container span:not([data-testid="stMetricDelta"]) {
     color: var(--text-primary) !important;
 }
 
@@ -258,22 +264,22 @@ ol li {
     color: var(--text-primary) !important;
 }
 
-/* Button text (name of buttons) */
-button,
-button span,
-button p,
+/* Button text (name of buttons) - scoped to main content */
+[data-testid="stAppViewContainer"] button,
+[data-testid="stAppViewContainer"] button span,
+[data-testid="stAppViewContainer"] button p,
 [data-testid="stButton"] button,
 [data-testid="stDownloadButton"] button,
 [data-testid="stButton"] button span {
     color: var(--text-primary) !important;
 }
 
-/* Input fields text */
-input,
-textarea,
-select,
-input::placeholder,
-textarea::placeholder {
+/* Input fields text - scoped to main content */
+[data-testid="stAppViewContainer"] input,
+[data-testid="stAppViewContainer"] textarea,
+[data-testid="stAppViewContainer"] select,
+[data-testid="stAppViewContainer"] input::placeholder,
+[data-testid="stAppViewContainer"] textarea::placeholder {
     color: var(--text-primary) !important;
 }
 
