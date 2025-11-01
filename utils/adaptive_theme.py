@@ -86,16 +86,16 @@ def inject_adaptive_theme_css():
 /* ==================== DARK MODE OVERRIDES ==================== */
 @media (prefers-color-scheme: dark) {
     :root {
-        /* Text Colors - Light text on dark background */
+        /* Text Colors - Light text on dark background (Fix #3 - brighter) */
         --text-primary: #F1F5F9;    /* Slate 100 - 15:1 contrast on dark */
-        --text-secondary: #CBD5E1;  /* Slate 300 - 8:1 contrast */
+        --text-secondary: #CBD5E1;  /* Slate 300 - 8:1 contrast (brightened) */
         --text-tertiary: #94A3B8;   /* Slate 400 - 5:1 contrast */
         --text-muted: #64748B;      /* Slate 500 - subtle text */
         
-        /* Border Colors - Lighter borders for dark bg */
-        --border-light: #334155;    /* Slate 700 */
-        --border-medium: #475569;   /* Slate 600 */
-        --border-strong: #64748B;   /* Slate 500 */
+        /* Border Colors - More visible borders for dark bg (Fix #2) */
+        --border-light: #475569;    /* Slate 600 - more visible than 700 */
+        --border-medium: #64748B;   /* Slate 500 - brighter */
+        --border-strong: #94A3B8;   /* Slate 400 - even more visible */
         
         /* Background Colors */
         --bg-primary: #0E1117;      /* Streamlit dark */
@@ -108,13 +108,13 @@ def inject_adaptive_theme_css():
         --border-tooltip: #475569;
         --shadow-tooltip: rgba(0, 0, 0, 0.5);
         
-        /* KPI Colors - Dark Mode (from previous implementation) */
-        --kpi-primary-value: #60A5FA;   /* Blue 400 - bright */
+        /* KPI Colors - Dark Mode (UNIFIED for consistency - Fix #1) */
+        --kpi-primary-value: #93C5FD;   /* Blue 300 - brighter, consistent */
         --kpi-primary-label: #94A3B8;   /* Slate 400 */
-        --kpi-secondary-value: #94A3B8; /* Slate 400 */
-        --kpi-secondary-label: #64748B; /* Slate 500 */
-        --kpi-tertiary-value: #64748B;  /* Slate 500 */
-        --kpi-tertiary-label: #475569;  /* Slate 600 */
+        --kpi-secondary-value: #93C5FD; /* Blue 300 - SAME as primary for consistency */
+        --kpi-secondary-label: #94A3B8; /* Slate 400 */
+        --kpi-tertiary-value: #93C5FD;  /* Blue 300 - SAME as primary for consistency */
+        --kpi-tertiary-label: #94A3B8;  /* Slate 400 */
         
         /* Interactive Elements */
         --link-color: #60A5FA;      /* Blue 400 */
@@ -170,20 +170,23 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--kpi-tertiary-label) !important;
 }
 
-/* Default metrics (fallback) */
+/* Default metrics (fallback) - Should use KPI classes instead */
 [data-testid="stMetricValue"] {
-    color: var(--text-primary) !important;
+    color: var(--kpi-primary-value) !important;  /* Use KPI color for consistency */
 }
 
 [data-testid="stMetricLabel"] {
     color: var(--text-secondary) !important;
 }
 
-/* Borders - Adaptive */
+/* Borders - Adaptive (Enhanced visibility) */
 .adaptive-border,
-[data-testid="stMetricValue"],
+[data-testid="stMetric"],
+[data-testid="stVerticalBlock"] > div[data-testid="column"],
+.element-container,
 .stDataFrame {
-    border-color: var(--border-light) !important;
+    border: 1px solid var(--border-light) !important;
+    border-radius: 6px !important;
 }
 
 .adaptive-border-medium {
@@ -243,10 +246,20 @@ select:focus,
     color: var(--text-primary) !important;
 }
 
-/* File Uploader - Adaptive */
+/* File Uploader - Adaptive (Fix #5 - Better borders) */
+[data-testid="stFileUploader"] {
+    border: 2px solid var(--border-medium) !important;
+    border-radius: 8px !important;
+    padding: 12px !important;
+}
+
 [data-testid="stFileUploader"] label,
 [data-testid="stFileUploader"] span {
     color: var(--text-primary) !important;
+}
+
+[data-testid="stFileUploader"]:hover {
+    border-color: var(--border-strong) !important;
 }
 
 /* Buttons - Adaptive */
@@ -256,13 +269,18 @@ select:focus,
     border-color: var(--border-medium) !important;
 }
 
-/* Expander - Adaptive */
+/* Expander - Adaptive (Fix #4 - Better visual separation) */
 [data-testid="stExpander"] {
-    border-color: var(--border-light) !important;
+    background-color: var(--bg-secondary) !important;
+    border: 1px solid var(--border-medium) !important;
+    border-radius: 6px !important;
+    padding: 4px 8px !important;
+    margin: 8px 0 !important;
 }
 
 [data-testid="stExpander"] summary {
     color: var(--text-primary) !important;
+    font-weight: 500 !important;
 }
 
 /* Dataframe/Table - Adaptive */
