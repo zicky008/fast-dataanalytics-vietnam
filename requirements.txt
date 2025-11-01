@@ -48,4 +48,4 @@ python-pptx>=0.6.21
 # pytest-cov>=4.1.0
 # black>=23.0.0
 # flake8>=6.0.0
-# Updated: 2025-10-31_19:58:00 - Force rebuild for PR #37 deployment (global CSS fix)
+# Updated: 2025-11-01_07:45:00 - CRITICAL: Force rebuild for border revert (commit afb2fb3)
