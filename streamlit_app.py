@@ -91,66 +91,128 @@ log_perf("START: Inline critical CSS for 5-star light theme")
 st.markdown("""
 <style>
 /* ============================================================
-   CRITICAL 5-STAR UX FIXES - LIGHT THEME ONLY
+   CRITICAL 5-STAR UX FIXES - LIGHT THEME ONLY (STRENGTHENED)
    User feedback: "không đạt yêu cầu" - text too faded
    Solution: Increase opacity to 0.96-0.98 for WCAG AAA (7:1)
+   PR #41 Result: 3/5 stars (Captions+Drag-drop fixed, need more)
+   This update: MORE SPECIFIC selectors for remaining 3 elements
    ============================================================ */
 
-/* 1. Sample file names - HIGHEST PRIORITY (User's #1 complaint) */
+/* 1. Sample file names - HIGHEST PRIORITY (STRENGTHENED with multiple selectors) */
+/* Target ALL possible file uploader text elements */
 [data-testid="stFileUploader"] label,
 [data-testid="stFileUploader"] span,
-.uploadedFileName {
+[data-testid="stFileUploader"] p,
+[data-testid="stFileUploader"] div,
+.uploadedFileName,
+section[data-testid="stFileUploader"] label,
+section[data-testid="stFileUploader"] span,
+section[data-testid="stFileUploader"] p,
+/* Also target by class names that Streamlit uses */
+.st-emotion-cache-label,
+.uploadedFile label,
+.uploadedFile span,
+/* Nuclear option: All text in file uploader area */
+[data-testid="stFileUploader"] * {
     color: rgba(0, 0, 0, 0.98) !important;
     font-weight: 700 !important;
 }
 
-/* 2. Sidebar labels (Language/Theme selectors) - CRITICAL */
-[data-testid="stSidebar"] label,
-[data-testid="stSidebar"] span,
-[data-testid="stSidebar"] p,
-[data-testid="stSidebar"] div[data-testid="stMarkdownContainer"] p {
+/* 2. Sidebar labels - CRITICAL (STRENGTHENED with cascading selectors) */
+/* Target sidebar container and ALL children */
+[data-testid="stSidebar"],
+[data-testid="stSidebar"] *,
+section[data-testid="stSidebar"] label,
+section[data-testid="stSidebar"] span,
+section[data-testid="stSidebar"] p,
+section[data-testid="stSidebar"] div,
+/* Specific Streamlit sidebar classes */
+.css-sidebar label,
+.css-sidebar span,
+aside label,
+aside span,
+aside p,
+/* Selectbox and radio button labels */
+[data-testid="stSidebar"] [data-baseweb="select"] *,
+[data-testid="stSidebar"] [role="radiogroup"] label,
+[data-testid="stSidebar"] div[data-testid="stMarkdownContainer"] *,
+[data-testid="stSidebar"] .st-emotion-cache-label {
     color: rgba(0, 0, 0, 0.96) !important;
     font-weight: 700 !important;
 }
 
-/* 3. Section headers - MAXIMUM CONTRAST */
-h1, h2, h3, h4, h5, h6 {
+/* 3. Section headers - MAXIMUM CONTRAST (STRENGTHENED - all locations) */
+/* Headers in main content */
+h1, h2, h3, h4, h5, h6,
+.main h1, .main h2, .main h3,
+[data-testid="stMarkdownContainer"] h1,
+[data-testid="stMarkdownContainer"] h2,
+[data-testid="stMarkdownContainer"] h3,
+/* App title specifically */
+.main-header,
+.logo-container + div h1,
+/* All bold text that might be headers */
+.stMarkdown h1, .stMarkdown h2, .stMarkdown h3,
+div[data-testid="stVerticalBlock"] > div > div > h1,
+div[data-testid="stVerticalBlock"] > div > div > h2 {
     color: rgba(0, 0, 0, 0.98) !important;
     font-weight: 800 !important;
 }
 
-/* 4. Captions - USER COMPLAINT: "washed out" */
+/* 4. Captions - USER COMPLAINT: "washed out" (WORKING - keep as is) */
 .stCaption,
 [data-testid="stCaption"],
-small {
+small,
+.caption,
+[data-testid="stCaptionContainer"] {
     color: rgba(0, 0, 0, 0.88) !important;
     font-weight: 500 !important;
 }
 
-/* 5. Drag & drop text - CRITICAL */
-[data-testid="stFileUploader"] [data-testid="stMarkdownContainer"] p {
+/* 5. Drag & drop text - CRITICAL (WORKING - keep as is) */
+[data-testid="stFileUploader"] [data-testid="stMarkdownContainer"] p,
+[data-testid="stFileUploadDropzone"] p,
+[data-testid="stFileUploadDropzone"] span {
     color: rgba(0, 0, 0, 0.88) !important;
     font-weight: 600 !important;
 }
 
+/* 6. ADDITIONAL: All body text for comprehensive coverage */
+/* Catch-all for any remaining light text */
+.main p,
+.element-container p,
+div[data-testid="stMarkdownContainer"] p {
+    color: rgba(0, 0, 0, 0.92) !important;
+}
+
+/* 7. ADDITIONAL: Button text - ensure visibility */
+button, button span, button p,
+[data-testid="stButton"] button,
+[data-testid="stButton"] button *,
+[data-testid="stDownloadButton"] button,
+[data-testid="stDownloadButton"] button * {
+    color: rgba(0, 0, 0, 0.96) !important;
+    font-weight: 700 !important;
+}
+
 /* ============================================================
-   DARK MODE PROTECTION - CRITICAL!
+   DARK MODE PROTECTION - CRITICAL! (EXPANDED)
    Reset all above rules for dark theme to prevent breakage
    ============================================================ */
 @media (prefers-color-scheme: dark) {
-    /* Reset all light theme overrides */
-    [data-testid="stFileUploader"] label,
-    [data-testid="stFileUploader"] span,
-    .uploadedFileName,
-    [data-testid="stSidebar"] label,
-    [data-testid="stSidebar"] span,
-    [data-testid="stSidebar"] p,
-    [data-testid="stSidebar"] div[data-testid="stMarkdownContainer"] p,
+    /* Reset ALL light theme overrides - comprehensive list */
+    [data-testid="stFileUploader"] *,
+    [data-testid="stSidebar"] *,
+    section[data-testid="stFileUploader"] *,
+    section[data-testid="stSidebar"] *,
+    aside *, aside label, aside span, aside p,
     h1, h2, h3, h4, h5, h6,
-    .stCaption,
-    [data-testid="stCaption"],
-    small,
-    [data-testid="stFileUploader"] [data-testid="stMarkdownContainer"] p {
+    .main h1, .main h2, .main h3,
+    .stCaption, [data-testid="stCaption"], small,
+    .main p, .element-container p,
+    button, button *, [data-testid="stButton"] button *,
+    [data-testid="stDownloadButton"] button *,
+    div[data-testid="stMarkdownContainer"] * {
         color: inherit !important;
         font-weight: inherit !important;
     }
