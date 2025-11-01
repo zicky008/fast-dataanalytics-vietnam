@@ -278,83 +278,107 @@ h3 {
 /* ==================== LIGHT THEME TEXT CONTRAST ENHANCEMENT ==================== */
 /* USER FEEDBACK: Light theme text too faded, not 5-star quality */
 /* TARGET: WCAG AAA compliance (7:1 contrast ratio) */
-/* APPLIES TO: Light theme ONLY (prefers-color-scheme: light OR default) */
+/* APPLIES TO: Default (light theme) - NO media query needed! */
+/* CRITICAL FIX: Remove @media query because Streamlit default theme doesn't trigger prefers-color-scheme */
 
-@media (prefers-color-scheme: light), (prefers-color-scheme: no-preference) {
-    /* Upload tab: Sample file names - ENHANCE CONTRAST */
-    [data-testid="stFileUploader"] label,
-    [data-testid="stFileUploader"] span,
-    .uploadedFileName {
-        color: rgba(0, 0, 0, 0.92) !important;  /* Was 0.90 - now darker */
-        font-weight: 600 !important;  /* Was 500 - now bolder */
-    }
-    
-    /* Upload tab: Processing status text - HIGH CONTRAST */
-    .stSuccess,
-    .stSuccess > div,
-    .stSuccess p,
-    .stInfo,
-    .stInfo > div,
-    .stInfo p {
-        color: rgba(0, 0, 0, 0.92) !important;  /* Was 0.90 - now darker */
-        font-weight: 600 !important;  /* Was 500 - bolder */
-    }
-    
-    /* Upload tab + Dashboard: Captions - CRITICAL FIX (user reported "washed out") */
-    .stCaption,
-    [data-testid="stCaption"],
-    small {
-        color: rgba(0, 0, 0, 0.88) !important;  /* Was 0.75 - MUCH darker now (+17%) */
-        font-weight: 500 !important;  /* Was 450 - stronger */
-    }
-    
-    /* Sidebar: Language and theme selector - CRITICAL FIX */
-    [data-testid="stSidebar"] label,
-    [data-testid="stSidebar"] span,
-    [data-testid="stSidebar"] p,
-    [data-testid="stSidebar"] div[data-testid="stMarkdownContainer"],
-    [data-testid="stSidebar"] div[data-testid="stMarkdownContainer"] p {
-        color: rgba(0, 0, 0, 0.92) !important;  /* Was 0.90 - darker */
-        font-weight: 600 !important;  /* Was 500 - bolder */
-    }
-    
-    /* Dashboard tab: Section headers - MAXIMUM CONTRAST */
-    h1, h2, h3, h4, h5, h6 {
-        color: rgba(0, 0, 0, 0.96) !important;  /* Was 0.95 - even darker */
-        font-weight: 700 !important;  /* Was 600 - maximum boldness */
-    }
-    
-    /* Dashboard tab: Export button labels - ENHANCE */
-    [data-testid="stButton"] button,
-    [data-testid="stButton"] button p,
-    [data-testid="stDownloadButton"] button,
-    [data-testid="stDownloadButton"] button p {
-        color: rgba(0, 0, 0, 0.92) !important;  /* Was 0.90 - darker */
-        font-weight: 600 !important;  /* Was 500 - bolder */
-    }
-    
-    /* Dashboard tab: KPI labels - STRONGER TEXT */
-    [data-testid="stMetricLabel"] {
-        color: rgba(0, 0, 0, 0.90) !important;  /* Was 0.85 - darker */
-        font-weight: 600 !important;  /* Was 500 - bolder */
-    }
-    
-    /* Dashboard tab: KPI values - CRISP & CLEAR */
-    [data-testid="stMetricValue"] {
-        color: rgba(0, 0, 0, 0.96) !important;  /* Was 0.95 - slightly darker */
-        font-weight: 700 !important;  /* Was 650 - bolder */
-    }
-    
-    /* KPI delta text (status icons) - ENSURE VISIBILITY */
-    [data-testid="stMetricDelta"],
-    [data-testid="stMetricDelta"] > div {
-        color: rgba(0, 0, 0, 0.92) !important;  /* Was 0.85 - much darker */
-        font-weight: 600 !important;  /* Was 550 - bolder */
-    }
+/* Upload tab: Sample file names - ENHANCE CONTRAST */
+[data-testid="stFileUploader"] label,
+[data-testid="stFileUploader"] span,
+.uploadedFileName {
+    color: rgba(0, 0, 0, 0.92) !important;  /* Was 0.90 - now darker */
+    font-weight: 600 !important;  /* Was 500 - now bolder */
+}
+
+/* Upload tab: Processing status text - HIGH CONTRAST */
+.stSuccess,
+.stSuccess > div,
+.stSuccess p,
+.stInfo,
+.stInfo > div,
+.stInfo p {
+    color: rgba(0, 0, 0, 0.92) !important;  /* Was 0.90 - now darker */
+    font-weight: 600 !important;  /* Was 500 - bolder */
+}
+
+/* Upload tab + Dashboard: Captions - CRITICAL FIX (user reported "washed out") */
+.stCaption,
+[data-testid="stCaption"],
+small {
+    color: rgba(0, 0, 0, 0.88) !important;  /* Was 0.75 - MUCH darker now (+17%) */
+    font-weight: 500 !important;  /* Was 450 - stronger */
+}
+
+/* Sidebar: Language and theme selector - CRITICAL FIX */
+[data-testid="stSidebar"] label,
+[data-testid="stSidebar"] span,
+[data-testid="stSidebar"] p,
+[data-testid="stSidebar"] div[data-testid="stMarkdownContainer"],
+[data-testid="stSidebar"] div[data-testid="stMarkdownContainer"] p {
+    color: rgba(0, 0, 0, 0.92) !important;  /* Was 0.90 - darker */
+    font-weight: 600 !important;  /* Was 500 - bolder */
+}
+
+/* Dashboard tab: Section headers - MAXIMUM CONTRAST */
+h1, h2, h3, h4, h5, h6 {
+    color: rgba(0, 0, 0, 0.96) !important;  /* Was 0.95 - even darker */
+    font-weight: 700 !important;  /* Was 600 - maximum boldness */
+}
+
+/* Dashboard tab: Export button labels - ENHANCE */
+[data-testid="stButton"] button,
+[data-testid="stButton"] button p,
+[data-testid="stDownloadButton"] button,
+[data-testid="stDownloadButton"] button p {
+    color: rgba(0, 0, 0, 0.92) !important;  /* Was 0.90 - darker */
+    font-weight: 600 !important;  /* Was 500 - bolder */
+}
+
+/* Dashboard tab: KPI labels - STRONGER TEXT */
+[data-testid="stMetricLabel"] {
+    color: rgba(0, 0, 0, 0.90) !important;  /* Was 0.85 - darker */
+    font-weight: 600 !important;  /* Was 500 - bolder */
+}
+
+/* Dashboard tab: KPI values - CRISP & CLEAR */
+[data-testid="stMetricValue"] {
+    color: rgba(0, 0, 0, 0.96) !important;  /* Was 0.95 - slightly darker */
+    font-weight: 700 !important;  /* Was 650 - bolder */
+}
+
+/* KPI delta text (status icons) - ENSURE VISIBILITY */
+[data-testid="stMetricDelta"],
+[data-testid="stMetricDelta"] > div {
+    color: rgba(0, 0, 0, 0.92) !important;  /* Was 0.85 - much darker */
+    font-weight: 600 !important;  /* Was 550 - bolder */
 }
 
 /* ==================== DARK MODE SUPPORT ==================== */
+/* CRITICAL: Override light theme CSS for dark mode */
 @media (prefers-color-scheme: dark) {
+    /* Reset light theme text colors for dark mode */
+    [data-testid="stFileUploader"] label,
+    [data-testid="stFileUploader"] span,
+    .uploadedFileName,
+    .stSuccess, .stSuccess > div, .stSuccess p,
+    .stInfo, .stInfo > div, .stInfo p,
+    .stCaption, [data-testid="stCaption"], small,
+    [data-testid="stSidebar"] label,
+    [data-testid="stSidebar"] span,
+    [data-testid="stSidebar"] p,
+    [data-testid="stButton"] button,
+    [data-testid="stButton"] button p,
+    [data-testid="stDownloadButton"] button,
+    [data-testid="stDownloadButton"] button p,
+    [data-testid="stMetricLabel"],
+    [data-testid="stMetricDelta"],
+    [data-testid="stMetricDelta"] > div {
+        color: inherit !important;  /* Use Streamlit's dark theme colors */
+    }
+    
+    h1, h2, h3, h4, h5, h6 {
+        color: #F1F5F9 !important;  /* Light text for dark backgrounds */
+    }
+    
     .kpi-primary [data-testid="stMetricValue"] {
         color: #60A5FA !important;
     }
@@ -367,8 +391,8 @@ h3 {
         color: #64748B !important;
     }
     
-    h1, h2, h3 {
-        color: #F1F5F9 !important;
+    [data-testid="stMetricValue"] {
+        color: #E2E8F0 !important;  /* Default light color for dark mode */
     }
 }
 
