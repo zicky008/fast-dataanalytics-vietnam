@@ -78,10 +78,11 @@ VISUAL_HIERARCHY_CSS = """
 }
 
 /* ==================== PRIMARY KPIs (Top 3 Most Important) ==================== */
+/* NOTE: Colors now managed by adaptive_theme.py CSS variables */
 .kpi-primary [data-testid="stMetricValue"] {
     font-size: 36px !important;
     font-weight: 700 !important;
-    color: #3B82F6 !important;
+    /* color: Managed by adaptive_theme.py var(--kpi-primary-value) */
     line-height: 1.2 !important;
     letter-spacing: -0.02em !important;
 }
@@ -91,7 +92,7 @@ VISUAL_HIERARCHY_CSS = """
     font-weight: 600 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.05em !important;
-    color: #64748B !important;
+    /* color: Managed by adaptive_theme.py var(--kpi-primary-label) */
     margin-bottom: 4px !important;
 }
 
@@ -101,10 +102,11 @@ VISUAL_HIERARCHY_CSS = """
 }
 
 /* ==================== SECONDARY KPIs (Supporting Metrics) ==================== */
+/* NOTE: Colors now managed by adaptive_theme.py CSS variables */
 .kpi-secondary [data-testid="stMetricValue"] {
     font-size: 28px !important;
     font-weight: 600 !important;
-    color: #64748B !important;
+    /* color: Managed by adaptive_theme.py var(--kpi-secondary-value) */
     line-height: 1.3 !important;
     letter-spacing: -0.01em !important;
 }
@@ -112,7 +114,7 @@ VISUAL_HIERARCHY_CSS = """
 .kpi-secondary [data-testid="stMetricLabel"] {
     font-size: 13px !important;
     font-weight: 500 !important;
-    color: #94A3B8 !important;
+    /* color: Managed by adaptive_theme.py var(--kpi-secondary-label) */
 }
 
 .kpi-secondary [data-testid="stMetricDelta"] {
@@ -121,17 +123,18 @@ VISUAL_HIERARCHY_CSS = """
 }
 
 /* ==================== TERTIARY KPIs (Additional Details) ==================== */
+/* NOTE: Colors now managed by adaptive_theme.py CSS variables */
 .kpi-tertiary [data-testid="stMetricValue"] {
     font-size: 20px !important;
     font-weight: 500 !important;
-    color: #94A3B8 !important;
+    /* color: Managed by adaptive_theme.py var(--kpi-tertiary-value) */
     line-height: 1.4 !important;
 }
 
 .kpi-tertiary [data-testid="stMetricLabel"] {
     font-size: 12px !important;
     font-weight: 400 !important;
-    color: #CBD5E1 !important;
+    /* color: Managed by adaptive_theme.py var(--kpi-tertiary-label) */
 }
 
 .kpi-tertiary [data-testid="stMetricDelta"] {
